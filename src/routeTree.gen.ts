@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgendaRouteImport } from './routes/agenda'
+import { Route as AtendimentoRouteImport } from './routes/atendimento'
 import { Route as OperacaoRouteImport } from './routes/operacao'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
@@ -18,6 +20,16 @@ import { Route as SolicitacoesIdRouteImport } from './routes/solicitacoes.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgendaRoute = AgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtendimentoRoute = AtendimentoRouteImport.update({
+  id: '/atendimento',
+  path: '/atendimento',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OperacaoRoute = OperacaoRouteImport.update({
@@ -43,6 +55,8 @@ const SolicitacoesIdRoute = SolicitacoesIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
+  '/atendimento': typeof AtendimentoRoute
   '/operacao': typeof OperacaoRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
@@ -50,6 +64,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
+  '/atendimento': typeof AtendimentoRoute
   '/operacao': typeof OperacaoRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
@@ -58,6 +74,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
+  '/atendimento': typeof AtendimentoRoute
   '/operacao': typeof OperacaoRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
@@ -66,12 +84,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/operacao' | '/clientes/$id' | '/solicitacoes/$id' | '/clientes/'
+    | '/'
+    | '/agenda'
+    | '/atendimento'
+    | '/operacao'
+    | '/clientes/$id'
+    | '/solicitacoes/$id'
+    | '/clientes/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/operacao' | '/clientes/$id' | '/solicitacoes/$id' | '/clientes'
+  to:
+    | '/'
+    | '/agenda'
+    | '/atendimento'
+    | '/operacao'
+    | '/clientes/$id'
+    | '/solicitacoes/$id'
+    | '/clientes'
   id:
     | '__root__'
     | '/'
+    | '/agenda'
+    | '/atendimento'
     | '/operacao'
     | '/clientes/$id'
     | '/solicitacoes/$id'
@@ -80,6 +113,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgendaRoute: typeof AgendaRoute
+  AtendimentoRoute: typeof AtendimentoRoute
   OperacaoRoute: typeof OperacaoRoute
   ClientesIdRoute: typeof ClientesIdRoute
   SolicitacoesIdRoute: typeof SolicitacoesIdRoute
@@ -93,6 +128,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agenda': {
+      id: '/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AgendaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atendimento': {
+      id: '/atendimento'
+      path: '/atendimento'
+      fullPath: '/atendimento'
+      preLoaderRoute: typeof AtendimentoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/operacao': {
@@ -128,6 +177,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgendaRoute: AgendaRoute,
+  AtendimentoRoute: AtendimentoRoute,
   OperacaoRoute: OperacaoRoute,
   ClientesIdRoute: ClientesIdRoute,
   SolicitacoesIdRoute: SolicitacoesIdRoute,
