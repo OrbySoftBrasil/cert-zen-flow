@@ -159,8 +159,8 @@ export const agents: Agent[] = [
   { id: "a5", nome: "Helena Prado", iniciais: "HP", papel: "Compliance", emissoes: 41, tempoMedioMin: 44 },
 ];
 
-export function agentById(id: string) {
-  return agents.find((a) => a.id === id) ?? agents[0];
+export function agentById(id: string): Agent {
+  return agents.find((a) => a.id === id) ?? (agents[0] as Agent);
 }
 
 const hoje = new Date();
