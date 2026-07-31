@@ -27,15 +27,15 @@ import {
 import { cn } from "@/lib/utils";
 import { clients, requests } from "@/lib/mock-data";
 
-const nav: { to: string; label: string; icon: typeof Users; exact?: boolean }[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+const nav = [
+  { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/operacao", label: "Operação", icon: KanbanSquare },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/atendimento", label: "Atendimento IA", icon: MessagesSquare },
   { to: "/agenda", label: "Agenda", icon: CalendarClock },
   { to: "/renovacoes", label: "Renovações", icon: RefreshCw },
   { to: "/conformidade", label: "Conformidade", icon: ShieldCheck },
-];
+] as const;
 
 export function AppShell({
   title,
