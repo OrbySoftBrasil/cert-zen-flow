@@ -87,7 +87,7 @@ export function AppShell({
 
         <nav className="flex-1 space-y-0.5 p-2">
           {nav.map((item) => {
-            const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+            const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
             return (
               <Link
                 key={item.to}
