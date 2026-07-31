@@ -14,7 +14,10 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as ConformidadeRouteImport } from './routes/conformidade'
 import { Route as OperacaoRouteImport } from './routes/operacao'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as RenovacoesRouteImport } from './routes/renovacoes'
+import { Route as ChamadosIndexRouteImport } from './routes/chamados.index'
+import { Route as ChamadosIdRouteImport } from './routes/chamados.$id'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as SolicitacoesIdRouteImport } from './routes/solicitacoes.$id'
@@ -44,9 +47,24 @@ const OperacaoRoute = OperacaoRouteImport.update({
   path: '/operacao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RenovacoesRoute = RenovacoesRouteImport.update({
   id: '/renovacoes',
   path: '/renovacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChamadosIndexRoute = ChamadosIndexRouteImport.update({
+  id: '/chamados/',
+  path: '/chamados/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChamadosIdRoute = ChamadosIdRouteImport.update({
+  id: '/chamados/$id',
+  path: '/chamados/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientesIndexRoute = ClientesIndexRouteImport.update({
@@ -71,9 +89,12 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
+  '/portal': typeof PortalRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
+  '/chamados/': typeof ChamadosIndexRoute
   '/clientes/': typeof ClientesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -82,9 +103,12 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
+  '/portal': typeof PortalRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
+  '/chamados': typeof ChamadosIndexRoute
   '/clientes': typeof ClientesIndexRoute
 }
 export interface FileRoutesById {
@@ -94,9 +118,12 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
+  '/portal': typeof PortalRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
+  '/chamados/': typeof ChamadosIndexRoute
   '/clientes/': typeof ClientesIndexRoute
 }
 export interface FileRouteTypes {
@@ -107,9 +134,12 @@ export interface FileRouteTypes {
     | '/chat'
     | '/conformidade'
     | '/operacao'
+    | '/portal'
     | '/renovacoes'
+    | '/chamados/$id'
     | '/clientes/$id'
     | '/solicitacoes/$id'
+    | '/chamados/'
     | '/clientes/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -118,9 +148,12 @@ export interface FileRouteTypes {
     | '/chat'
     | '/conformidade'
     | '/operacao'
+    | '/portal'
     | '/renovacoes'
+    | '/chamados/$id'
     | '/clientes/$id'
     | '/solicitacoes/$id'
+    | '/chamados'
     | '/clientes'
   id:
     | '__root__'
@@ -129,9 +162,12 @@ export interface FileRouteTypes {
     | '/chat'
     | '/conformidade'
     | '/operacao'
+    | '/portal'
     | '/renovacoes'
+    | '/chamados/$id'
     | '/clientes/$id'
     | '/solicitacoes/$id'
+    | '/chamados/'
     | '/clientes/'
   fileRoutesById: FileRoutesById
 }
@@ -141,9 +177,12 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   ConformidadeRoute: typeof ConformidadeRoute
   OperacaoRoute: typeof OperacaoRoute
+  PortalRoute: typeof PortalRoute
   RenovacoesRoute: typeof RenovacoesRoute
+  ChamadosIdRoute: typeof ChamadosIdRoute
   ClientesIdRoute: typeof ClientesIdRoute
   SolicitacoesIdRoute: typeof SolicitacoesIdRoute
+  ChamadosIndexRoute: typeof ChamadosIndexRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
 }
 
@@ -184,11 +223,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/renovacoes': {
       id: '/renovacoes'
       path: '/renovacoes'
       fullPath: '/renovacoes'
       preLoaderRoute: typeof RenovacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chamados/': {
+      id: '/chamados/'
+      path: '/chamados'
+      fullPath: '/chamados/'
+      preLoaderRoute: typeof ChamadosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chamados/$id': {
+      id: '/chamados/$id'
+      path: '/chamados/$id'
+      fullPath: '/chamados/$id'
+      preLoaderRoute: typeof ChamadosIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clientes/': {
@@ -221,9 +281,12 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   ConformidadeRoute: ConformidadeRoute,
   OperacaoRoute: OperacaoRoute,
+  PortalRoute: PortalRoute,
   RenovacoesRoute: RenovacoesRoute,
+  ChamadosIdRoute: ChamadosIdRoute,
   ClientesIdRoute: ClientesIdRoute,
   SolicitacoesIdRoute: SolicitacoesIdRoute,
+  ChamadosIndexRoute: ChamadosIndexRoute,
   ClientesIndexRoute: ClientesIndexRoute,
 }
 export const routeTree = rootRouteImport
