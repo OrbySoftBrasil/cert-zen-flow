@@ -661,6 +661,19 @@ export const appointments: Appointment[] = [
   { id: "ag6", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "e-CNPJ A3", agenteId: "a1", dia: diaOffset(1), hora: "09:00", duracaoMin: 60, sala: "Sala virtual 1", status: "confirmado" },
   { id: "ag7", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "e-CPF A1", agenteId: "a3", dia: diaOffset(1), hora: "13:30", duracaoMin: 30, sala: "Sala virtual 3", status: "remarcado" },
   { id: "ag8", clienteId: "c2", cliente: "Ana Beatriz Cardoso", tipo: "e-CPF A1", agenteId: "a2", dia: diaOffset(2), hora: "16:00", duracaoMin: 30, sala: "Sala virtual 2", status: "pendente" },
+  { id: "ag9", clienteId: "c1", cliente: "Construtora Vale Norte LTDA", tipo: "e-CNPJ A1", agenteId: "a1", dia: diaOffset(3), hora: "09:00", duracaoMin: 30, sala: "Sala virtual 1", status: "pendente" },
+  { id: "ag10", clienteId: "c3", cliente: "Clínica Bem Viver ME", tipo: "e-CNPJ A1", agenteId: "a3", dia: diaOffset(3), hora: "14:00", duracaoMin: 30, sala: "Sala virtual 3", status: "confirmado" },
+  { id: "ag11", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "e-CPF A3", agenteId: "a2", dia: diaOffset(4), hora: "10:00", duracaoMin: 45, sala: "Sala virtual 2", status: "confirmado" },
+  { id: "ag12", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "e-CNPJ A3", agenteId: "a1", dia: diaOffset(6), hora: "08:00", duracaoMin: 60, sala: "Sala virtual 1", status: "pendente" },
+  { id: "ag13", clienteId: "c2", cliente: "Ana Beatriz Cardoso", tipo: "e-CPF A1", agenteId: "a3", dia: diaOffset(7), hora: "11:30", duracaoMin: 30, sala: "Sala virtual 3", status: "pendente" },
+  { id: "ag14", clienteId: "c1", cliente: "Construtora Vale Norte LTDA", tipo: "Nuvem PJ", agenteId: "a1", dia: diaOffset(9), hora: "15:00", duracaoMin: 30, sala: "Sala virtual 1", status: "confirmado" },
+  { id: "ag15", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "e-CPF A1", agenteId: "a2", dia: diaOffset(10), hora: "09:00", duracaoMin: 30, sala: "Sala virtual 2", status: "pendente" },
+  { id: "ag16", clienteId: "c3", cliente: "Clínica Bem Viver ME", tipo: "e-CNPJ A3", agenteId: "a3", dia: diaOffset(13), hora: "16:00", duracaoMin: 45, sala: "Sala virtual 3", status: "pendente" },
+  { id: "ag17", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "e-CNPJ A1", agenteId: "a1", dia: diaOffset(14), hora: "10:00", duracaoMin: 30, sala: "Sala virtual 1", status: "confirmado" },
+  { id: "ag18", clienteId: "c2", cliente: "Ana Beatriz Cardoso", tipo: "e-CPF A3", agenteId: "a2", dia: diaOffset(17), hora: "13:30", duracaoMin: 30, sala: "Sala virtual 2", status: "pendente" },
+  { id: "ag19", clienteId: "c1", cliente: "Construtora Vale Norte LTDA", tipo: "e-CNPJ A1", agenteId: "a3", dia: diaOffset(21), hora: "09:00", duracaoMin: 45, sala: "Sala virtual 3", status: "pendente" },
+  { id: "ag20", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "Nuvem PJ", agenteId: "a1", dia: diaOffset(-2), hora: "14:00", duracaoMin: 30, sala: "Sala virtual 1", status: "concluido" },
+  { id: "ag21", clienteId: "c3", cliente: "Clínica Bem Viver ME", tipo: "e-CPF A1", agenteId: "a2", dia: diaOffset(-4), hora: "11:30", duracaoMin: 30, sala: "Sala virtual 2", status: "no-show" },
 ];
 
 export const receitaSerie = [
