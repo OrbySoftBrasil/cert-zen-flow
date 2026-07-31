@@ -110,6 +110,8 @@ export interface Message {
   autor: string;
   quando: string;
   texto: string;
+  lida?: boolean;
+  anexo?: { nome: string; tipo: string };
 }
 
 export interface Conversation {
@@ -125,7 +127,12 @@ export interface Conversation {
   proximaAcao: string;
   sugestoes: string[];
   mensagens: Message[];
+  naoLidas?: number;
+  fixada?: boolean;
+  protocolo?: string;
+  tags?: string[];
 }
+
 
 export interface Appointment {
   id: string;
