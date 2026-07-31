@@ -1,0 +1,283 @@
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import {
+  Building2,
+  FileText,
+  MessageSquare,
+  Receipt,
+  ScrollText,
+  ShieldCheck,
+  User,
+} from "lucide-react";
+import { useState } from "react";
+
+import { AppShell } from "@/components/app-shell";
+import { Bar, Chip, Panel } from "@/components/ui-kit";
+import { cn } from "@/lib/utils";
+import { brl, clientById, conversations, requests } from "@/lib/mock-data";
+
+export const Route = createFileRoute("/clientes/$id")({
+  loader: ({ params }) => {
+    const cliente = clientById(params.id);
+    if (!cliente) throw notFound();
+    return { nome: cliente.nome };
+  },
+  head: ({ loaderData }) => ({
+    meta: [
+      { title: loaderData ? `${loaderData.nome} — Dossiê do cliente` : "Cliente não encontrado" },
+      {
+        name: "description",
+        content:
+          "Dossiê 360º do cliente: certificados, documentos, solicitações, conversas, financeiro e trilha de auditoria.",
+      },
+      { property: "og:title", content: loaderData ? `${loaderData.nome} — Dossiê 360º` : "Cliente" },
+      { property: "og:description", content: "Certificados, documentos, financeiro e histórico em uma visão." },
+    ],
+  }),
+  component: Dossie,
+});
+
+const abas = [
+  { id: "certificados", label: "Certificados", icon: ShieldCheck },
+  { id: "documentos", label: "Documentos", icon: FileText },
+  { id: "solicitacoes", label: "Solicitações", icon: ScrollText },
+  { id: "conversas", label: "Conversas", icon: MessageSquare },
+  { id: "financeiro", label: "Financeiro", icon: Receipt },
+] as const;
+
+const statusTone = {
+  ativo: "blue",
+  "a vencer": "alert",
+  revogado: "neutral",
+  expirado: "outline",
+  aprovado: "blue",
+  "em análise": "neutral",
+  reprovado: "alert",
+  pago: "blue",
+  aberto: "neutral",
+  vencido: "alert",
+} as const;
+
+function Dossie() {
+  const { id } = Route.useParams();
+  const cliente = clientById(id)!;
+  const [aba, setAba] = useState<(typeof abas)[number]["id"]>("certificados");
+  const solicitacoes = requests.filter((r) => r.clienteId === id);
+  const conversas = conversations.filter((c) => c.clienteId === id);
+
+  return (
+    <AppShell title={cliente.nome} subtitle={`${cliente.documento} · cliente desde ${cliente.desde}`}>
+      <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4">
+            <div className="grid size-12 place-items-center rounded-md bg-primary-soft text-primary-deep">
+              {cliente.tipoPessoa === "PJ" ? <Building2 className="size-5" /> : <User className="size-5" />}
+            </div>
+            <div className="min-w-0">
+              <p className="font-display text-base font-semibold">{cliente.nome}</p>
+              <p className="text-xs text-muted-foreground">
+                {cliente.email} · {cliente.telefone} · {cliente.cidade}
+              </p>
+            </div>
+            <div className="ml-auto flex gap-6 text-right">
+              <div>
+                <p className="text-[11px] uppercase text-muted-foreground">LTV</p>
+                <p className="tabular font-display text-lg font-semibold">{brl(cliente.ltv)}</p>
+              </div>
+              <div className="w-32">
+                <p className="text-[11px] uppercase text-muted-foreground">Saúde</p>
+                <p className="tabular font-display text-lg font-semibold">{cliente.saude}</p>
+                <Bar value={cliente.saude} />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-1 border-b border-border">
+            {abas.map((a) => (
+              <button
+                key={a.id}
+                onClick={() => setAba(a.id)}
+                className={cn(
+                  "flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors",
+                  aba === a.id
+                    ? "border-primary font-medium text-primary-deep"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <a.icon className="size-4" /> {a.label}
+              </button>
+            ))}
+          </div>
+
+          {aba === "certificados" && (
+            <Panel bodyClassName="p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="px-4 py-2 font-medium">Série</th>
+                    <th className="px-4 py-2 font-medium">Tipo</th>
+                    <th className="px-4 py-2 font-medium">Emissão</th>
+                    <th className="px-4 py-2 font-medium">Validade</th>
+                    <th className="px-4 py-2 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {cliente.certificados.map((c) => (
+                    <tr key={c.id} className="hover:bg-muted/50">
+                      <td className="px-4 py-2.5 tabular">{c.serie}</td>
+                      <td className="px-4 py-2.5">{c.tipo}</td>
+                      <td className="px-4 py-2.5 tabular text-muted-foreground">{c.emitidoEm}</td>
+                      <td className="px-4 py-2.5 tabular text-muted-foreground">{c.validoAte}</td>
+                      <td className="px-4 py-2.5">
+                        <Chip tone={statusTone[c.status]}>{c.status}</Chip>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Panel>
+          )}
+
+          {aba === "documentos" && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {cliente.documentos.map((d) => (
+                <Panel key={d.id} bodyClassName="p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="grid h-16 w-12 shrink-0 place-items-center rounded border border-border bg-muted text-muted-foreground">
+                      <FileText className="size-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{d.nome}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {d.tipo} · enviado em {d.enviadoEm}
+                      </p>
+                      <div className="mt-1.5">
+                        <Chip tone={statusTone[d.status]}>{d.status}</Chip>
+                      </div>
+                      {d.motivo && <p className="mt-1 text-xs text-alert">{d.motivo}</p>}
+                    </div>
+                  </div>
+                </Panel>
+              ))}
+            </div>
+          )}
+
+          {aba === "solicitacoes" && (
+            <Panel bodyClassName="p-0">
+              <ul className="divide-y divide-border">
+                {solicitacoes.map((r) => (
+                  <li key={r.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        to="/solicitacoes/$id"
+                        params={{ id: r.id }}
+                        className="text-sm font-medium text-primary hover:underline"
+                      >
+                        {r.protocolo}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        {r.tipo} · {r.canal} · aberto em {r.abertoEm}
+                      </p>
+                    </div>
+                    <Chip tone="blue">{r.stage}</Chip>
+                    <span className="tabular text-sm">{brl(r.valor)}</span>
+                  </li>
+                ))}
+                {solicitacoes.length === 0 && (
+                  <li className="px-4 py-8 text-center text-sm text-muted-foreground">Sem solicitações</li>
+                )}
+              </ul>
+            </Panel>
+          )}
+
+          {aba === "conversas" && (
+            <div className="space-y-3">
+              {conversas.map((c) => (
+                <Panel key={c.id} bodyClassName="p-4">
+                  <div className="flex items-center gap-2">
+                    <Chip tone="blue">{c.canal}</Chip>
+                    <Chip tone="outline">{c.intencao}</Chip>
+                    <Link to="/atendimento" className="ml-auto text-xs text-primary hover:underline">
+                      Abrir na central
+                    </Link>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{c.resumo}</p>
+                </Panel>
+              ))}
+              {conversas.length === 0 && (
+                <Panel>
+                  <p className="text-center text-sm text-muted-foreground">Sem conversas registradas</p>
+                </Panel>
+              )}
+            </div>
+          )}
+
+          {aba === "financeiro" && (
+            <Panel bodyClassName="p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="px-4 py-2 font-medium">Descrição</th>
+                    <th className="px-4 py-2 font-medium">Vencimento</th>
+                    <th className="px-4 py-2 font-medium">Método</th>
+                    <th className="px-4 py-2 font-medium">Valor</th>
+                    <th className="px-4 py-2 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {cliente.faturas.map((f) => (
+                    <tr key={f.id} className="hover:bg-muted/50">
+                      <td className="px-4 py-2.5">{f.descricao}</td>
+                      <td className="px-4 py-2.5 tabular text-muted-foreground">{f.vencimento}</td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{f.metodo}</td>
+                      <td className="px-4 py-2.5 tabular">{brl(f.valor)}</td>
+                      <td className="px-4 py-2.5">
+                        <Chip tone={statusTone[f.status]}>{f.status}</Chip>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Panel>
+          )}
+        </div>
+
+        <aside className="space-y-4">
+          <Panel title="Resumo da conta">
+            <dl className="space-y-2.5 text-sm">
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Gestor</dt>
+                <dd>{cliente.gestor}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Tipo</dt>
+                <dd>{cliente.tipoPessoa}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Certificados</dt>
+                <dd className="tabular">{cliente.certificados.length}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Faturas em aberto</dt>
+                <dd className="tabular">{cliente.faturas.filter((f) => f.status !== "pago").length}</dd>
+              </div>
+            </dl>
+          </Panel>
+
+          <Panel title="Notas internas">
+            <ul className="space-y-3">
+              {cliente.notas.map((n) => (
+                <li key={n.id} className="border-l-2 border-primary-soft pl-3">
+                  <p className="text-sm">{n.texto}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {n.autor} · {n.quando}
+                  </p>
+                </li>
+              ))}
+              {cliente.notas.length === 0 && <li className="text-sm text-muted-foreground">Sem notas.</li>}
+            </ul>
+          </Panel>
+        </aside>
+      </div>
+    </AppShell>
+  );
+}
