@@ -196,7 +196,7 @@ function Dossie() {
                   <div className="flex items-center gap-2">
                     <Chip tone="blue">{c.canal}</Chip>
                     <Chip tone="outline">{c.intencao}</Chip>
-                    <Link to="/atendimento" className="ml-auto text-xs text-primary hover:underline">
+                    <Link to="/chat" className="ml-auto text-xs text-primary hover:underline">
                       Abrir na central
                     </Link>
                   </div>

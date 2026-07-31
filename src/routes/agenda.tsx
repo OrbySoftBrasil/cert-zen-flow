@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarCheck2, CalendarX2, Clock3, Video } from "lucide-react";
+import { CalendarCheck2, CalendarX2, ChevronLeft, ChevronRight, Clock3, Video } from "lucide-react";
 import { useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
@@ -32,15 +32,63 @@ const statusTone = {
   remarcado: "outline",
 } as const;
 
+const hojeISO = new Date().toISOString().slice(0, 10);
+const nomesMes = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+];
+const nomesDiaSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function iso(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function gradeDoMes(ano: number, mes: number) {
+  const primeiro = new Date(ano, mes, 1);
+  const inicio = new Date(primeiro);
+  inicio.setDate(1 - primeiro.getDay());
+  return Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(inicio);
+    d.setDate(inicio.getDate() + i);
+    return d;
+  });
+}
+
 function Agenda() {
   const [items, setItems] = useState<Appointment[]>(seed);
   const dias = Array.from(new Set(items.map((a) => a.dia))).sort();
-  const [dia, setDia] = useState(dias[0]!);
+  const proximos = dias.filter((d) => d >= hojeISO);
+  const [dia, setDia] = useState(proximos[0] ?? dias[0]!);
+  const [vista, setVista] = useState<"dia" | "mes">("dia");
+  const hoje = new Date();
+  const [cursor, setCursor] = useState({ ano: hoje.getFullYear(), mes: hoje.getMonth() });
   const doDia = items.filter((a) => a.dia === dia);
   const agentesAtivos = agents.slice(0, 3);
+  const celulas = gradeDoMes(cursor.ano, cursor.mes);
+  const doMes = items.filter((a) => {
+    const [ano, mes] = a.dia.split("-").map(Number);
+    return ano === cursor.ano && mes === cursor.mes + 1;
+  });
 
   function atualizar(id: string, status: Appointment["status"]) {
     setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+  }
+
+  function moverMes(delta: number) {
+    setCursor((c) => {
+      const d = new Date(c.ano, c.mes + delta, 1);
+      return { ano: d.getFullYear(), mes: d.getMonth() };
+    });
   }
 
   return (
@@ -48,22 +96,60 @@ function Agenda() {
       title="Agenda operacional"
       subtitle="Videoconferências de validação presencial remota"
       actions={
-        <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
-          {dias.map((d, i) => (
-            <button
-              key={d}
-              onClick={() => setDia(d)}
-              className={cn(
-                "rounded px-2.5 py-1 text-xs tabular transition-colors",
-                dia === d ? "bg-primary-soft text-primary-deep" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {i === 0 ? "Hoje" : i === 1 ? "Amanhã" : d.slice(8) + "/" + d.slice(5, 7)}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
+            {(["dia", "mes"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setVista(v)}
+                className={cn(
+                  "rounded px-2.5 py-1 text-xs transition-colors",
+                  vista === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {v === "dia" ? "Dia" : "Mês"}
+              </button>
+            ))}
+          </div>
+          {vista === "dia" ? (
+            <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
+              {proximos.slice(0, 5).map((d, i) => (
+                <button
+                  key={d}
+                  onClick={() => setDia(d)}
+                  className={cn(
+                    "rounded px-2.5 py-1 text-xs tabular transition-colors",
+                    dia === d ? "bg-primary-soft text-primary-deep" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {d === hojeISO ? "Hoje" : i === 0 ? d.slice(8) + "/" + d.slice(5, 7) : d.slice(8) + "/" + d.slice(5, 7)}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
+              <button
+                onClick={() => moverMes(-1)}
+                className="grid size-7 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <ChevronLeft className="size-4" />
+              </button>
+              <span className="min-w-32 text-center text-xs font-medium">
+                {nomesMes[cursor.mes]} {cursor.ano}
+              </span>
+              <button
+                onClick={() => moverMes(1)}
+                className="grid size-7 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <ChevronRight className="size-4" />
+              </button>
+            </div>
+          )}
         </div>
       }
     >
+      {vista === "dia" && (
+      <>
       <div className="mb-4 flex flex-wrap divide-border rounded-lg border border-border bg-card">
         <Metric label="Agendamentos do dia" value={String(doDia.length)} />
         <Metric label="Confirmados" value={String(doDia.filter((a) => a.status === "confirmado").length)} />
@@ -72,6 +158,7 @@ function Agenda() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+
         <Panel title="Grade por agente" hint={`Dia ${dia}`} bodyClassName="overflow-x-auto p-0">
           <table className="w-full min-w-[640px] text-sm">
             <thead>
@@ -181,6 +268,147 @@ function Agenda() {
           </Panel>
         </div>
       </div>
+      </>
+      )}
+
+
+      {vista === "mes" && (
+        <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+          <Panel
+            title={`${nomesMes[cursor.mes]} ${cursor.ano}`}
+            hint={`${doMes.length} agendamentos no mês`}
+            bodyClassName="p-3"
+          >
+            <div className="grid grid-cols-7 gap-1.5">
+              {nomesDiaSemana.map((d) => (
+                <div key={d} className="pb-1 text-center text-[11px] uppercase tracking-wide text-muted-foreground">
+                  {d}
+                </div>
+              ))}
+              {celulas.map((d) => {
+                const chave = iso(d);
+                const doDiaCel = items.filter((a) => a.dia === chave);
+                const foraDoMes = d.getMonth() !== cursor.mes;
+                const ehHoje = chave === hojeISO;
+                const noShow = doDiaCel.some((a) => a.status === "no-show");
+                return (
+                  <button
+                    key={chave}
+                    onClick={() => {
+                      setDia(chave);
+                      setVista("dia");
+                    }}
+                    className={cn(
+                      "flex min-h-24 flex-col rounded-md border p-1.5 text-left transition-colors hover:border-primary",
+                      foraDoMes ? "border-border/60 bg-muted/30 opacity-60" : "border-border bg-card",
+                      chave === dia && "border-primary",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "tabular mb-1 grid size-5 place-items-center rounded-full text-[11px]",
+                        ehHoje ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground",
+                      )}
+                    >
+                      {d.getDate()}
+                    </span>
+                    <span className="flex-1 space-y-0.5">
+                      {doDiaCel.slice(0, 2).map((a) => (
+                        <span
+                          key={a.id}
+                          className={cn(
+                            "block truncate rounded px-1 py-0.5 text-[10px]",
+                            a.status === "no-show"
+                              ? "bg-alert-soft text-alert"
+                              : a.status === "confirmado"
+                                ? "bg-primary-soft text-primary-deep"
+                                : "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {a.hora} {a.cliente}
+                        </span>
+                      ))}
+                      {doDiaCel.length > 2 && (
+                        <span className="block px-1 text-[10px] text-muted-foreground">
+                          +{doDiaCel.length - 2} agendamentos
+                        </span>
+                      )}
+                    </span>
+                    {noShow && <span className="mt-0.5 h-0.5 w-full rounded bg-alert" />}
+                  </button>
+                );
+              })}
+            </div>
+          </Panel>
+
+          <div className="space-y-4">
+            <Panel title="Resumo do mês">
+              <ul className="space-y-2 text-sm">
+                {(["confirmado", "pendente", "concluido", "remarcado", "no-show"] as const).map((s) => (
+                  <li key={s} className="flex items-center justify-between">
+                    <Chip tone={statusTone[s]}>{s}</Chip>
+                    <span className="tabular text-muted-foreground">{doMes.filter((a) => a.status === s).length}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
+                Taxa de no-show do mês:{" "}
+                <span className="tabular font-medium text-alert">
+                  {doMes.length ? Math.round((doMes.filter((a) => a.status === "no-show").length / doMes.length) * 100) : 0}%
+                </span>
+              </p>
+            </Panel>
+
+            <Panel title="Carga por agente no mês">
+              <ul className="space-y-2.5 text-sm">
+                {agentesAtivos.map((a) => {
+                  const total = doMes.filter((x) => x.agenteId === a.id).length;
+                  const maior = Math.max(1, ...agentesAtivos.map((g) => doMes.filter((x) => x.agenteId === g.id).length));
+                  return (
+                    <li key={a.id}>
+                      <div className="flex justify-between">
+                        <span>{a.nome}</span>
+                        <span className="tabular text-muted-foreground">{total} sessões</span>
+                      </div>
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                        <div className="h-full bg-primary" style={{ width: `${(total / maior) * 100}%` }} />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Panel>
+
+            <Panel title="Dias mais carregados">
+              <ul className="space-y-1.5 text-sm">
+                {Object.entries(
+                  doMes.reduce<Record<string, number>>((acc, a) => {
+                    acc[a.dia] = (acc[a.dia] ?? 0) + 1;
+                    return acc;
+                  }, {}),
+                )
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 4)
+                  .map(([d, qtd]) => (
+                    <li key={d} className="flex items-center justify-between">
+                      <button
+                        onClick={() => {
+                          setDia(d);
+                          setVista("dia");
+                        }}
+                        className="tabular text-primary hover:underline"
+                      >
+                        {d.slice(8)}/{d.slice(5, 7)}
+                      </button>
+                      <span className="tabular text-muted-foreground">{qtd} agendamentos</span>
+                    </li>
+                  ))}
+              </ul>
+            </Panel>
+          </div>
+        </div>
+      )}
     </AppShell>
+
   );
 }

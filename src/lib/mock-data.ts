@@ -110,6 +110,8 @@ export interface Message {
   autor: string;
   quando: string;
   texto: string;
+  lida?: boolean;
+  anexo?: { nome: string; tipo: string };
 }
 
 export interface Conversation {
@@ -125,7 +127,12 @@ export interface Conversation {
   proximaAcao: string;
   sugestoes: string[];
   mensagens: Message[];
+  naoLidas?: number;
+  fixada?: boolean;
+  protocolo?: string;
+  tags?: string[];
 }
+
 
 export interface Appointment {
   id: string;
@@ -531,16 +538,30 @@ export const conversations: Conversation[] = [
     aguardandoMin: 12,
     intencao: "Renovação de e-CNPJ",
     sentimento: "frustrado",
+    protocolo: "SOL-20418",
+    fixada: true,
+    naoLidas: 2,
+    tags: ["Prioridade", "Financeiro pendente"],
     resumo:
       "Cliente reenviou o RG do representante após reprovação e cobra prazo. Certificado vence em 21 dias e há uma fatura de suporte vencida há 14 dias.",
     proximaAcao: "Validar novo documento e liberar agendamento ainda hoje",
     sugestoes: [
       "Recebemos o novo documento e já colocamos na fila de validação prioritária.",
       "Posso reservar um horário de videoconferência para hoje às 16h?",
+      "Sobre a fatura em aberto, consigo gerar a 2ª via agora mesmo.",
     ],
     mensagens: [
       { id: "m1", de: "cliente", autor: "Vale Norte", quando: "09:02", texto: "Bom dia, reenviei o RG. Conseguem validar hoje?" },
-      { id: "m2", de: "bot", autor: "Assistente AC", quando: "09:02", texto: "Bom dia! Recebi seu arquivo. Vou verificar o status da validação." },
+      {
+        id: "m1b",
+        de: "cliente",
+        autor: "Vale Norte",
+        quando: "09:02",
+        texto: "Segue o arquivo novo, agora sem reflexo.",
+        anexo: { nome: "RG-representante-v2.jpg", tipo: "Imagem · 1,8 MB" },
+      },
+      { id: "m2", de: "bot", autor: "Assistente AC", quando: "09:03", texto: "Bom dia! Recebi seu arquivo. Vou verificar o status da validação e já retorno.", lida: true },
+      { id: "m2b", de: "bot", autor: "Assistente AC", quando: "09:04", texto: "Identifiquei o protocolo SOL-20418 (e-CNPJ A1) em etapa de Documentação.", lida: true },
       { id: "m3", de: "cliente", autor: "Vale Norte", quando: "09:15", texto: "Preciso emitir antes do fechamento fiscal, já está atrasado." },
     ],
   },
@@ -553,12 +574,16 @@ export const conversations: Conversation[] = [
     aguardandoMin: 2,
     intencao: "Agendamento de videoconferência",
     sentimento: "neutro",
+    protocolo: "SOL-20422",
+    naoLidas: 1,
+    tags: ["Aguarda pagamento"],
     resumo: "Titular quer escolher horário para validação presencial remota. Pagamento ainda não confirmado.",
     proximaAcao: "Confirmar pagamento antes de liberar a agenda",
     sugestoes: ["Assim que o pagamento for confirmado, libero os horários disponíveis.", "Prefere manhã ou tarde?"],
     mensagens: [
       { id: "m4", de: "cliente", autor: "Ana", quando: "10:31", texto: "Quero marcar a videochamada" },
-      { id: "m5", de: "bot", autor: "Assistente AC", quando: "10:31", texto: "Claro! Identifiquei seu pedido SOL-20422." },
+      { id: "m5", de: "bot", autor: "Assistente AC", quando: "10:31", texto: "Claro! Identifiquei seu pedido SOL-20422 (e-CPF A1).", lida: true },
+      { id: "m5b", de: "bot", autor: "Assistente AC", quando: "10:32", texto: "Antes de liberar a agenda preciso confirmar o pagamento do boleto. Já efetuou?", lida: false },
     ],
   },
   {
@@ -570,12 +595,15 @@ export const conversations: Conversation[] = [
     aguardandoMin: 0,
     intencao: "Contestação de bloqueio financeiro",
     sentimento: "frustrado",
+    protocolo: "SOL-20399",
+    tags: ["Escalado"],
     resumo: "Cliente alega pagamento da fatura vencida e pede desbloqueio imediato da renovação.",
     proximaAcao: "Solicitar comprovante e acionar o financeiro",
     sugestoes: ["Pode nos enviar o comprovante? Faço a baixa manual em seguida."],
     mensagens: [
       { id: "m6", de: "cliente", autor: "Bem Viver", quando: "08:44", texto: "Já pagamos ontem, por que continua bloqueado?" },
-      { id: "m7", de: "agente", autor: "Helena Prado", quando: "08:50", texto: "Estou verificando com o financeiro agora." },
+      { id: "m7", de: "agente", autor: "Helena Prado", quando: "08:50", texto: "Estou verificando com o financeiro agora.", lida: true },
+      { id: "m7b", de: "agente", autor: "Helena Prado", quando: "08:58", texto: "Consegue me enviar o comprovante em PDF? Faço a baixa manual e libero a renovação hoje.", lida: false },
     ],
   },
   {
@@ -587,12 +615,42 @@ export const conversations: Conversation[] = [
     aguardandoMin: 0,
     intencao: "Emissão em lote",
     sentimento: "positivo",
+    protocolo: "SOL-20360",
+    tags: ["Lote 12 titulares"],
     resumo: "Lote de 12 titulares agendado para amanhã. Cliente confirmou a lista.",
     proximaAcao: "Nenhuma — acompanhar execução do lote",
     sugestoes: [],
-    mensagens: [{ id: "m8", de: "cliente", autor: "Aurora TI", quando: "Ontem", texto: "Lista confirmada, obrigado!" }],
+    mensagens: [
+      { id: "m8a", de: "agente", autor: "Marina Duarte", quando: "Ontem", texto: "Segue a lista final dos 12 titulares para conferência.", lida: true },
+      { id: "m8", de: "cliente", autor: "Aurora TI", quando: "Ontem", texto: "Lista confirmada, obrigado!" },
+    ],
+  },
+  {
+    id: "cv5",
+    clienteId: "c5",
+    cliente: "Paulo Sérgio Almeida",
+    canal: "WhatsApp",
+    status: "fila",
+    aguardandoMin: 5,
+    intencao: "Instalação do certificado A3",
+    sentimento: "neutro",
+    protocolo: "SOL-20430",
+    naoLidas: 3,
+    tags: ["Suporte técnico"],
+    resumo: "Titular não consegue instalar o driver do token em Windows 11 e pede suporte guiado.",
+    proximaAcao: "Enviar passo a passo de instalação e oferecer acesso remoto",
+    sugestoes: [
+      "Envio agora o passo a passo de instalação do token para Windows 11.",
+      "Prefere que eu abra um acesso remoto de 10 minutos?",
+    ],
+    mensagens: [
+      { id: "m9", de: "cliente", autor: "Paulo", quando: "11:02", texto: "O token não é reconhecido no meu notebook novo." },
+      { id: "m10", de: "bot", autor: "Assistente AC", quando: "11:02", texto: "Qual o sistema operacional que você está usando?", lida: true },
+      { id: "m11", de: "cliente", autor: "Paulo", quando: "11:04", texto: "Windows 11, instalei o driver do site mas nada." },
+    ],
   },
 ];
+
 
 export const appointments: Appointment[] = [
   { id: "ag1", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "Nuvem PJ", agenteId: "a1", dia: diaOffset(0), hora: "09:00", duracaoMin: 30, sala: "Sala virtual 1", status: "confirmado" },
@@ -603,6 +661,19 @@ export const appointments: Appointment[] = [
   { id: "ag6", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "e-CNPJ A3", agenteId: "a1", dia: diaOffset(1), hora: "09:00", duracaoMin: 60, sala: "Sala virtual 1", status: "confirmado" },
   { id: "ag7", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "e-CPF A1", agenteId: "a3", dia: diaOffset(1), hora: "13:30", duracaoMin: 30, sala: "Sala virtual 3", status: "remarcado" },
   { id: "ag8", clienteId: "c2", cliente: "Ana Beatriz Cardoso", tipo: "e-CPF A1", agenteId: "a2", dia: diaOffset(2), hora: "16:00", duracaoMin: 30, sala: "Sala virtual 2", status: "pendente" },
+  { id: "ag9", clienteId: "c1", cliente: "Construtora Vale Norte LTDA", tipo: "e-CNPJ A1", agenteId: "a1", dia: diaOffset(3), hora: "09:00", duracaoMin: 30, sala: "Sala virtual 1", status: "pendente" },
+  { id: "ag10", clienteId: "c3", cliente: "Clínica Bem Viver ME", tipo: "e-CNPJ A1", agenteId: "a3", dia: diaOffset(3), hora: "14:00", duracaoMin: 30, sala: "Sala virtual 3", status: "confirmado" },
+  { id: "ag11", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "e-CPF A3", agenteId: "a2", dia: diaOffset(4), hora: "10:00", duracaoMin: 45, sala: "Sala virtual 2", status: "confirmado" },
+  { id: "ag12", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "e-CNPJ A3", agenteId: "a1", dia: diaOffset(6), hora: "08:00", duracaoMin: 60, sala: "Sala virtual 1", status: "pendente" },
+  { id: "ag13", clienteId: "c2", cliente: "Ana Beatriz Cardoso", tipo: "e-CPF A1", agenteId: "a3", dia: diaOffset(7), hora: "11:30", duracaoMin: 30, sala: "Sala virtual 3", status: "pendente" },
+  { id: "ag14", clienteId: "c1", cliente: "Construtora Vale Norte LTDA", tipo: "Nuvem PJ", agenteId: "a1", dia: diaOffset(9), hora: "15:00", duracaoMin: 30, sala: "Sala virtual 1", status: "confirmado" },
+  { id: "ag15", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "e-CPF A1", agenteId: "a2", dia: diaOffset(10), hora: "09:00", duracaoMin: 30, sala: "Sala virtual 2", status: "pendente" },
+  { id: "ag16", clienteId: "c3", cliente: "Clínica Bem Viver ME", tipo: "e-CNPJ A3", agenteId: "a3", dia: diaOffset(13), hora: "16:00", duracaoMin: 45, sala: "Sala virtual 3", status: "pendente" },
+  { id: "ag17", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "e-CNPJ A1", agenteId: "a1", dia: diaOffset(14), hora: "10:00", duracaoMin: 30, sala: "Sala virtual 1", status: "confirmado" },
+  { id: "ag18", clienteId: "c2", cliente: "Ana Beatriz Cardoso", tipo: "e-CPF A3", agenteId: "a2", dia: diaOffset(17), hora: "13:30", duracaoMin: 30, sala: "Sala virtual 2", status: "pendente" },
+  { id: "ag19", clienteId: "c1", cliente: "Construtora Vale Norte LTDA", tipo: "e-CNPJ A1", agenteId: "a3", dia: diaOffset(21), hora: "09:00", duracaoMin: 45, sala: "Sala virtual 3", status: "pendente" },
+  { id: "ag20", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "Nuvem PJ", agenteId: "a1", dia: diaOffset(-2), hora: "14:00", duracaoMin: 30, sala: "Sala virtual 1", status: "concluido" },
+  { id: "ag21", clienteId: "c3", cliente: "Clínica Bem Viver ME", tipo: "e-CPF A1", agenteId: "a2", dia: diaOffset(-4), hora: "11:30", duracaoMin: 30, sala: "Sala virtual 2", status: "no-show" },
 ];
 
 export const receitaSerie = [

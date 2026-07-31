@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgendaRouteImport } from './routes/agenda'
-import { Route as AtendimentoRouteImport } from './routes/atendimento'
+import { Route as ChatRouteImport } from './routes/chat'
 import { Route as ConformidadeRouteImport } from './routes/conformidade'
 import { Route as OperacaoRouteImport } from './routes/operacao'
 import { Route as RenovacoesRouteImport } from './routes/renovacoes'
@@ -29,9 +29,9 @@ const AgendaRoute = AgendaRouteImport.update({
   path: '/agenda',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AtendimentoRoute = AtendimentoRouteImport.update({
-  id: '/atendimento',
-  path: '/atendimento',
+const ChatRoute = ChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConformidadeRoute = ConformidadeRouteImport.update({
@@ -68,7 +68,7 @@ const SolicitacoesIdRoute = SolicitacoesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
-  '/atendimento': typeof AtendimentoRoute
+  '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
   '/renovacoes': typeof RenovacoesRoute
@@ -79,7 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
-  '/atendimento': typeof AtendimentoRoute
+  '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
   '/renovacoes': typeof RenovacoesRoute
@@ -91,7 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
-  '/atendimento': typeof AtendimentoRoute
+  '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
   '/renovacoes': typeof RenovacoesRoute
@@ -104,7 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/agenda'
-    | '/atendimento'
+    | '/chat'
     | '/conformidade'
     | '/operacao'
     | '/renovacoes'
@@ -115,7 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/agenda'
-    | '/atendimento'
+    | '/chat'
     | '/conformidade'
     | '/operacao'
     | '/renovacoes'
@@ -126,7 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/agenda'
-    | '/atendimento'
+    | '/chat'
     | '/conformidade'
     | '/operacao'
     | '/renovacoes'
@@ -138,7 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgendaRoute: typeof AgendaRoute
-  AtendimentoRoute: typeof AtendimentoRoute
+  ChatRoute: typeof ChatRoute
   ConformidadeRoute: typeof ConformidadeRoute
   OperacaoRoute: typeof OperacaoRoute
   RenovacoesRoute: typeof RenovacoesRoute
@@ -163,11 +163,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgendaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/atendimento': {
-      id: '/atendimento'
-      path: '/atendimento'
-      fullPath: '/atendimento'
-      preLoaderRoute: typeof AtendimentoRouteImport
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/conformidade': {
@@ -218,7 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendaRoute: AgendaRoute,
-  AtendimentoRoute: AtendimentoRoute,
+  ChatRoute: ChatRoute,
   ConformidadeRoute: ConformidadeRoute,
   OperacaoRoute: OperacaoRoute,
   RenovacoesRoute: RenovacoesRoute,
