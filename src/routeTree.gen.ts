@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as AtendimentoRouteImport } from './routes/atendimento'
+import { Route as ConformidadeRouteImport } from './routes/conformidade'
 import { Route as OperacaoRouteImport } from './routes/operacao'
+import { Route as RenovacoesRouteImport } from './routes/renovacoes'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as SolicitacoesIdRouteImport } from './routes/solicitacoes.$id'
@@ -32,9 +34,19 @@ const AtendimentoRoute = AtendimentoRouteImport.update({
   path: '/atendimento',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConformidadeRoute = ConformidadeRouteImport.update({
+  id: '/conformidade',
+  path: '/conformidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OperacaoRoute = OperacaoRouteImport.update({
   id: '/operacao',
   path: '/operacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RenovacoesRoute = RenovacoesRouteImport.update({
+  id: '/renovacoes',
+  path: '/renovacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientesIndexRoute = ClientesIndexRouteImport.update({
@@ -57,7 +69,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
   '/atendimento': typeof AtendimentoRoute
+  '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
+  '/renovacoes': typeof RenovacoesRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/clientes/': typeof ClientesIndexRoute
@@ -66,7 +80,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
   '/atendimento': typeof AtendimentoRoute
+  '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
+  '/renovacoes': typeof RenovacoesRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/clientes': typeof ClientesIndexRoute
@@ -76,7 +92,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
   '/atendimento': typeof AtendimentoRoute
+  '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
+  '/renovacoes': typeof RenovacoesRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/clientes/': typeof ClientesIndexRoute
@@ -87,7 +105,9 @@ export interface FileRouteTypes {
     | '/'
     | '/agenda'
     | '/atendimento'
+    | '/conformidade'
     | '/operacao'
+    | '/renovacoes'
     | '/clientes/$id'
     | '/solicitacoes/$id'
     | '/clientes/'
@@ -96,7 +116,9 @@ export interface FileRouteTypes {
     | '/'
     | '/agenda'
     | '/atendimento'
+    | '/conformidade'
     | '/operacao'
+    | '/renovacoes'
     | '/clientes/$id'
     | '/solicitacoes/$id'
     | '/clientes'
@@ -105,7 +127,9 @@ export interface FileRouteTypes {
     | '/'
     | '/agenda'
     | '/atendimento'
+    | '/conformidade'
     | '/operacao'
+    | '/renovacoes'
     | '/clientes/$id'
     | '/solicitacoes/$id'
     | '/clientes/'
@@ -115,7 +139,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgendaRoute: typeof AgendaRoute
   AtendimentoRoute: typeof AtendimentoRoute
+  ConformidadeRoute: typeof ConformidadeRoute
   OperacaoRoute: typeof OperacaoRoute
+  RenovacoesRoute: typeof RenovacoesRoute
   ClientesIdRoute: typeof ClientesIdRoute
   SolicitacoesIdRoute: typeof SolicitacoesIdRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
@@ -144,11 +170,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AtendimentoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/conformidade': {
+      id: '/conformidade'
+      path: '/conformidade'
+      fullPath: '/conformidade'
+      preLoaderRoute: typeof ConformidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/operacao': {
       id: '/operacao'
       path: '/operacao'
       fullPath: '/operacao'
       preLoaderRoute: typeof OperacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/renovacoes': {
+      id: '/renovacoes'
+      path: '/renovacoes'
+      fullPath: '/renovacoes'
+      preLoaderRoute: typeof RenovacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clientes/': {
@@ -179,7 +219,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendaRoute: AgendaRoute,
   AtendimentoRoute: AtendimentoRoute,
+  ConformidadeRoute: ConformidadeRoute,
   OperacaoRoute: OperacaoRoute,
+  RenovacoesRoute: RenovacoesRoute,
   ClientesIdRoute: ClientesIdRoute,
   SolicitacoesIdRoute: SolicitacoesIdRoute,
   ClientesIndexRoute: ClientesIndexRoute,
