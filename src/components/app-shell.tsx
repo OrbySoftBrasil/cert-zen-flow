@@ -32,6 +32,7 @@ const nav = [
   { to: "/operacao", label: "Operação", icon: KanbanSquare },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/chat", label: "Chat", icon: MessagesSquare },
+  { to: "/chamados", label: "Chamados", icon: LifeBuoy },
   { to: "/agenda", label: "Agenda", icon: CalendarClock },
   { to: "/renovacoes", label: "Renovações", icon: RefreshCw },
   { to: "/conformidade", label: "Conformidade", icon: ShieldCheck },
