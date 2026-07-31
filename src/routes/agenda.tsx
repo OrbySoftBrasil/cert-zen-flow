@@ -32,15 +32,63 @@ const statusTone = {
   remarcado: "outline",
 } as const;
 
+const hojeISO = new Date().toISOString().slice(0, 10);
+const nomesMes = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+];
+const nomesDiaSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function iso(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function gradeDoMes(ano: number, mes: number) {
+  const primeiro = new Date(ano, mes, 1);
+  const inicio = new Date(primeiro);
+  inicio.setDate(1 - primeiro.getDay());
+  return Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(inicio);
+    d.setDate(inicio.getDate() + i);
+    return d;
+  });
+}
+
 function Agenda() {
   const [items, setItems] = useState<Appointment[]>(seed);
   const dias = Array.from(new Set(items.map((a) => a.dia))).sort();
-  const [dia, setDia] = useState(dias[0]!);
+  const proximos = dias.filter((d) => d >= hojeISO);
+  const [dia, setDia] = useState(proximos[0] ?? dias[0]!);
+  const [vista, setVista] = useState<"dia" | "mes">("dia");
+  const hoje = new Date();
+  const [cursor, setCursor] = useState({ ano: hoje.getFullYear(), mes: hoje.getMonth() });
   const doDia = items.filter((a) => a.dia === dia);
   const agentesAtivos = agents.slice(0, 3);
+  const celulas = gradeDoMes(cursor.ano, cursor.mes);
+  const doMes = items.filter((a) => {
+    const [ano, mes] = a.dia.split("-").map(Number);
+    return ano === cursor.ano && mes === cursor.mes + 1;
+  });
 
   function atualizar(id: string, status: Appointment["status"]) {
     setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+  }
+
+  function moverMes(delta: number) {
+    setCursor((c) => {
+      const d = new Date(c.ano, c.mes + delta, 1);
+      return { ano: d.getFullYear(), mes: d.getMonth() };
+    });
   }
 
   return (
@@ -48,22 +96,59 @@ function Agenda() {
       title="Agenda operacional"
       subtitle="Videoconferências de validação presencial remota"
       actions={
-        <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
-          {dias.map((d, i) => (
-            <button
-              key={d}
-              onClick={() => setDia(d)}
-              className={cn(
-                "rounded px-2.5 py-1 text-xs tabular transition-colors",
-                dia === d ? "bg-primary-soft text-primary-deep" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {i === 0 ? "Hoje" : i === 1 ? "Amanhã" : d.slice(8) + "/" + d.slice(5, 7)}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
+            {(["dia", "mes"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setVista(v)}
+                className={cn(
+                  "rounded px-2.5 py-1 text-xs transition-colors",
+                  vista === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {v === "dia" ? "Dia" : "Mês"}
+              </button>
+            ))}
+          </div>
+          {vista === "dia" ? (
+            <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
+              {proximos.slice(0, 5).map((d, i) => (
+                <button
+                  key={d}
+                  onClick={() => setDia(d)}
+                  className={cn(
+                    "rounded px-2.5 py-1 text-xs tabular transition-colors",
+                    dia === d ? "bg-primary-soft text-primary-deep" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {d === hojeISO ? "Hoje" : i === 0 ? d.slice(8) + "/" + d.slice(5, 7) : d.slice(8) + "/" + d.slice(5, 7)}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
+              <button
+                onClick={() => moverMes(-1)}
+                className="grid size-7 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <ChevronLeft className="size-4" />
+              </button>
+              <span className="min-w-32 text-center text-xs font-medium">
+                {nomesMes[cursor.mes]} {cursor.ano}
+              </span>
+              <button
+                onClick={() => moverMes(1)}
+                className="grid size-7 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <ChevronRight className="size-4" />
+              </button>
+            </div>
+          )}
         </div>
       }
     >
+
       <div className="mb-4 flex flex-wrap divide-border rounded-lg border border-border bg-card">
         <Metric label="Agendamentos do dia" value={String(doDia.length)} />
         <Metric label="Confirmados" value={String(doDia.filter((a) => a.status === "confirmado").length)} />
