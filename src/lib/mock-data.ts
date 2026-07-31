@@ -724,3 +724,237 @@ export const kpis = {
 
 export const brl = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+
+// ---------------------------------------------------------------------------
+// Helpdesk / Chamados
+// ---------------------------------------------------------------------------
+
+export type TicketStatus = "aberto" | "em andamento" | "aguardando cliente" | "resolvido" | "fechado";
+export type TicketCategoria =
+  | "Instalação e uso"
+  | "Documentação"
+  | "Agendamento"
+  | "Financeiro"
+  | "Revogação"
+  | "Erro no certificado"
+  | "Outros";
+
+export interface TicketMessage {
+  id: string;
+  autor: string;
+  papel: "cliente" | "suporte" | "sistema";
+  quando: string;
+  texto: string;
+  anexo?: { nome: string; tipo: string };
+}
+
+export interface Ticket {
+  id: string;
+  numero: string;
+  clienteId: string;
+  cliente: string;
+  contato: string;
+  assunto: string;
+  categoria: TicketCategoria;
+  subcategoria: string;
+  canal: Channel;
+  prioridade: Priority;
+  status: TicketStatus;
+  responsavelId: string;
+  abertoEm: string;
+  atualizadoEm: string;
+  slaRestanteHoras: number;
+  primeiraRespostaMin?: number;
+  satisfacao?: number; // 1-5
+  tags: string[];
+  mensagens: TicketMessage[];
+}
+
+export const ticketCategorias: { nome: TicketCategoria; sub: string[] }[] = [
+  { nome: "Instalação e uso", sub: ["Driver do token", "Assinatura em PDF", "Navegador / Java", "Acesso na nuvem"] },
+  { nome: "Documentação", sub: ["Documento reprovado", "Reenvio de arquivo", "Procuração"] },
+  { nome: "Agendamento", sub: ["Remarcar videoconferência", "Não consegui entrar na sala", "Confirmar horário"] },
+  { nome: "Financeiro", sub: ["2ª via de boleto", "Nota fiscal", "Reembolso", "Cobrança indevida"] },
+  { nome: "Revogação", sub: ["Perda do token", "Suspeita de comprometimento", "Desligamento do titular"] },
+  { nome: "Erro no certificado", sub: ["Dados incorretos", "Certificado não reconhecido", "Expirado antes do prazo"] },
+  { nome: "Outros", sub: ["Dúvida geral", "Sugestão", "Reclamação"] },
+];
+
+export const tickets: Ticket[] = [
+  {
+    id: "t1",
+    numero: "CH-4821",
+    clienteId: "c1",
+    cliente: "Construtora Vale Norte LTDA",
+    contato: "financeiro@valenorte.com.br",
+    assunto: "Certificado A1 não é reconhecido no e-CAC",
+    categoria: "Erro no certificado",
+    subcategoria: "Certificado não reconhecido",
+    canal: "Site",
+    prioridade: "alta",
+    status: "em andamento",
+    responsavelId: "a4",
+    abertoEm: diaOffset(-1) + " 09:12",
+    atualizadoEm: diaOffset(0) + " 08:40",
+    slaRestanteHoras: 3,
+    primeiraRespostaMin: 18,
+    tags: ["e-CNPJ A1", "e-CAC"],
+    mensagens: [
+      { id: "tm1", autor: "Cliente", papel: "cliente", quando: diaOffset(-1) + " 09:12", texto: "Instalamos o certificado no computador do escritório e o e-CAC não reconhece. Aparece que nenhum certificado foi encontrado." },
+      { id: "tm2", autor: "Sistema", papel: "sistema", quando: diaOffset(-1) + " 09:12", texto: "Chamado classificado automaticamente como Erro no certificado · Prioridade alta." },
+      { id: "tm3", autor: "Diego Nunes", papel: "suporte", quando: diaOffset(-1) + " 09:30", texto: "Bom dia! Poderia enviar um print da tela de certificados do navegador? Vamos verificar a cadeia de confiança.", },
+      { id: "tm4", autor: "Cliente", papel: "cliente", quando: diaOffset(0) + " 08:40", texto: "Segue o print solicitado.", anexo: { nome: "print-navegador.png", tipo: "PNG" } },
+    ],
+  },
+  {
+    id: "t2",
+    numero: "CH-4820",
+    clienteId: "c3",
+    cliente: "Ateliê Marcondes ME",
+    contato: "contato@marcondes.com.br",
+    assunto: "Preciso remarcar a videoconferência de validação",
+    categoria: "Agendamento",
+    subcategoria: "Remarcar videoconferência",
+    canal: "WhatsApp",
+    prioridade: "normal",
+    status: "aguardando cliente",
+    responsavelId: "a2",
+    abertoEm: diaOffset(-2) + " 14:05",
+    atualizadoEm: diaOffset(-1) + " 10:22",
+    slaRestanteHoras: 11,
+    primeiraRespostaMin: 6,
+    tags: ["videoconferência"],
+    mensagens: [
+      { id: "tm5", autor: "Cliente", papel: "cliente", quando: diaOffset(-2) + " 14:05", texto: "Tive um imprevisto e não consigo comparecer amanhã às 10h." },
+      { id: "tm6", autor: "Rafael Bastos", papel: "suporte", quando: diaOffset(-2) + " 14:11", texto: "Sem problemas. Tenho horários livres quinta 09h, 11h e 16h. Qual prefere?" },
+    ],
+  },
+  {
+    id: "t3",
+    numero: "CH-4819",
+    clienteId: "c2",
+    cliente: "Paula Ferraz Advocacia",
+    contato: "paula@ferrazadv.com.br",
+    assunto: "Segunda via do boleto de renovação",
+    categoria: "Financeiro",
+    subcategoria: "2ª via de boleto",
+    canal: "E-mail",
+    prioridade: "baixa",
+    status: "resolvido",
+    responsavelId: "a4",
+    abertoEm: diaOffset(-4) + " 11:40",
+    atualizadoEm: diaOffset(-3) + " 09:05",
+    slaRestanteHoras: 22,
+    primeiraRespostaMin: 34,
+    satisfacao: 5,
+    tags: ["boleto"],
+    mensagens: [
+      { id: "tm7", autor: "Cliente", papel: "cliente", quando: diaOffset(-4) + " 11:40", texto: "O boleto venceu, podem reenviar atualizado?" },
+      { id: "tm8", autor: "Diego Nunes", papel: "suporte", quando: diaOffset(-4) + " 12:14", texto: "Boleto atualizado em anexo, vencimento em 3 dias.", anexo: { nome: "boleto-atualizado.pdf", tipo: "PDF" } },
+      { id: "tm9", autor: "Cliente", papel: "cliente", quando: diaOffset(-3) + " 09:05", texto: "Pago, obrigada!" },
+    ],
+  },
+  {
+    id: "t4",
+    numero: "CH-4818",
+    clienteId: "c4",
+    cliente: "Transportes Iguaçu S/A",
+    contato: "ti@iguacu.com.br",
+    assunto: "Perda do token — solicitar revogação imediata",
+    categoria: "Revogação",
+    subcategoria: "Perda do token",
+    canal: "Telefone",
+    prioridade: "critica",
+    status: "aberto",
+    responsavelId: "a5",
+    abertoEm: diaOffset(0) + " 07:58",
+    atualizadoEm: diaOffset(0) + " 07:58",
+    slaRestanteHoras: -1,
+    tags: ["compliance", "revogação"],
+    mensagens: [
+      { id: "tm10", autor: "Cliente", papel: "cliente", quando: diaOffset(0) + " 07:58", texto: "O token do diretor foi extraviado em viagem. Precisamos revogar hoje." },
+      { id: "tm11", autor: "Sistema", papel: "sistema", quando: diaOffset(0) + " 07:58", texto: "Prioridade crítica aplicada por regra de compliance. Encaminhado para Helena Prado." },
+    ],
+  },
+  {
+    id: "t5",
+    numero: "CH-4817",
+    clienteId: "c5",
+    cliente: "Bruno Salgado MEI",
+    contato: "bruno.salgado@gmail.com",
+    assunto: "Erro ao assinar PDF no Adobe Reader",
+    categoria: "Instalação e uso",
+    subcategoria: "Assinatura em PDF",
+    canal: "Site",
+    prioridade: "normal",
+    status: "em andamento",
+    responsavelId: "a3",
+    abertoEm: diaOffset(-1) + " 16:33",
+    atualizadoEm: diaOffset(0) + " 09:10",
+    slaRestanteHoras: 6,
+    primeiraRespostaMin: 12,
+    tags: ["A3", "Adobe"],
+    mensagens: [
+      { id: "tm12", autor: "Cliente", papel: "cliente", quando: diaOffset(-1) + " 16:33", texto: "Ao assinar aparece 'a operação criptográfica falhou'." },
+      { id: "tm13", autor: "Carolina Ito", papel: "suporte", quando: diaOffset(-1) + " 16:45", texto: "Vamos reinstalar o driver do token. Enviei o passo a passo por e-mail." },
+      { id: "tm14", autor: "Cliente", papel: "cliente", quando: diaOffset(0) + " 09:10", texto: "Reinstalei, mas o erro continua." },
+    ],
+  },
+  {
+    id: "t6",
+    numero: "CH-4816",
+    clienteId: "c1",
+    cliente: "Construtora Vale Norte LTDA",
+    contato: "financeiro@valenorte.com.br",
+    assunto: "Contrato social reprovado — qual o motivo?",
+    categoria: "Documentação",
+    subcategoria: "Documento reprovado",
+    canal: "Site",
+    prioridade: "alta",
+    status: "aguardando cliente",
+    responsavelId: "a3",
+    abertoEm: diaOffset(-3) + " 10:02",
+    atualizadoEm: diaOffset(-2) + " 15:47",
+    slaRestanteHoras: 2,
+    primeiraRespostaMin: 21,
+    tags: ["documentação"],
+    mensagens: [
+      { id: "tm15", autor: "Cliente", papel: "cliente", quando: diaOffset(-3) + " 10:02", texto: "Recebemos aviso de reprovação do contrato social." },
+      { id: "tm16", autor: "Carolina Ito", papel: "suporte", quando: diaOffset(-3) + " 10:23", texto: "A última alteração contratual não estava registrada na Junta. Pode reenviar a versão registrada?" },
+    ],
+  },
+  {
+    id: "t7",
+    numero: "CH-4815",
+    clienteId: "c2",
+    cliente: "Paula Ferraz Advocacia",
+    contato: "paula@ferrazadv.com.br",
+    assunto: "Sugestão: lembrete de vencimento por WhatsApp",
+    categoria: "Outros",
+    subcategoria: "Sugestão",
+    canal: "Site",
+    prioridade: "baixa",
+    status: "fechado",
+    responsavelId: "a4",
+    abertoEm: diaOffset(-8) + " 13:00",
+    atualizadoEm: diaOffset(-7) + " 08:30",
+    slaRestanteHoras: 40,
+    primeiraRespostaMin: 51,
+    satisfacao: 4,
+    tags: ["produto"],
+    mensagens: [
+      { id: "tm17", autor: "Cliente", papel: "cliente", quando: diaOffset(-8) + " 13:00", texto: "Seria ótimo receber aviso 30 dias antes do vencimento." },
+      { id: "tm18", autor: "Diego Nunes", papel: "suporte", quando: diaOffset(-7) + " 08:30", texto: "Registramos sua sugestão no roadmap. Obrigado!" },
+    ],
+  },
+];
+
+export const ticketStatuses: TicketStatus[] = ["aberto", "em andamento", "aguardando cliente", "resolvido", "fechado"];
+
+export const baseConhecimento = [
+  { id: "kb1", titulo: "Como instalar o driver do token A3", categoria: "Instalação e uso", views: 3120 },
+  { id: "kb2", titulo: "Certificado não aparece no e-CAC: checklist", categoria: "Erro no certificado", views: 2410 },
+  { id: "kb3", titulo: "Documentos aceitos para e-CNPJ", categoria: "Documentação", views: 1980 },
+  { id: "kb4", titulo: "Como remarcar sua videoconferência", categoria: "Agendamento", views: 1544 },
+  { id: "kb5", titulo: "Emitir 2ª via de boleto e nota fiscal", categoria: "Financeiro", views: 1201 },
+];
