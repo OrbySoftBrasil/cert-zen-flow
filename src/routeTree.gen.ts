@@ -16,6 +16,7 @@ import { Route as ConformidadeRouteImport } from './routes/conformidade'
 import { Route as OperacaoRouteImport } from './routes/operacao'
 import { Route as RenovacoesRouteImport } from './routes/renovacoes'
 import { Route as ChamadosIndexRouteImport } from './routes/chamados.index'
+import { Route as ChamadosIdRouteImport } from './routes/chamados.$id'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as SolicitacoesIdRouteImport } from './routes/solicitacoes.$id'
@@ -55,6 +56,11 @@ const ChamadosIndexRoute = ChamadosIndexRouteImport.update({
   path: '/chamados/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChamadosIdRoute = ChamadosIdRouteImport.update({
+  id: '/chamados/$id',
+  path: '/chamados/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientesIndexRoute = ClientesIndexRouteImport.update({
   id: '/clientes/',
   path: '/clientes/',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados/': typeof ChamadosIndexRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados': typeof ChamadosIndexRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/conformidade': typeof ConformidadeRoute
   '/operacao': typeof OperacaoRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados/': typeof ChamadosIndexRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/conformidade'
     | '/operacao'
     | '/renovacoes'
+    | '/chamados/$id'
     | '/clientes/$id'
     | '/solicitacoes/$id'
     | '/chamados/'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/conformidade'
     | '/operacao'
     | '/renovacoes'
+    | '/chamados/$id'
     | '/clientes/$id'
     | '/solicitacoes/$id'
     | '/chamados'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/conformidade'
     | '/operacao'
     | '/renovacoes'
+    | '/chamados/$id'
     | '/clientes/$id'
     | '/solicitacoes/$id'
     | '/chamados/'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   ConformidadeRoute: typeof ConformidadeRoute
   OperacaoRoute: typeof OperacaoRoute
   RenovacoesRoute: typeof RenovacoesRoute
+  ChamadosIdRoute: typeof ChamadosIdRoute
   ClientesIdRoute: typeof ClientesIdRoute
   SolicitacoesIdRoute: typeof SolicitacoesIdRoute
   ChamadosIndexRoute: typeof ChamadosIndexRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChamadosIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chamados/$id': {
+      id: '/chamados/$id'
+      path: '/chamados/$id'
+      fullPath: '/chamados/$id'
+      preLoaderRoute: typeof ChamadosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clientes/': {
       id: '/clientes/'
       path: '/clientes'
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConformidadeRoute: ConformidadeRoute,
   OperacaoRoute: OperacaoRoute,
   RenovacoesRoute: RenovacoesRoute,
+  ChamadosIdRoute: ChamadosIdRoute,
   ClientesIdRoute: ClientesIdRoute,
   SolicitacoesIdRoute: SolicitacoesIdRoute,
   ChamadosIndexRoute: ChamadosIndexRoute,

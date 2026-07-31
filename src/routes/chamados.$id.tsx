@@ -228,7 +228,7 @@ function ChamadoDetalhe() {
               <Chip tone="outline">{ticket.subcategoria}</Chip>
               <Chip tone={statusTone(status)}>{status}</Chip>
               <Chip tone={prioridadeTone(ticket.prioridade)}>prioridade {ticket.prioridade}</Chip>
-              {ticket.tags.map((t) => (
+              {ticket.tags.map((t: string) => (
                 <Chip key={t}>{t}</Chip>
               ))}
             </div>
