@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarCheck2, CalendarX2, Clock3, Video } from "lucide-react";
+import { CalendarCheck2, CalendarX2, ChevronLeft, ChevronRight, Clock3, Video } from "lucide-react";
 import { useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
