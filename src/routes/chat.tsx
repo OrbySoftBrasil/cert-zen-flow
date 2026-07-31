@@ -437,7 +437,7 @@ function Chat() {
                   }
                 }}
                 rows={1}
-                placeholder="Escreva uma mensagem   ·   Enter envia, Shift+Enter quebra linha"
+                placeholder="Escreva uma mensagem"
                 className="max-h-28 min-h-9 flex-1 resize-none bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
               />
               <button
