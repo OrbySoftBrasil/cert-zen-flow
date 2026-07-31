@@ -148,7 +148,8 @@ function Agenda() {
         </div>
       }
     >
-
+      {vista === "dia" && (
+      <>
       <div className="mb-4 flex flex-wrap divide-border rounded-lg border border-border bg-card">
         <Metric label="Agendamentos do dia" value={String(doDia.length)} />
         <Metric label="Confirmados" value={String(doDia.filter((a) => a.status === "confirmado").length)} />
@@ -157,6 +158,7 @@ function Agenda() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+
         <Panel title="Grade por agente" hint={`Dia ${dia}`} bodyClassName="overflow-x-auto p-0">
           <table className="w-full min-w-[640px] text-sm">
             <thead>
