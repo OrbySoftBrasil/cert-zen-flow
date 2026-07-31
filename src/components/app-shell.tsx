@@ -5,6 +5,7 @@ import {
   Users,
   MessagesSquare,
   CalendarClock,
+  LifeBuoy,
   ShieldCheck,
   RefreshCw,
   Search,
