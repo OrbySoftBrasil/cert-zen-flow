@@ -173,6 +173,16 @@ export function PortalParceiro() {
 
   const [carteira, setCarteira] = useState<CarteiraItem[]>(contador.carteira);
   const [pedidos, setPedidos] = useState<PedidoContador[]>(contador.pedidos);
+  const [chamados, setChamados] = useState<ChamadoParceiro[]>(chamadosIniciais);
+
+  // form: novo chamado
+  const [chCliente, setChCliente] = useState(contador.carteira[0]?.nome ?? "");
+  const [chCategoria, setChCategoria] = useState<TicketCategoria>("Instalação e uso");
+  const [chSub, setChSub] = useState(ticketCategorias[0]!.sub[0]!);
+  const [chPrioridade, setChPrioridade] = useState<(typeof prioridades)[number]>("normal");
+  const [chAssunto, setChAssunto] = useState("");
+  const [chDescricao, setChDescricao] = useState("");
+  const [chFiltro, setChFiltro] = useState<"todos" | "abertos" | "resolvidos">("todos");
 
   // form: novo cliente
   const [cNome, setCNome] = useState("");
