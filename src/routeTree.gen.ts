@@ -22,6 +22,7 @@ import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as FinanceiroIndexRouteImport } from './routes/financeiro.index'
 import { Route as FinanceiroCaixaRouteImport } from './routes/financeiro.caixa'
+import { Route as FinanceiroPagarRouteImport } from './routes/financeiro.pagar'
 import { Route as SolicitacoesIdRouteImport } from './routes/solicitacoes.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -89,6 +90,11 @@ const FinanceiroCaixaRoute = FinanceiroCaixaRouteImport.update({
   path: '/financeiro/caixa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanceiroPagarRoute = FinanceiroPagarRouteImport.update({
+  id: '/financeiro/pagar',
+  path: '/financeiro/pagar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SolicitacoesIdRoute = SolicitacoesIdRouteImport.update({
   id: '/solicitacoes/$id',
   path: '/solicitacoes/$id',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
+  '/financeiro/pagar': typeof FinanceiroPagarRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados/': typeof ChamadosIndexRoute
   '/clientes/': typeof ClientesIndexRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
+  '/financeiro/pagar': typeof FinanceiroPagarRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados': typeof ChamadosIndexRoute
   '/clientes': typeof ClientesIndexRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
+  '/financeiro/pagar': typeof FinanceiroPagarRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados/': typeof ChamadosIndexRoute
   '/clientes/': typeof ClientesIndexRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/chamados/$id'
     | '/clientes/$id'
     | '/financeiro/caixa'
+    | '/financeiro/pagar'
     | '/solicitacoes/$id'
     | '/chamados/'
     | '/clientes/'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/chamados/$id'
     | '/clientes/$id'
     | '/financeiro/caixa'
+    | '/financeiro/pagar'
     | '/solicitacoes/$id'
     | '/chamados'
     | '/clientes'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/chamados/$id'
     | '/clientes/$id'
     | '/financeiro/caixa'
+    | '/financeiro/pagar'
     | '/solicitacoes/$id'
     | '/chamados/'
     | '/clientes/'
@@ -206,6 +218,7 @@ export interface RootRouteChildren {
   ChamadosIdRoute: typeof ChamadosIdRoute
   ClientesIdRoute: typeof ClientesIdRoute
   FinanceiroCaixaRoute: typeof FinanceiroCaixaRoute
+  FinanceiroPagarRoute: typeof FinanceiroPagarRoute
   SolicitacoesIdRoute: typeof SolicitacoesIdRoute
   ChamadosIndexRoute: typeof ChamadosIndexRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
@@ -305,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceiroCaixaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/financeiro/pagar': {
+      id: '/financeiro/pagar'
+      path: '/financeiro/pagar'
+      fullPath: '/financeiro/pagar'
+      preLoaderRoute: typeof FinanceiroPagarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/solicitacoes/$id': {
       id: '/solicitacoes/$id'
       path: '/solicitacoes/$id'
@@ -326,6 +346,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChamadosIdRoute: ChamadosIdRoute,
   ClientesIdRoute: ClientesIdRoute,
   FinanceiroCaixaRoute: FinanceiroCaixaRoute,
+  FinanceiroPagarRoute: FinanceiroPagarRoute,
   SolicitacoesIdRoute: SolicitacoesIdRoute,
   ChamadosIndexRoute: ChamadosIndexRoute,
   ClientesIndexRoute: ClientesIndexRoute,
