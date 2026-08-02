@@ -23,6 +23,7 @@ import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as FinanceiroIndexRouteImport } from './routes/financeiro.index'
 import { Route as FinanceiroCaixaRouteImport } from './routes/financeiro.caixa'
 import { Route as FinanceiroPagarRouteImport } from './routes/financeiro.pagar'
+import { Route as FinanceiroReceberRouteImport } from './routes/financeiro.receber'
 import { Route as SolicitacoesIdRouteImport } from './routes/solicitacoes.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -95,6 +96,11 @@ const FinanceiroPagarRoute = FinanceiroPagarRouteImport.update({
   path: '/financeiro/pagar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanceiroReceberRoute = FinanceiroReceberRouteImport.update({
+  id: '/financeiro/receber',
+  path: '/financeiro/receber',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SolicitacoesIdRoute = SolicitacoesIdRouteImport.update({
   id: '/solicitacoes/$id',
   path: '/solicitacoes/$id',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
+  '/financeiro/receber': typeof FinanceiroReceberRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados/': typeof ChamadosIndexRoute
   '/clientes/': typeof ClientesIndexRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
+  '/financeiro/receber': typeof FinanceiroReceberRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados': typeof ChamadosIndexRoute
   '/clientes': typeof ClientesIndexRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
+  '/financeiro/receber': typeof FinanceiroReceberRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados/': typeof ChamadosIndexRoute
   '/clientes/': typeof ClientesIndexRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/clientes/$id'
     | '/financeiro/caixa'
     | '/financeiro/pagar'
+    | '/financeiro/receber'
     | '/solicitacoes/$id'
     | '/chamados/'
     | '/clientes/'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/clientes/$id'
     | '/financeiro/caixa'
     | '/financeiro/pagar'
+    | '/financeiro/receber'
     | '/solicitacoes/$id'
     | '/chamados'
     | '/clientes'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/clientes/$id'
     | '/financeiro/caixa'
     | '/financeiro/pagar'
+    | '/financeiro/receber'
     | '/solicitacoes/$id'
     | '/chamados/'
     | '/clientes/'
@@ -219,6 +231,7 @@ export interface RootRouteChildren {
   ClientesIdRoute: typeof ClientesIdRoute
   FinanceiroCaixaRoute: typeof FinanceiroCaixaRoute
   FinanceiroPagarRoute: typeof FinanceiroPagarRoute
+  FinanceiroReceberRoute: typeof FinanceiroReceberRoute
   SolicitacoesIdRoute: typeof SolicitacoesIdRoute
   ChamadosIndexRoute: typeof ChamadosIndexRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
@@ -325,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceiroPagarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/financeiro/receber': {
+      id: '/financeiro/receber'
+      path: '/financeiro/receber'
+      fullPath: '/financeiro/receber'
+      preLoaderRoute: typeof FinanceiroReceberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/solicitacoes/$id': {
       id: '/solicitacoes/$id'
       path: '/solicitacoes/$id'
@@ -347,6 +367,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientesIdRoute: ClientesIdRoute,
   FinanceiroCaixaRoute: FinanceiroCaixaRoute,
   FinanceiroPagarRoute: FinanceiroPagarRoute,
+  FinanceiroReceberRoute: FinanceiroReceberRoute,
   SolicitacoesIdRoute: SolicitacoesIdRoute,
   ChamadosIndexRoute: ChamadosIndexRoute,
   ClientesIndexRoute: ClientesIndexRoute,
