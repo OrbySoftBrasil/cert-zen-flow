@@ -344,8 +344,8 @@ function Cockpit() {
                           </span>
                         </td>
                         <td className="px-4 py-2.5 tabular">{w.certificadosAtivos}</td>
-                        <td className="px-4 py-2.5 tabular text-muted-foreground">{w.proximoVencimento}</td>
-                        <td className="px-4 py-2.5 tabular text-muted-foreground">{w.ultimaEmissao}</td>
+                        <td className="px-4 py-2.5 whitespace-nowrap tabular text-muted-foreground">{w.proximoVencimento}</td>
+                        <td className="px-4 py-2.5 whitespace-nowrap tabular text-muted-foreground">{w.ultimaEmissao}</td>
                         <td className="px-4 py-2.5 text-right tabular">{brl(w.receitaAno)}</td>
                         <td className="px-4 py-2.5">
                           <Chip tone={situacaoTone[w.situacao]}>{w.situacao}</Chip>
