@@ -268,6 +268,45 @@ export function PortalParceiro() {
     setTimeout(() => setAviso(null), 6000);
   }
 
+  function abrirChamado() {
+    if (!chAssunto.trim() || !chDescricao.trim()) return;
+    const numero = `CH-${4840 + chamados.length + Math.floor(Math.random() * 40)}`;
+    setChamados((atual) => [
+      {
+        id: numero,
+        numero,
+        cliente: chCliente,
+        assunto: chAssunto.trim(),
+        categoria: chCategoria,
+        subcategoria: chSub,
+        prioridade: chPrioridade,
+        status: "aberto",
+        abertoEm: "agora",
+        atualizadoEm: "agora",
+        responsavel: "Fila de suporte",
+        slaRestanteHoras: chPrioridade === "critica" ? 2 : chPrioridade === "alta" ? 4 : 8,
+      },
+      ...atual,
+    ]);
+    setAviso(`Chamado ${numero} aberto. Primeira resposta prevista em até 2 horas úteis.`);
+    setChAssunto("");
+    setChDescricao("");
+    setTimeout(() => setAviso(null), 6000);
+  }
+
+  const chamadosAbertos = chamados.filter((c) => c.status !== "resolvido" && c.status !== "fechado");
+  const chamadosFiltrados = chamados.filter((c) =>
+    chFiltro === "todos"
+      ? true
+      : chFiltro === "abertos"
+        ? c.status !== "resolvido" && c.status !== "fechado"
+        : c.status === "resolvido" || c.status === "fechado",
+  );
+  const subsChamado = ticketCategorias.find((c) => c.nome === chCategoria)?.sub ?? [];
+  const sugestoesKb = baseConhecimento.filter((a) => a.categoria === chCategoria);
+
+
+
   const datasets = () => [
     {
       nome: "Pedidos",
