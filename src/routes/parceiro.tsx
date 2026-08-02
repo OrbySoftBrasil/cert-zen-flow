@@ -388,13 +388,13 @@ export function PortalParceiro() {
             </Link>
           </div>
         </div>
-        <div className="mx-auto flex max-w-6xl items-center gap-1 px-4">
+        <div className="mx-auto flex max-w-6xl items-center gap-1 overflow-x-auto px-4">
           {abas.map((a) => (
             <button
               key={a.id}
               onClick={() => setAba(a.id)}
               className={cn(
-                "-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition-colors",
+                "-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm whitespace-nowrap transition-colors",
                 aba === a.id
                   ? "border-primary font-medium text-primary-deep"
                   : "border-transparent text-muted-foreground hover:text-foreground",
@@ -404,7 +404,7 @@ export function PortalParceiro() {
               {a.label}
             </button>
           ))}
-          <div className="ml-auto flex items-center gap-2 py-2">
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2 py-2">
             <ExportMenu datasets={datasets} base="parceiro" label="Exportar" />
             <button
               onClick={() => setNovoPedido(true)}
