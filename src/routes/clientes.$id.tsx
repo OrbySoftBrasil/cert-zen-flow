@@ -65,6 +65,7 @@ function Dossie() {
   const [aba, setAba] = useState<(typeof abas)[number]["id"]>("certificados");
   const solicitacoes = requests.filter((r) => r.clienteId === id);
   const conversas = conversations.filter((c) => c.clienteId === id);
+  const contador = contadorDoCliente(id);
 
   return (
     <AppShell title={cliente.nome} subtitle={`${cliente.documento} · cliente desde ${cliente.desde}`}>
