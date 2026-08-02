@@ -59,7 +59,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Dashboard executivo e operacional — Certus AC" },
       {
         property: "og:description",
-        content: "Receita, emissões, chamados, SLA, agenda e renovações em uma visão única da operação.",
+        content: "Visão geral da operação da autoridade certificadora: receita, emissões, backlog por etapa, chamados, SLA, agenda e renovações com exportação em CSV, XLSX e JSON.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

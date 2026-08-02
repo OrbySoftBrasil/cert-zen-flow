@@ -77,20 +77,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Certus AC — Gestão de Autoridade Certificadora" },
+      { title: "Dashboard executivo e operacional — Certus AC" },
       {
         name: "description",
         content:
-          "Plataforma de operação para autoridade certificadora: emissões, SLA, atendimento com IA e agenda.",
+          "Visão geral da operação da autoridade certificadora: receita, emissões, backlog por etapa, chamados, SLA, agenda e renovações com exportação em CSV, XLSX e JSON.",
       },
       { name: "author", content: "Certus AC" },
-      { property: "og:title", content: "Certus AC — Gestão de Autoridade Certificadora" },
+      { property: "og:title", content: "Dashboard executivo e operacional — Certus AC" },
       {
         property: "og:description",
-        content: "Operação completa de emissão de certificados digitais em uma única plataforma.",
+        content: "Visão geral da operação da autoridade certificadora: receita, emissões, backlog por etapa, chamados, SLA, agenda e renovações com exportação em CSV, XLSX e JSON.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Dashboard executivo e operacional — Certus AC" },
+      { name: "twitter:description", content: "Visão geral da operação da autoridade certificadora: receita, emissões, backlog por etapa, chamados, SLA, agenda e renovações com exportação em CSV, XLSX e JSON." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/62655729-cd02-420f-aab9-76562f9c10e1/id-preview-dfa360f1--67fa6c8d-bbb9-4008-9e33-eb1e9275b1cc.lovable.app-1785706081108.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/62655729-cd02-420f-aab9-76562f9c10e1/id-preview-dfa360f1--67fa6c8d-bbb9-4008-9e33-eb1e9275b1cc.lovable.app-1785706081108.png" },
     ],
     links: [
       {
