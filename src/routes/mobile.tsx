@@ -654,7 +654,7 @@ function ClienteDetalhe({ id, onPedido }: { id: string; onPedido: (id: string) =
   if (!c) return null;
   const pedidos = requests.filter((r) => r.clienteId === id);
   const chamados = tickets.filter((t) => t.clienteId === id);
-  const emAberto = c.faturas.filter((f) => f.status !== "paga");
+  const emAberto = c.faturas.filter((f) => f.status !== "pago");
 
   return (
     <div className="space-y-3">
@@ -682,7 +682,7 @@ function ClienteDetalhe({ id, onPedido }: { id: string; onPedido: (id: string) =
           <Row
             key={cert.id}
             title={cert.tipo}
-            subtitle={`${cert.serie ?? cert.id} · válido até ${String(cert.validade).split("-").reverse().join("/")}`}
+            subtitle={`${cert.serie} · válido até ${String(cert.validoAte).split("-").reverse().join("/")}`}
             right={<Chip tone={cert.status === "ativo" ? "blue" : "alert"}>{cert.status}</Chip>}
           />
         ))}
@@ -714,7 +714,7 @@ function ClienteDetalhe({ id, onPedido }: { id: string; onPedido: (id: string) =
             key={f.id}
             title={brl(f.valor)}
             subtitle={`vencimento ${String(f.vencimento).split("-").reverse().join("/")}`}
-            right={<Chip tone={f.status === "paga" ? "blue" : "alert"}>{f.status}</Chip>}
+            right={<Chip tone={f.status === "pago" ? "blue" : "alert"}>{f.status}</Chip>}
           />
         ))}
       </MCard>
@@ -724,7 +724,7 @@ function ClienteDetalhe({ id, onPedido }: { id: string; onPedido: (id: string) =
 
 function PedidoDetalhe({ pedido }: { pedido: Request }) {
   const etapa = stages.find((s) => s.id === pedido.stage);
-  const feitos = pedido.checklist.filter((i) => i.feito).length;
+  const feitos = pedido.checklist.filter((i) => i.done).length;
   return (
     <div className="space-y-3">
       <MCard>
@@ -749,7 +749,7 @@ function PedidoDetalhe({ pedido }: { pedido: Request }) {
           <Row
             key={i.id}
             title={i.label}
-            right={<Chip tone={i.feito ? "blue" : "outline"}>{i.feito ? "ok" : "pendente"}</Chip>}
+            right={<Chip tone={i.done ? "blue" : "outline"}>{i.done ? "ok" : "pendente"}</Chip>}
           />
         ))}
       </MCard>
