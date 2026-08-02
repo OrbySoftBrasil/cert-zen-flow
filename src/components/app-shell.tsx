@@ -14,6 +14,7 @@ import {
   Bell,
   Rows3,
   Rows4,
+  Wallet,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
