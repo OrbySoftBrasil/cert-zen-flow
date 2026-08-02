@@ -355,7 +355,7 @@ function TabInicio({
             </defs>
             <CartesianGrid stroke="var(--border)" vertical={false} />
             <XAxis dataKey="mes" tick={axis} axisLine={false} tickLine={false} />
-            <YAxis tick={axis} axisLine={false} tickLine={false} width={44} tickFormatter={(v) => `${v / 1000}k`} />
+            <YAxis tick={axis} axisLine={false} tickLine={false} width={52} tickFormatter={(v) => `${v / 1000}k`} />
             <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => brl(v)} />
             <Area type="monotone" dataKey="receita" stroke="var(--primary)" strokeWidth={2} fill="url(#mg)" />
           </AreaChart>
@@ -808,7 +808,7 @@ function TabFinanceiro() {
               <LineChart data={serieFinanceira} margin={{ top: 4, right: 6, left: -18, bottom: 0 }}>
                 <CartesianGrid stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="mes" tick={axis} axisLine={false} tickLine={false} />
-                <YAxis tick={axis} axisLine={false} tickLine={false} width={44} tickFormatter={(v) => `${v / 1000}k`} />
+                <YAxis tick={axis} axisLine={false} tickLine={false} width={52} tickFormatter={(v) => `${v / 1000}k`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => brlFull(v)} />
                 <Line dataKey="receita" stroke="var(--primary)" strokeWidth={2} dot={false} />
                 <Line dataKey="despesa" stroke="var(--muted-foreground)" strokeWidth={1.5} dot={false} />
@@ -856,7 +856,7 @@ function TabFinanceiro() {
                 </defs>
                 <CartesianGrid stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="dia" tick={axis} axisLine={false} tickLine={false} />
-                <YAxis tick={axis} axisLine={false} tickLine={false} width={44} tickFormatter={(v) => `${v / 1000}k`} />
+                <YAxis tick={axis} axisLine={false} tickLine={false} width={52} tickFormatter={(v) => `${v / 1000}k`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => brlFull(v)} />
                 <Area type="monotone" dataKey="saldo" stroke="var(--primary)" strokeWidth={2} fill="url(#cx)" />
               </AreaChart>
