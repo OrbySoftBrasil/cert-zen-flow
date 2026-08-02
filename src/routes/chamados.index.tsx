@@ -107,7 +107,7 @@ function Chamados() {
           hint={`${lista.length} de ${tickets.length} chamados`}
           bodyClassName="p-0"
           actions={
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-1.5 rounded-md border border-border px-2 py-1.5">
                 <Search className="size-3.5 text-muted-foreground" />
                 <input
