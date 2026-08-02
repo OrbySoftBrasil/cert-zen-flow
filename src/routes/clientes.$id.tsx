@@ -14,6 +14,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Bar, Chip, Panel } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
+import { contadorDoCliente } from "@/lib/contadores-data";
 import { brl, clientById, conversations, requests } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/clientes/$id")({
