@@ -14,6 +14,7 @@ import {
   Bell,
   Rows3,
   Rows4,
+  Wallet,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -35,6 +36,7 @@ const nav = [
   { to: "/chat", label: "Chat", icon: MessagesSquare },
   { to: "/chamados", label: "Chamados", icon: LifeBuoy },
   { to: "/agenda", label: "Agenda", icon: CalendarClock },
+  { to: "/financeiro", label: "Financeiro", icon: Wallet },
   { to: "/renovacoes", label: "Renovações", icon: RefreshCw },
   { to: "/conformidade", label: "Conformidade", icon: ShieldCheck },
 ] as const;
