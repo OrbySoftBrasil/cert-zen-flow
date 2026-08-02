@@ -333,6 +333,20 @@ export function PortalParceiro() {
       })),
     },
     {
+      nome: "Chamados",
+      linhas: chamados.map((c) => ({
+        Protocolo: c.numero,
+        Cliente: c.cliente,
+        Assunto: c.assunto,
+        Categoria: c.categoria,
+        Subcategoria: c.subcategoria,
+        Prioridade: c.prioridade,
+        Status: c.status,
+        "SLA (h)": c.slaRestanteHoras,
+        Atualizado: c.atualizadoEm,
+      })),
+    },
+    {
       nome: "Comissoes",
       linhas: contador.extrato.map((e) => ({
         Competência: e.competencia,
