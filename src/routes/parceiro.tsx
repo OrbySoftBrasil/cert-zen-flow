@@ -611,6 +611,233 @@ export function PortalParceiro() {
           </Panel>
         )}
 
+        {aba === "chamados" && (
+          <>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                { label: "Chamados abertos", valor: chamadosAbertos.length },
+                {
+                  label: "SLA crítico",
+                  valor: chamadosAbertos.filter((c) => c.slaRestanteHoras <= 4).length,
+                },
+                {
+                  label: "Resolvidos (30d)",
+                  valor: chamados.filter((c) => c.status === "resolvido" || c.status === "fechado").length,
+                },
+              ].map((m) => (
+                <div key={m.label} className="rounded-lg border border-border bg-card px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{m.label}</p>
+                  <p className="mt-1 font-display text-2xl font-semibold tabular">{m.valor}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+              <Panel title="Abrir chamado para um cliente" hint="suporte 8h às 20h em dias úteis">
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-xs text-muted-foreground">Cliente da carteira</span>
+                      <select
+                        value={chCliente}
+                        onChange={(e) => setChCliente(e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-primary"
+                      >
+                        {carteira.map((c) => (
+                          <option key={c.id} value={c.nome}>
+                            {c.nome}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs text-muted-foreground">Urgência</span>
+                      <select
+                        value={chPrioridade}
+                        onChange={(e) => setChPrioridade(e.target.value as (typeof prioridades)[number])}
+                        className="mt-1 w-full rounded-md border border-border bg-card px-2.5 py-2 text-sm capitalize outline-none focus:border-primary"
+                      >
+                        {prioridades.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+
+                  <div>
+                    <span className="text-xs text-muted-foreground">Categoria</span>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {ticketCategorias.map((c) => (
+                        <button
+                          key={c.nome}
+                          onClick={() => {
+                            setChCategoria(c.nome);
+                            setChSub(c.sub[0]!);
+                          }}
+                          className={cn(
+                            "rounded-md px-2.5 py-1.5 text-xs transition-colors",
+                            chCategoria === c.nome
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-border text-muted-foreground hover:border-primary",
+                          )}
+                        >
+                          {c.nome}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-xs text-muted-foreground">Assunto específico</span>
+                      <select
+                        value={chSub}
+                        onChange={(e) => setChSub(e.target.value)}
+                        className="mt-1 w-full rounded-md border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-primary"
+                      >
+                        {subsChamado.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs text-muted-foreground">Título do chamado</span>
+                      <input
+                        value={chAssunto}
+                        maxLength={120}
+                        onChange={(e) => setChAssunto(e.target.value)}
+                        placeholder="Ex.: certificado não aparece no e-CAC"
+                        className="mt-1 w-full rounded-md border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-primary"
+                      />
+                    </label>
+                  </div>
+
+                  <label className="block">
+                    <span className="text-xs text-muted-foreground">Descrição</span>
+                    <textarea
+                      value={chDescricao}
+                      maxLength={2000}
+                      rows={4}
+                      onChange={(e) => setChDescricao(e.target.value)}
+                      placeholder="Descreva o que aconteceu, mensagens de erro e o que já foi tentado."
+                      className="mt-1 w-full resize-none rounded-md border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-primary"
+                    />
+                    <span className="text-[11px] text-muted-foreground tabular">{chDescricao.length}/2000</span>
+                  </label>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <button className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary">
+                      <Paperclip className="size-3.5" /> Anexar print ou documento
+                    </button>
+                    <button
+                      onClick={abrirChamado}
+                      disabled={!chAssunto.trim() || !chDescricao.trim()}
+                      className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+                    >
+                      Abrir chamado
+                    </button>
+                  </div>
+                </div>
+              </Panel>
+
+              <Panel title="Talvez resolva agora" hint="base de conhecimento">
+                <ul className="space-y-2.5 text-sm">
+                  {(sugestoesKb.length ? sugestoesKb : baseConhecimento.slice(0, 3)).map((a) => (
+                    <li key={a.id} className="flex items-start gap-2">
+                      <LifeBuoy className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                      <span className="leading-snug">{a.titulo}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 border-t border-border pt-3 text-[11px] text-muted-foreground">
+                  Chamados abertos pelo portal do parceiro entram na mesma fila da operação, com SLA de primeira
+                  resposta de 2 horas úteis.
+                </p>
+              </Panel>
+            </div>
+
+            <Panel
+              title="Chamados dos meus clientes"
+              hint={`${chamados.length} protocolos`}
+              actions={
+                <div className="flex gap-1.5">
+                  {(["todos", "abertos", "resolvidos"] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setChFiltro(f)}
+                      className={cn(
+                        "rounded-md px-2.5 py-1.5 text-xs capitalize transition-colors",
+                        chFiltro === f
+                          ? "bg-primary text-primary-foreground"
+                          : "border border-border text-muted-foreground hover:border-primary",
+                      )}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              }
+              bodyClassName="p-0"
+            >
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-2.5 font-medium">Protocolo</th>
+                      <th className="px-4 py-2.5 font-medium">Cliente / assunto</th>
+                      <th className="px-4 py-2.5 font-medium">Categoria</th>
+                      <th className="px-4 py-2.5 font-medium">Prioridade</th>
+                      <th className="px-4 py-2.5 font-medium">SLA</th>
+                      <th className="px-4 py-2.5 font-medium">Atualizado</th>
+                      <th className="px-4 py-2.5 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {chamadosFiltrados.map((c) => (
+                      <tr key={c.id} className="hover:bg-muted/50">
+                        <td className="px-4 py-3 font-medium tabular whitespace-nowrap">{c.numero}</td>
+                        <td className="px-4 py-3">
+                          <p className="font-medium leading-snug">{c.assunto}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {c.cliente} · {c.responsavel}
+                          </p>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          <p className="whitespace-nowrap">{c.categoria}</p>
+                          <p className="text-[11px]">{c.subcategoria}</p>
+                        </td>
+                        <td className="px-4 py-3 capitalize">{c.prioridade}</td>
+                        <td className="px-4 py-3">
+                          {c.status === "resolvido" || c.status === "fechado" ? (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          ) : (
+                            <SlaBadge horas={c.slaRestanteHoras} />
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{c.atualizadoEm}</td>
+                        <td className="px-4 py-3">
+                          <Chip tone={chamadoTone[c.status]}>{c.status}</Chip>
+                        </td>
+                      </tr>
+                    ))}
+                    {chamadosFiltrados.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                          Nenhum chamado neste filtro.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
+          </>
+        )}
+
         {aba === "comissoes" && (
           <>
             <div className="grid gap-3 sm:grid-cols-3">
