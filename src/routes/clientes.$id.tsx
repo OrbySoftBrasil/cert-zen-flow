@@ -77,6 +77,20 @@ function Dossie() {
               <p className="text-xs text-muted-foreground">
                 {cliente.email} · {cliente.telefone} · {cliente.cidade}
               </p>
+              <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                <Handshake className="size-3" />
+                {contador ? (
+                  <>
+                    Indicado por{" "}
+                    <Link to="/contadores/$id" params={{ id: contador.id }} className="text-primary hover:underline">
+                      {contador.nome}
+                    </Link>
+                    <Chip tone="outline">{contador.tier}</Chip>
+                  </>
+                ) : (
+                  <>Cliente direto (sem contador parceiro)</>
+                )}
+              </p>
             </div>
             <div className="ml-auto flex gap-6 text-right">
               <div>
