@@ -41,43 +41,45 @@ function Renovacoes() {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
         <Panel title="Certificados a vencer" bodyClassName="p-0">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-2 font-medium">Cliente</th>
-                <th className="px-4 py-2 font-medium">Certificado</th>
-                <th className="px-4 py-2 font-medium">Validade</th>
-                <th className="px-4 py-2 font-medium">Status</th>
-                <th className="px-4 py-2 font-medium">Ação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {aVencer.map(({ cliente, cert }) => (
-                <tr key={cert.id} className="hover:bg-muted/50">
-                  <td className="px-4 py-2.5">
-                    <Link to="/clientes/$id" params={{ id: cliente.id }} className="text-primary hover:underline">
-                      {cliente.nome}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2.5 tabular text-muted-foreground">
-                    {cert.tipo} · {cert.serie}
-                  </td>
-                  <td className="px-4 py-2.5 tabular">{cert.validoAte}</td>
-                  <td className="px-4 py-2.5">
-                    <Chip tone={cert.status === "a vencer" ? "alert" : "blue"}>{cert.status}</Chip>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <button
-                      onClick={() => setDisparadas((p) => [...p, cert.id])}
-                      className="rounded-md border border-border px-2 py-1 text-xs transition-colors hover:border-primary"
-                    >
-                      {disparadas.includes(cert.id) ? "Campanha enviada" : "Disparar renovação"}
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-2 font-medium">Cliente</th>
+                  <th className="px-4 py-2 font-medium">Certificado</th>
+                  <th className="px-4 py-2 font-medium">Validade</th>
+                  <th className="px-4 py-2 font-medium">Status</th>
+                  <th className="px-4 py-2 font-medium">Ação</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {aVencer.map(({ cliente, cert }) => (
+                  <tr key={cert.id} className="hover:bg-muted/50">
+                    <td className="px-4 py-2.5">
+                      <Link to="/clientes/$id" params={{ id: cliente.id }} className="text-primary hover:underline">
+                        {cliente.nome}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2.5 tabular text-muted-foreground">
+                      {cert.tipo} · {cert.serie}
+                    </td>
+                    <td className="px-4 py-2.5 tabular">{cert.validoAte}</td>
+                    <td className="px-4 py-2.5">
+                      <Chip tone={cert.status === "a vencer" ? "alert" : "blue"}>{cert.status}</Chip>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <button
+                        onClick={() => setDisparadas((p) => [...p, cert.id])}
+                        className="rounded-md border border-border px-2 py-1 text-xs transition-colors hover:border-primary"
+                      >
+                        {disparadas.includes(cert.id) ? "Campanha enviada" : "Disparar renovação"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Panel>
 
         <div className="space-y-4">

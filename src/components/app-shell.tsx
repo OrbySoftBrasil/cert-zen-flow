@@ -17,6 +17,8 @@ import {
   Rows4,
   Wallet,
   Smartphone,
+  Menu,
+  X,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -60,8 +62,13 @@ export function AppShell({
   const [collapsed, setCollapsed] = useState(false);
   const [dense, setDense] = useState(false);
   const [open, setOpen] = useState(false);
+  const [navMobile, setNavMobile] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    setNavMobile(false);
+  }, [pathname]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -130,20 +137,27 @@ export function AppShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card/90 px-4 backdrop-blur md:px-6">
           <button
-            onClick={() => setOpen(true)}
-            className="flex h-9 flex-1 max-w-md items-center gap-2 rounded-md border border-border bg-muted/60 px-3 text-sm text-muted-foreground transition-colors hover:border-border-strong"
+            onClick={() => setNavMobile(true)}
+            aria-label="Abrir menu"
+            className="grid size-9 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden"
           >
-            <Search className="size-4" />
-            <span className="truncate">Buscar cliente, protocolo ou certificado</span>
+            <Menu className="size-4" />
+          </button>
+          <button
+            onClick={() => setOpen(true)}
+            className="flex h-9 min-w-0 flex-1 max-w-md shrink items-center gap-2 rounded-md border border-border bg-muted/60 px-3 text-sm text-muted-foreground transition-colors hover:border-border-strong max-sm:w-9 max-sm:flex-none max-sm:justify-center max-sm:px-0"
+          >
+            <Search className="size-4 shrink-0" />
+            <span className="truncate max-sm:hidden">Buscar cliente, protocolo ou certificado</span>
             <kbd className="ml-auto hidden rounded border border-border bg-card px-1.5 py-0.5 font-sans text-[10px] text-muted-foreground sm:block">
               ⌘K
             </kbd>
           </button>
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
             <button
               onClick={() => setDense((v) => !v)}
               title={dense ? "Densidade confortável" : "Densidade compacta"}
-              className="grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="hidden size-9 place-items-center sm:grid rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {dense ? <Rows4 className="size-4" /> : <Rows3 className="size-4" />}
             </button>
@@ -151,7 +165,7 @@ export function AppShell({
               <Bell className="size-4" />
               <span className="absolute right-2 top-2 size-1.5 rounded-full bg-alert" />
             </button>
-            <div className="ml-1 flex items-center gap-2 border-l border-border pl-3">
+            <div className="ml-1 flex items-center gap-2 border-l border-border pl-3 max-sm:ml-0 max-sm:border-l-0 max-sm:pl-0">
               <div className="grid size-8 place-items-center rounded-full bg-primary-soft text-xs font-semibold text-primary-deep">
                 MD
               </div>
@@ -173,6 +187,55 @@ export function AppShell({
 
         <main className={cn("flex-1 px-4 md:px-6", dense ? "py-3" : "py-6")}>{children}</main>
       </div>
+
+      {navMobile && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <button
+            aria-label="Fechar menu"
+            onClick={() => setNavMobile(false)}
+            className="absolute inset-0 bg-foreground/40"
+          />
+          <div className="absolute inset-y-0 left-0 flex w-64 flex-col border-r border-border bg-sidebar">
+            <div className="flex h-14 items-center gap-2.5 border-b border-border px-4">
+              <div className="grid size-8 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+                <ShieldCheck className="size-4" />
+              </div>
+              <div className="leading-tight">
+                <p className="font-display text-sm font-semibold">Certus AC</p>
+                <p className="text-[11px] text-muted-foreground">Autoridade Certificadora</p>
+              </div>
+              <button
+                onClick={() => setNavMobile(false)}
+                aria-label="Fechar menu"
+                className="ml-auto grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-sidebar-accent"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
+              {nav.map((item) => {
+                const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setNavMobile(false)}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors",
+                      active
+                        ? "bg-primary-soft font-medium text-primary-deep"
+                        : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                    )}
+                  >
+                    <item.icon className="size-4 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      )}
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Buscar clientes, solicitações e certificados..." />

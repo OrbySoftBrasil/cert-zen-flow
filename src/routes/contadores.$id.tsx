@@ -319,54 +319,56 @@ function Cockpit() {
 
             {aba === "carteira" && (
               <Panel bodyClassName="p-0">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                      <th className="px-4 py-2 font-medium">Cliente</th>
-                      <th className="px-4 py-2 font-medium">Certificados</th>
-                      <th className="px-4 py-2 font-medium">Próx. vencimento</th>
-                      <th className="px-4 py-2 font-medium">Última emissão</th>
-                      <th className="px-4 py-2 text-right font-medium">Receita 12m</th>
-                      <th className="px-4 py-2 font-medium">Situação</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {c.carteira.map((w) => (
-                      <tr key={w.id} className="hover:bg-muted/50">
-                        <td className="px-4 py-2.5">
-                          {w.clienteId ? (
-                            <Link
-                              to="/clientes/$id"
-                              params={{ id: w.clienteId }}
-                              className="font-medium text-primary hover:underline"
-                            >
-                              {w.nome}
-                            </Link>
-                          ) : (
-                            <span className="font-medium">{w.nome}</span>
-                          )}
-                          <span className="block text-xs tabular text-muted-foreground">
-                            {w.documento} · {w.tipoPessoa}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2.5 tabular">{w.certificadosAtivos}</td>
-                        <td className="px-4 py-2.5 whitespace-nowrap tabular text-muted-foreground">{w.proximoVencimento}</td>
-                        <td className="px-4 py-2.5 whitespace-nowrap tabular text-muted-foreground">{w.ultimaEmissao}</td>
-                        <td className="px-4 py-2.5 text-right tabular">{brl(w.receitaAno)}</td>
-                        <td className="px-4 py-2.5">
-                          <Chip tone={situacaoTone[w.situacao]}>{w.situacao}</Chip>
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                        <th className="px-4 py-2 font-medium">Cliente</th>
+                        <th className="px-4 py-2 font-medium">Certificados</th>
+                        <th className="px-4 py-2 font-medium">Próx. vencimento</th>
+                        <th className="px-4 py-2 font-medium">Última emissão</th>
+                        <th className="px-4 py-2 text-right font-medium">Receita 12m</th>
+                        <th className="px-4 py-2 font-medium">Situação</th>
                       </tr>
-                    ))}
-                    {c.carteira.length === 0 && (
-                      <tr>
-                        <td className="px-4 py-6 text-sm text-muted-foreground" colSpan={6}>
-                          Nenhum cliente vinculado a este parceiro.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {c.carteira.map((w) => (
+                        <tr key={w.id} className="hover:bg-muted/50">
+                          <td className="px-4 py-2.5">
+                            {w.clienteId ? (
+                              <Link
+                                to="/clientes/$id"
+                                params={{ id: w.clienteId }}
+                                className="font-medium text-primary hover:underline"
+                              >
+                                {w.nome}
+                              </Link>
+                            ) : (
+                              <span className="font-medium">{w.nome}</span>
+                            )}
+                            <span className="block text-xs tabular text-muted-foreground">
+                              {w.documento} · {w.tipoPessoa}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2.5 tabular">{w.certificadosAtivos}</td>
+                          <td className="px-4 py-2.5 whitespace-nowrap tabular text-muted-foreground">{w.proximoVencimento}</td>
+                          <td className="px-4 py-2.5 whitespace-nowrap tabular text-muted-foreground">{w.ultimaEmissao}</td>
+                          <td className="px-4 py-2.5 text-right tabular">{brl(w.receitaAno)}</td>
+                          <td className="px-4 py-2.5">
+                            <Chip tone={situacaoTone[w.situacao]}>{w.situacao}</Chip>
+                          </td>
+                        </tr>
+                      ))}
+                      {c.carteira.length === 0 && (
+                        <tr>
+                          <td className="px-4 py-6 text-sm text-muted-foreground" colSpan={6}>
+                            Nenhum cliente vinculado a este parceiro.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </Panel>
             )}
 
@@ -394,124 +396,130 @@ function Cockpit() {
                   </div>
                 </Panel>
                 <Panel bodyClassName="p-0">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                        <th className="px-4 py-2 font-medium">Protocolo</th>
-                        <th className="px-4 py-2 font-medium">Cliente</th>
-                        <th className="px-4 py-2 font-medium">Tipo</th>
-                        <th className="px-4 py-2 font-medium">Etapa</th>
-                        <th className="px-4 py-2 font-medium">SLA</th>
-                        <th className="px-4 py-2 text-right font-medium">Valor</th>
-                        <th className="px-4 py-2 font-medium">Responsável</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {c.pedidos.map((p) => (
-                        <tr key={p.id} className="hover:bg-muted/50">
-                          <td className="px-4 py-2.5 tabular font-medium">{p.protocolo}</td>
-                          <td className="px-4 py-2.5">{p.cliente}</td>
-                          <td className="px-4 py-2.5 text-muted-foreground">{p.tipo}</td>
-                          <td className="px-4 py-2.5">
-                            <Chip tone={p.stage === "bloqueado" ? "alert" : p.stage === "concluido" ? "blue" : "neutral"}>
-                              {stageNome(p.stage)}
-                            </Chip>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            {p.stage === "concluido" ? (
-                              <span className="text-xs text-muted-foreground">entregue</span>
-                            ) : (
-                              <SlaBadge horas={p.slaRestanteHoras} />
-                            )}
-                          </td>
-                          <td className="px-4 py-2.5 text-right tabular">{brl(p.valor)}</td>
-                          <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">{p.responsavel}</td>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                          <th className="px-4 py-2 font-medium">Protocolo</th>
+                          <th className="px-4 py-2 font-medium">Cliente</th>
+                          <th className="px-4 py-2 font-medium">Tipo</th>
+                          <th className="px-4 py-2 font-medium">Etapa</th>
+                          <th className="px-4 py-2 font-medium">SLA</th>
+                          <th className="px-4 py-2 text-right font-medium">Valor</th>
+                          <th className="px-4 py-2 font-medium">Responsável</th>
                         </tr>
-                      ))}
-                      {c.pedidos.length === 0 && (
-                        <tr>
-                          <td className="px-4 py-6 text-sm text-muted-foreground" colSpan={7}>
-                            Nenhum pedido em andamento para este parceiro.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {c.pedidos.map((p) => (
+                          <tr key={p.id} className="hover:bg-muted/50">
+                            <td className="px-4 py-2.5 tabular font-medium">{p.protocolo}</td>
+                            <td className="px-4 py-2.5">{p.cliente}</td>
+                            <td className="px-4 py-2.5 text-muted-foreground">{p.tipo}</td>
+                            <td className="px-4 py-2.5">
+                              <Chip tone={p.stage === "bloqueado" ? "alert" : p.stage === "concluido" ? "blue" : "neutral"}>
+                                {stageNome(p.stage)}
+                              </Chip>
+                            </td>
+                            <td className="px-4 py-2.5">
+                              {p.stage === "concluido" ? (
+                                <span className="text-xs text-muted-foreground">entregue</span>
+                              ) : (
+                                <SlaBadge horas={p.slaRestanteHoras} />
+                              )}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular">{brl(p.valor)}</td>
+                            <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">{p.responsavel}</td>
+                          </tr>
+                        ))}
+                        {c.pedidos.length === 0 && (
+                          <tr>
+                            <td className="px-4 py-6 text-sm text-muted-foreground" colSpan={7}>
+                              Nenhum pedido em andamento para este parceiro.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </Panel>
               </div>
             )}
 
             {aba === "comissoes" && (
               <Panel bodyClassName="p-0" title="Extrato de comissões" hint={`Regra vigente: ${c.comissaoPercentual}% sobre a receita líquida`}>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                      <th className="px-4 py-2 font-medium">Competência</th>
-                      <th className="px-4 py-2 text-right font-medium">Emissões</th>
-                      <th className="px-4 py-2 text-right font-medium">Base</th>
-                      <th className="px-4 py-2 text-right font-medium">%</th>
-                      <th className="px-4 py-2 text-right font-medium">Comissão</th>
-                      <th className="px-4 py-2 font-medium">Pagamento</th>
-                      <th className="px-4 py-2 font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {c.extrato.map((e) => (
-                      <tr key={e.id} className="hover:bg-muted/50">
-                        <td className="px-4 py-2.5 tabular font-medium">{e.competencia}</td>
-                        <td className="px-4 py-2.5 text-right tabular">{e.emissoes}</td>
-                        <td className="px-4 py-2.5 text-right tabular">{brl(e.base)}</td>
-                        <td className="px-4 py-2.5 text-right tabular">{e.percentual}%</td>
-                        <td className="px-4 py-2.5 text-right tabular font-medium">{brl(e.valor)}</td>
-                        <td className="px-4 py-2.5 tabular text-muted-foreground">{e.pagamento}</td>
-                        <td className="px-4 py-2.5">
-                          <Chip tone={comissaoTone[e.status]}>{e.status}</Chip>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                        <th className="px-4 py-2 font-medium">Competência</th>
+                        <th className="px-4 py-2 text-right font-medium">Emissões</th>
+                        <th className="px-4 py-2 text-right font-medium">Base</th>
+                        <th className="px-4 py-2 text-right font-medium">%</th>
+                        <th className="px-4 py-2 text-right font-medium">Comissão</th>
+                        <th className="px-4 py-2 font-medium">Pagamento</th>
+                        <th className="px-4 py-2 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {c.extrato.map((e) => (
+                        <tr key={e.id} className="hover:bg-muted/50">
+                          <td className="px-4 py-2.5 tabular font-medium">{e.competencia}</td>
+                          <td className="px-4 py-2.5 text-right tabular">{e.emissoes}</td>
+                          <td className="px-4 py-2.5 text-right tabular">{brl(e.base)}</td>
+                          <td className="px-4 py-2.5 text-right tabular">{e.percentual}%</td>
+                          <td className="px-4 py-2.5 text-right tabular font-medium">{brl(e.valor)}</td>
+                          <td className="px-4 py-2.5 tabular text-muted-foreground">{e.pagamento}</td>
+                          <td className="px-4 py-2.5">
+                            <Chip tone={comissaoTone[e.status]}>{e.status}</Chip>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-border bg-muted/40 text-sm font-medium">
+                        <td className="px-4 py-2.5">Total</td>
+                        <td className="px-4 py-2.5 text-right tabular">{c.extrato.reduce((s, e) => s + e.emissoes, 0)}</td>
+                        <td className="px-4 py-2.5 text-right tabular">{brl(c.extrato.reduce((s, e) => s + e.base, 0))}</td>
+                        <td />
+                        <td className="px-4 py-2.5 text-right tabular">{brl(c.extrato.reduce((s, e) => s + e.valor, 0))}</td>
+                        <td colSpan={2} className="px-4 py-2.5 text-right">
+                          <Link to="/financeiro/comissoes" className="text-xs text-primary hover:underline">
+                            Ver apuração no financeiro →
+                          </Link>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t border-border bg-muted/40 text-sm font-medium">
-                      <td className="px-4 py-2.5">Total</td>
-                      <td className="px-4 py-2.5 text-right tabular">{c.extrato.reduce((s, e) => s + e.emissoes, 0)}</td>
-                      <td className="px-4 py-2.5 text-right tabular">{brl(c.extrato.reduce((s, e) => s + e.base, 0))}</td>
-                      <td />
-                      <td className="px-4 py-2.5 text-right tabular">{brl(c.extrato.reduce((s, e) => s + e.valor, 0))}</td>
-                      <td colSpan={2} className="px-4 py-2.5 text-right">
-                        <Link to="/financeiro/comissoes" className="text-xs text-primary hover:underline">
-                          Ver apuração no financeiro →
-                        </Link>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+                    </tfoot>
+                  </table>
+                </div>
               </Panel>
             )}
 
             {aba === "credenciamento" && (
               <Panel bodyClassName="p-0" title="Documentos de credenciamento" hint="Habilitação, compliance e capacitação">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                      <th className="px-4 py-2 font-medium">Documento</th>
-                      <th className="px-4 py-2 font-medium">Tipo</th>
-                      <th className="px-4 py-2 font-medium">Validade</th>
-                      <th className="px-4 py-2 font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {c.documentos.map((d) => (
-                      <tr key={d.id} className="hover:bg-muted/50">
-                        <td className="px-4 py-2.5">{d.nome}</td>
-                        <td className="px-4 py-2.5 text-muted-foreground">{d.tipo}</td>
-                        <td className="px-4 py-2.5 tabular text-muted-foreground">{d.validade ?? "—"}</td>
-                        <td className="px-4 py-2.5">
-                          <Chip tone={docTone[d.status]}>{d.status}</Chip>
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                        <th className="px-4 py-2 font-medium">Documento</th>
+                        <th className="px-4 py-2 font-medium">Tipo</th>
+                        <th className="px-4 py-2 font-medium">Validade</th>
+                        <th className="px-4 py-2 font-medium">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {c.documentos.map((d) => (
+                        <tr key={d.id} className="hover:bg-muted/50">
+                          <td className="px-4 py-2.5">{d.nome}</td>
+                          <td className="px-4 py-2.5 text-muted-foreground">{d.tipo}</td>
+                          <td className="px-4 py-2.5 tabular text-muted-foreground">{d.validade ?? "—"}</td>
+                          <td className="px-4 py-2.5">
+                            <Chip tone={docTone[d.status]}>{d.status}</Chip>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </Panel>
             )}
           </div>

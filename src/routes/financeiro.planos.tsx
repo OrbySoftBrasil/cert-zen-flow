@@ -199,54 +199,56 @@ function Planos() {
           </>
         ) : (
           <Panel title="Contratos" hint="Vigência, faturamento e consumo do escopo" bodyClassName="p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-2 font-medium">Cliente</th>
-                  <th className="px-4 py-2 font-medium">Plano</th>
-                  <th className="px-4 py-2 font-medium">Vigência</th>
-                  <th className="px-4 py-2 text-right font-medium">Mensal</th>
-                  <th className="px-4 py-2 font-medium">Faturamento</th>
-                  <th className="px-4 py-2 font-medium">Status</th>
-                  <th className="px-4 py-2 font-medium">Consumo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {contratos.map((c) => {
-                  const dias = diasAte(c.fim);
-                  return (
-                    <tr key={c.id} className="transition-colors hover:bg-muted/50">
-                      <td className="px-4 py-2.5">
-                        <span className="block font-medium">{c.cliente}</span>
-                        <span className="block text-[11px] text-muted-foreground">
-                          {c.responsavel} · {c.reajuste}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5 text-muted-foreground">{c.plano}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular">
-                        {dataBR(c.inicio)} → {dataBR(c.fim)}
-                        <span className={cn("ml-1.5 text-[11px]", dias < 30 ? "text-alert" : "text-muted-foreground")}>
-                          {dias < 0 ? "vencido" : `${dias}d`}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(c.valorMensal)}</td>
-                      <td className="px-4 py-2.5">
-                        <Chip>
-                          <Repeat className="size-3" /> {c.faturamento}
-                        </Chip>
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <Chip tone={statusTone[c.status]}>{c.status}</Chip>
-                      </td>
-                      <td className="w-36 px-4 py-2.5">
-                        <MiniBar value={c.consumo} />
-                        <span className="mt-1 block text-[11px] text-muted-foreground tabular">{c.consumo}% do escopo</span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="px-4 py-2 font-medium">Cliente</th>
+                    <th className="px-4 py-2 font-medium">Plano</th>
+                    <th className="px-4 py-2 font-medium">Vigência</th>
+                    <th className="px-4 py-2 text-right font-medium">Mensal</th>
+                    <th className="px-4 py-2 font-medium">Faturamento</th>
+                    <th className="px-4 py-2 font-medium">Status</th>
+                    <th className="px-4 py-2 font-medium">Consumo</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {contratos.map((c) => {
+                    const dias = diasAte(c.fim);
+                    return (
+                      <tr key={c.id} className="transition-colors hover:bg-muted/50">
+                        <td className="px-4 py-2.5">
+                          <span className="block font-medium">{c.cliente}</span>
+                          <span className="block text-[11px] text-muted-foreground">
+                            {c.responsavel} · {c.reajuste}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{c.plano}</td>
+                        <td className="whitespace-nowrap px-4 py-2.5 tabular">
+                          {dataBR(c.inicio)} → {dataBR(c.fim)}
+                          <span className={cn("ml-1.5 text-[11px]", dias < 30 ? "text-alert" : "text-muted-foreground")}>
+                            {dias < 0 ? "vencido" : `${dias}d`}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(c.valorMensal)}</td>
+                        <td className="px-4 py-2.5">
+                          <Chip>
+                            <Repeat className="size-3" /> {c.faturamento}
+                          </Chip>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <Chip tone={statusTone[c.status]}>{c.status}</Chip>
+                        </td>
+                        <td className="w-36 px-4 py-2.5">
+                          <MiniBar value={c.consumo} />
+                          <span className="mt-1 block text-[11px] text-muted-foreground tabular">{c.consumo}% do escopo</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </Panel>
         )}
       </div>

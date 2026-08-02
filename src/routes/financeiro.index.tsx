@@ -321,58 +321,62 @@ function FinanceiroBI() {
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Panel title="DRE gerencial" hint="Competência de julho/2026" bodyClassName="p-0">
-            <table className="w-full text-sm">
-              <tbody className="divide-y divide-border">
-                {dre.map((d) => (
-                  <tr
-                    key={d.linha}
-                    className={cn(
-                      d.tipo === "subtotal" && "bg-muted/40 font-medium",
-                      d.tipo === "resultado" && "bg-primary-soft/60 font-semibold text-primary-deep",
-                    )}
-                  >
-                    <td className="px-4 py-2">{d.linha}</td>
-                    <td className={cn("px-4 py-2 text-right tabular", d.valor < 0 && "text-alert")}>{brlFull(d.valor)}</td>
-                    <td className="w-20 px-4 py-2 text-right text-xs text-muted-foreground tabular">
-                      {Math.round((Math.abs(d.valor) / 259_400) * 100)}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-border">
+                  {dre.map((d) => (
+                    <tr
+                      key={d.linha}
+                      className={cn(
+                        d.tipo === "subtotal" && "bg-muted/40 font-medium",
+                        d.tipo === "resultado" && "bg-primary-soft/60 font-semibold text-primary-deep",
+                      )}
+                    >
+                      <td className="px-4 py-2">{d.linha}</td>
+                      <td className={cn("px-4 py-2 text-right tabular", d.valor < 0 && "text-alert")}>{brlFull(d.valor)}</td>
+                      <td className="w-20 px-4 py-2 text-right text-xs text-muted-foreground tabular">
+                        {Math.round((Math.abs(d.valor) / 259_400) * 100)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </Panel>
 
           <Panel title="Orçado x realizado" hint="Centros de custo — mês corrente" bodyClassName="p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-2 font-medium">Centro de custo</th>
-                  <th className="px-4 py-2 font-medium">Orçado</th>
-                  <th className="px-4 py-2 font-medium">Realizado</th>
-                  <th className="px-4 py-2 font-medium">Var.</th>
-                  <th className="px-4 py-2 font-medium">Consumo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {centrosCusto.map((c) => {
-                  const varPct = ((c.realizado - c.orcado) / c.orcado) * 100;
-                  return (
-                    <tr key={c.id} className="transition-colors hover:bg-muted/50">
-                      <td className="px-4 py-2.5">{c.nome}</td>
-                      <td className="px-4 py-2.5 tabular">{brl(c.orcado)}</td>
-                      <td className="px-4 py-2.5 tabular">{brl(c.realizado)}</td>
-                      <td className={cn("px-4 py-2.5 tabular", varPct > 0 ? "text-alert" : "text-primary")}>
-                        {varPct > 0 ? "+" : ""}
-                        {varPct.toFixed(1)}%
-                      </td>
-                      <td className="w-32 px-4 py-2.5">
-                        <MiniBar value={(c.realizado / c.orcado) * 100} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="px-4 py-2 font-medium">Centro de custo</th>
+                    <th className="px-4 py-2 font-medium">Orçado</th>
+                    <th className="px-4 py-2 font-medium">Realizado</th>
+                    <th className="px-4 py-2 font-medium">Var.</th>
+                    <th className="px-4 py-2 font-medium">Consumo</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {centrosCusto.map((c) => {
+                    const varPct = ((c.realizado - c.orcado) / c.orcado) * 100;
+                    return (
+                      <tr key={c.id} className="transition-colors hover:bg-muted/50">
+                        <td className="px-4 py-2.5">{c.nome}</td>
+                        <td className="px-4 py-2.5 tabular">{brl(c.orcado)}</td>
+                        <td className="px-4 py-2.5 tabular">{brl(c.realizado)}</td>
+                        <td className={cn("px-4 py-2.5 tabular", varPct > 0 ? "text-alert" : "text-primary")}>
+                          {varPct > 0 ? "+" : ""}
+                          {varPct.toFixed(1)}%
+                        </td>
+                        <td className="w-32 px-4 py-2.5">
+                          <MiniBar value={(c.realizado / c.orcado) * 100} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </Panel>
         </div>
 

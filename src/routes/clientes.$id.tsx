@@ -127,30 +127,32 @@ function Dossie() {
 
           {aba === "certificados" && (
             <Panel bodyClassName="p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                    <th className="px-4 py-2 font-medium">Série</th>
-                    <th className="px-4 py-2 font-medium">Tipo</th>
-                    <th className="px-4 py-2 font-medium">Emissão</th>
-                    <th className="px-4 py-2 font-medium">Validade</th>
-                    <th className="px-4 py-2 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {cliente.certificados.map((c) => (
-                    <tr key={c.id} className="hover:bg-muted/50">
-                      <td className="px-4 py-2.5 tabular">{c.serie}</td>
-                      <td className="px-4 py-2.5">{c.tipo}</td>
-                      <td className="px-4 py-2.5 tabular text-muted-foreground">{c.emitidoEm}</td>
-                      <td className="px-4 py-2.5 tabular text-muted-foreground">{c.validoAte}</td>
-                      <td className="px-4 py-2.5">
-                        <Chip tone={statusTone[c.status]}>{c.status}</Chip>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                      <th className="px-4 py-2 font-medium">Série</th>
+                      <th className="px-4 py-2 font-medium">Tipo</th>
+                      <th className="px-4 py-2 font-medium">Emissão</th>
+                      <th className="px-4 py-2 font-medium">Validade</th>
+                      <th className="px-4 py-2 font-medium">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {cliente.certificados.map((c) => (
+                      <tr key={c.id} className="hover:bg-muted/50">
+                        <td className="px-4 py-2.5 tabular">{c.serie}</td>
+                        <td className="px-4 py-2.5">{c.tipo}</td>
+                        <td className="px-4 py-2.5 tabular text-muted-foreground">{c.emitidoEm}</td>
+                        <td className="px-4 py-2.5 tabular text-muted-foreground">{c.validoAte}</td>
+                        <td className="px-4 py-2.5">
+                          <Chip tone={statusTone[c.status]}>{c.status}</Chip>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </Panel>
           )}
 
@@ -230,30 +232,32 @@ function Dossie() {
 
           {aba === "financeiro" && (
             <Panel bodyClassName="p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                    <th className="px-4 py-2 font-medium">Descrição</th>
-                    <th className="px-4 py-2 font-medium">Vencimento</th>
-                    <th className="px-4 py-2 font-medium">Método</th>
-                    <th className="px-4 py-2 font-medium">Valor</th>
-                    <th className="px-4 py-2 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {cliente.faturas.map((f) => (
-                    <tr key={f.id} className="hover:bg-muted/50">
-                      <td className="px-4 py-2.5">{f.descricao}</td>
-                      <td className="px-4 py-2.5 tabular text-muted-foreground">{f.vencimento}</td>
-                      <td className="px-4 py-2.5 text-muted-foreground">{f.metodo}</td>
-                      <td className="px-4 py-2.5 tabular">{brl(f.valor)}</td>
-                      <td className="px-4 py-2.5">
-                        <Chip tone={statusTone[f.status]}>{f.status}</Chip>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                      <th className="px-4 py-2 font-medium">Descrição</th>
+                      <th className="px-4 py-2 font-medium">Vencimento</th>
+                      <th className="px-4 py-2 font-medium">Método</th>
+                      <th className="px-4 py-2 font-medium">Valor</th>
+                      <th className="px-4 py-2 font-medium">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {cliente.faturas.map((f) => (
+                      <tr key={f.id} className="hover:bg-muted/50">
+                        <td className="px-4 py-2.5">{f.descricao}</td>
+                        <td className="px-4 py-2.5 tabular text-muted-foreground">{f.vencimento}</td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{f.metodo}</td>
+                        <td className="px-4 py-2.5 tabular">{brl(f.valor)}</td>
+                        <td className="px-4 py-2.5">
+                          <Chip tone={statusTone[f.status]}>{f.status}</Chip>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </Panel>
           )}
         </div>

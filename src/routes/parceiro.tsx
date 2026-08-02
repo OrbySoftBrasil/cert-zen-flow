@@ -368,14 +368,17 @@ export function PortalParceiro() {
             <ShieldCheck className="size-4" />
           </div>
           <div className="leading-tight">
-            <p className="font-display text-sm font-semibold">Certus AC · Portal do parceiro</p>
+            <h1 className="font-display text-sm font-semibold">Certus AC · Portal do parceiro</h1>
             <p className="text-[11px] text-muted-foreground">
               {contador.nome} · {contador.crc}
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
             <Chip tone="blue">Tier {contador.tier}</Chip>
             <Chip tone="outline">Comissão {contador.comissaoPercentual}%</Chip>
+            <Link to="/mobile-contador" className="hidden text-xs text-primary hover:underline sm:block">
+              Ver no app
+            </Link>
             <Link
               to="/contadores/$id"
               params={{ id: contador.id }}
@@ -385,13 +388,13 @@ export function PortalParceiro() {
             </Link>
           </div>
         </div>
-        <div className="mx-auto flex max-w-6xl items-center gap-1 px-4">
+        <div className="mx-auto flex max-w-6xl items-center gap-1 overflow-x-auto px-4">
           {abas.map((a) => (
             <button
               key={a.id}
               onClick={() => setAba(a.id)}
               className={cn(
-                "-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition-colors",
+                "-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm whitespace-nowrap transition-colors",
                 aba === a.id
                   ? "border-primary font-medium text-primary-deep"
                   : "border-transparent text-muted-foreground hover:text-foreground",
@@ -401,7 +404,7 @@ export function PortalParceiro() {
               {a.label}
             </button>
           ))}
-          <div className="ml-auto flex items-center gap-2 py-2">
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2 py-2">
             <ExportMenu datasets={datasets} base="parceiro" label="Exportar" />
             <button
               onClick={() => setNovoPedido(true)}
