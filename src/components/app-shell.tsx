@@ -16,6 +16,7 @@ import {
   Rows3,
   Rows4,
   Wallet,
+  Smartphone,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -41,6 +42,7 @@ const nav = [
   { to: "/financeiro", label: "Financeiro", icon: Wallet },
   { to: "/renovacoes", label: "Renovações", icon: RefreshCw },
   { to: "/conformidade", label: "Conformidade", icon: ShieldCheck },
+  { to: "/mobile", label: "App executivo", icon: Smartphone },
 ] as const;
 
 export function AppShell({

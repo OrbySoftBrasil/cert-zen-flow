@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as ConformidadeRouteImport } from './routes/conformidade'
+import { Route as MobileRouteImport } from './routes/mobile'
 import { Route as OperacaoRouteImport } from './routes/operacao'
 import { Route as ParceiroRouteImport } from './routes/parceiro'
 import { Route as PortalRouteImport } from './routes/portal'
@@ -49,6 +50,11 @@ const ChatRoute = ChatRouteImport.update({
 const ConformidadeRoute = ConformidadeRouteImport.update({
   id: '/conformidade',
   path: '/conformidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MobileRoute = MobileRouteImport.update({
+  id: '/mobile',
+  path: '/mobile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OperacaoRoute = OperacaoRouteImport.update({
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/agenda': typeof AgendaRoute
   '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
+  '/mobile': typeof MobileRoute
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/agenda': typeof AgendaRoute
   '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
+  '/mobile': typeof MobileRoute
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/agenda': typeof AgendaRoute
   '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
+  '/mobile': typeof MobileRoute
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/agenda'
     | '/chat'
     | '/conformidade'
+    | '/mobile'
     | '/operacao'
     | '/parceiro'
     | '/portal'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/agenda'
     | '/chat'
     | '/conformidade'
+    | '/mobile'
     | '/operacao'
     | '/parceiro'
     | '/portal'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/agenda'
     | '/chat'
     | '/conformidade'
+    | '/mobile'
     | '/operacao'
     | '/parceiro'
     | '/portal'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   AgendaRoute: typeof AgendaRoute
   ChatRoute: typeof ChatRoute
   ConformidadeRoute: typeof ConformidadeRoute
+  MobileRoute: typeof MobileRoute
   OperacaoRoute: typeof OperacaoRoute
   ParceiroRoute: typeof ParceiroRoute
   PortalRoute: typeof PortalRoute
@@ -331,6 +344,13 @@ declare module '@tanstack/react-router' {
       path: '/conformidade'
       fullPath: '/conformidade'
       preLoaderRoute: typeof ConformidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mobile': {
+      id: '/mobile'
+      path: '/mobile'
+      fullPath: '/mobile'
+      preLoaderRoute: typeof MobileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/operacao': {
@@ -460,6 +480,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgendaRoute: AgendaRoute,
   ChatRoute: ChatRoute,
   ConformidadeRoute: ConformidadeRoute,
+  MobileRoute: MobileRoute,
   OperacaoRoute: OperacaoRoute,
   ParceiroRoute: ParceiroRoute,
   PortalRoute: PortalRoute,
