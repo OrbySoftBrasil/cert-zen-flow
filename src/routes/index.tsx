@@ -89,7 +89,7 @@ function Kpi({
   tone?: "alert" | "ok" | undefined;
 }) {
   return (
-    <div className="min-w-0 flex-1 border-border px-4 py-3 not-last:border-r">
+    <div className="min-w-0 grow basis-40 border-border px-4 py-3 not-last:border-r sm:basis-44">
       <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
       <p
         className={
@@ -701,45 +701,47 @@ function Dashboard() {
           }
           bodyClassName="p-0"
         >
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-2 font-medium">Parceiro</th>
-                <th className="px-4 py-2 font-medium">Tier</th>
-                <th className="px-4 py-2 font-medium">Clientes</th>
-                <th className="px-4 py-2 font-medium">Emissões</th>
-                <th className="px-4 py-2 text-right font-medium">Receita</th>
-                <th className="px-4 py-2 text-right font-medium">Comissão</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {[...contadores]
-                .sort((a, b) => b.emissoesMes - a.emissoesMes)
-                .slice(0, 5)
-                .map((c) => (
-                  <tr key={c.id} className="transition-colors hover:bg-muted/50">
-                    <td className="px-4 py-2.5">
-                      <Link to="/contadores/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
-                        {c.nome}
-                      </Link>
-                      <span className="block text-xs text-muted-foreground">{c.cidade}</span>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <Chip tone={c.status === "ativo" ? "blue" : c.status === "suspenso" ? "alert" : "outline"}>
-                        {c.tier}
-                      </Chip>
-                    </td>
-                    <td className="px-4 py-2.5 tabular">{c.carteira.length}</td>
-                    <td className="px-4 py-2.5 tabular">
-                      {c.emissoesMes}
-                      <span className="text-xs text-muted-foreground"> / {c.metaMes}</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-right tabular">{brl(c.receitaMes)}</td>
-                    <td className="px-4 py-2.5 text-right tabular">{brl(c.comissaoMes)}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-2 font-medium">Parceiro</th>
+                  <th className="px-4 py-2 font-medium">Tier</th>
+                  <th className="px-4 py-2 font-medium">Clientes</th>
+                  <th className="px-4 py-2 font-medium">Emissões</th>
+                  <th className="px-4 py-2 text-right font-medium">Receita</th>
+                  <th className="px-4 py-2 text-right font-medium">Comissão</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {[...contadores]
+                  .sort((a, b) => b.emissoesMes - a.emissoesMes)
+                  .slice(0, 5)
+                  .map((c) => (
+                    <tr key={c.id} className="transition-colors hover:bg-muted/50">
+                      <td className="px-4 py-2.5">
+                        <Link to="/contadores/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
+                          {c.nome}
+                        </Link>
+                        <span className="block text-xs text-muted-foreground">{c.cidade}</span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <Chip tone={c.status === "ativo" ? "blue" : c.status === "suspenso" ? "alert" : "outline"}>
+                          {c.tier}
+                        </Chip>
+                      </td>
+                      <td className="px-4 py-2.5 tabular">{c.carteira.length}</td>
+                      <td className="px-4 py-2.5 tabular">
+                        {c.emissoesMes}
+                        <span className="text-xs text-muted-foreground"> / {c.metaMes}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-right tabular">{brl(c.receitaMes)}</td>
+                      <td className="px-4 py-2.5 text-right tabular">{brl(c.comissaoMes)}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
         </Panel>
 
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">

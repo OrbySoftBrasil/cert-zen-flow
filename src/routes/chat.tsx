@@ -173,12 +173,12 @@ function Chat() {
     >
       <div
         className={cn(
-          "grid h-[calc(100vh-13rem)] min-h-[560px] gap-0 overflow-hidden rounded-lg border border-border bg-card",
+          "grid h-[calc(100vh-13rem)] min-h-[560px] grid-cols-1 grid-rows-[14rem_1fr] gap-0 overflow-hidden rounded-lg border border-border bg-card lg:grid-rows-1",
           painel ? "lg:grid-cols-[320px_1fr_320px]" : "lg:grid-cols-[320px_1fr]",
         )}
       >
         {/* ---------- lista de conversas ---------- */}
-        <aside className="flex min-h-0 flex-col border-r border-border">
+        <aside className="flex min-h-0 min-w-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
           <div className="border-b border-border p-3">
             <div className="flex h-9 items-center gap-2 rounded-full bg-muted px-3">
               <Search className="size-3.5 text-muted-foreground" />

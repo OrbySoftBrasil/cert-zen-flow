@@ -132,87 +132,89 @@ function Pagar() {
             </select>
           }
         >
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="w-8 px-4 py-2" />
-                <th className="px-4 py-2 font-medium">Fornecedor</th>
-                <th className="px-4 py-2 font-medium">Categoria</th>
-                <th className="px-4 py-2 font-medium">Vencimento</th>
-                <th className="px-4 py-2 text-right font-medium">Valor</th>
-                <th className="px-4 py-2 font-medium">Status</th>
-                <th className="px-4 py-2 font-medium">Aprovação</th>
-                <th className="px-4 py-2 font-medium">Ação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {[...lista]
-                .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
-                .map((p) => {
-                  const pago = p.status === "pago" || pagos.includes(p.id);
-                  const dias = diasAte(p.vencimento);
-                  return (
-                    <tr key={p.id} className="transition-colors hover:bg-muted/50">
-                      <td className="px-4 py-2.5">
-                        {!pago && (
-                          <input
-                            type="checkbox"
-                            checked={selecionados.includes(p.id)}
-                            onChange={(e) =>
-                              setSelecionados((v) => (e.target.checked ? [...v, p.id] : v.filter((i) => i !== p.id)))
-                            }
-                            className="size-3.5 accent-[var(--color-primary)]"
-                          />
-                        )}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <span className="block font-medium">{p.fornecedor}</span>
-                        <span className="block text-[11px] text-muted-foreground">
-                          {p.descricao} · {p.documento}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5 text-muted-foreground">
-                        <span className="block">{p.categoria}</span>
-                        <span className="block text-[11px]">{p.centroCusto}</span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular">
-                        {dataBR(p.vencimento)}
-                        <span className={cn("ml-1.5 text-[11px]", dias < 0 ? "text-alert" : "text-muted-foreground")}>
-                          {dias < 0 ? `${Math.abs(dias)}d atraso` : `em ${dias}d`}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(p.valor)}</td>
-                      <td className="px-4 py-2.5">
-                        <Chip tone={pago ? "deep" : statusTone[p.status]}>{pago ? "pago" : p.status}</Chip>
-                      </td>
-                      <td className="px-4 py-2.5">
-                        {p.aprovacao === "pendente" ? (
-                          <span className="inline-flex items-center gap-1 text-xs text-alert">
-                            <AlertTriangle className="size-3.5" /> pendente
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="w-8 px-4 py-2" />
+                  <th className="px-4 py-2 font-medium">Fornecedor</th>
+                  <th className="px-4 py-2 font-medium">Categoria</th>
+                  <th className="px-4 py-2 font-medium">Vencimento</th>
+                  <th className="px-4 py-2 text-right font-medium">Valor</th>
+                  <th className="px-4 py-2 font-medium">Status</th>
+                  <th className="px-4 py-2 font-medium">Aprovação</th>
+                  <th className="px-4 py-2 font-medium">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {[...lista]
+                  .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
+                  .map((p) => {
+                    const pago = p.status === "pago" || pagos.includes(p.id);
+                    const dias = diasAte(p.vencimento);
+                    return (
+                      <tr key={p.id} className="transition-colors hover:bg-muted/50">
+                        <td className="px-4 py-2.5">
+                          {!pago && (
+                            <input
+                              type="checkbox"
+                              checked={selecionados.includes(p.id)}
+                              onChange={(e) =>
+                                setSelecionados((v) => (e.target.checked ? [...v, p.id] : v.filter((i) => i !== p.id)))
+                              }
+                              className="size-3.5 accent-[var(--color-primary)]"
+                            />
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="block font-medium">{p.fornecedor}</span>
+                          <span className="block text-[11px] text-muted-foreground">
+                            {p.descricao} · {p.documento}
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                            <CheckCircle2 className="size-3.5 text-primary" /> aprovado
+                        </td>
+                        <td className="px-4 py-2.5 text-muted-foreground">
+                          <span className="block">{p.categoria}</span>
+                          <span className="block text-[11px]">{p.centroCusto}</span>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2.5 tabular">
+                          {dataBR(p.vencimento)}
+                          <span className={cn("ml-1.5 text-[11px]", dias < 0 ? "text-alert" : "text-muted-foreground")}>
+                            {dias < 0 ? `${Math.abs(dias)}d atraso` : `em ${dias}d`}
                           </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        {pago ? (
-                          <span className="text-xs text-muted-foreground">liquidado</span>
-                        ) : (
-                          <button
-                            onClick={() => setPagos((v) => [...v, p.id])}
-                            className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
-                          >
-                            Pagar
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(p.valor)}</td>
+                        <td className="px-4 py-2.5">
+                          <Chip tone={pago ? "deep" : statusTone[p.status]}>{pago ? "pago" : p.status}</Chip>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          {p.aprovacao === "pendente" ? (
+                            <span className="inline-flex items-center gap-1 text-xs text-alert">
+                              <AlertTriangle className="size-3.5" /> pendente
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              <CheckCircle2 className="size-3.5 text-primary" /> aprovado
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          {pago ? (
+                            <span className="text-xs text-muted-foreground">liquidado</span>
+                          ) : (
+                            <button
+                              onClick={() => setPagos((v) => [...v, p.id])}
+                              className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
+                            >
+                              Pagar
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
         </Panel>
 
         <Panel title="Calendário de desembolso" hint="Próximos 30 dias por semana">

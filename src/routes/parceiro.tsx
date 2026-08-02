@@ -368,7 +368,7 @@ export function PortalParceiro() {
             <ShieldCheck className="size-4" />
           </div>
           <div className="leading-tight">
-            <p className="font-display text-sm font-semibold">Certus AC · Portal do parceiro</p>
+            <h1 className="font-display text-sm font-semibold">Certus AC · Portal do parceiro</h1>
             <p className="text-[11px] text-muted-foreground">
               {contador.nome} · {contador.crc}
             </p>
@@ -376,6 +376,9 @@ export function PortalParceiro() {
           <div className="ml-auto flex items-center gap-2">
             <Chip tone="blue">Tier {contador.tier}</Chip>
             <Chip tone="outline">Comissão {contador.comissaoPercentual}%</Chip>
+            <Link to="/mobile-contador" className="hidden text-xs text-primary hover:underline sm:block">
+              Ver no app
+            </Link>
             <Link
               to="/contadores/$id"
               params={{ id: contador.id }}

@@ -163,57 +163,59 @@ function Comissoes() {
             </select>
           }
         >
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-2 font-medium">Beneficiário</th>
-                <th className="px-4 py-2 font-medium">Tipo</th>
-                <th className="px-4 py-2 text-right font-medium">Base</th>
-                <th className="px-4 py-2 text-right font-medium">%</th>
-                <th className="px-4 py-2 text-right font-medium">Comissão</th>
-                <th className="px-4 py-2 font-medium">Pagamento</th>
-                <th className="px-4 py-2 font-medium">Status</th>
-                <th className="px-4 py-2 font-medium">Ação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {lista.map((c) => {
-                const paga = c.status === "paga" || pagas.includes(c.id);
-                return (
-                  <tr key={c.id} className="transition-colors hover:bg-muted/50">
-                    <td className="px-4 py-2.5">
-                      <span className="block font-medium">{c.beneficiario}</span>
-                      <span className="block text-[11px] text-muted-foreground">
-                        {c.emissoes} emissões · {c.competencia}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{c.tipo}</td>
-                    <td className="whitespace-nowrap px-4 py-2.5 text-right tabular">{brl(c.baseCalculo)}</td>
-                    <td className="px-4 py-2.5 text-right tabular">{c.percentual}%</td>
-                    <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(c.valor)}</td>
-                    <td className="whitespace-nowrap px-4 py-2.5 tabular text-muted-foreground">{dataBR(c.pagamento)}</td>
-                    <td className="px-4 py-2.5">
-                      <Chip tone={paga ? "deep" : tone[c.status]}>{paga ? "paga" : c.status}</Chip>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      {paga || c.status === "retida" ? (
-                        <span className={cn("text-xs", c.status === "retida" ? "text-alert" : "text-muted-foreground")}>
-                          {c.status === "retida" ? "em análise" : "liquidada"}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-2 font-medium">Beneficiário</th>
+                  <th className="px-4 py-2 font-medium">Tipo</th>
+                  <th className="px-4 py-2 text-right font-medium">Base</th>
+                  <th className="px-4 py-2 text-right font-medium">%</th>
+                  <th className="px-4 py-2 text-right font-medium">Comissão</th>
+                  <th className="px-4 py-2 font-medium">Pagamento</th>
+                  <th className="px-4 py-2 font-medium">Status</th>
+                  <th className="px-4 py-2 font-medium">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {lista.map((c) => {
+                  const paga = c.status === "paga" || pagas.includes(c.id);
+                  return (
+                    <tr key={c.id} className="transition-colors hover:bg-muted/50">
+                      <td className="px-4 py-2.5">
+                        <span className="block font-medium">{c.beneficiario}</span>
+                        <span className="block text-[11px] text-muted-foreground">
+                          {c.emissoes} emissões · {c.competencia}
                         </span>
-                      ) : (
-                        <button
-                          onClick={() => setPagas((v) => [...v, c.id])}
-                          className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
-                        >
-                          Pagar
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{c.tipo}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular">{brl(c.baseCalculo)}</td>
+                      <td className="px-4 py-2.5 text-right tabular">{c.percentual}%</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(c.valor)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 tabular text-muted-foreground">{dataBR(c.pagamento)}</td>
+                      <td className="px-4 py-2.5">
+                        <Chip tone={paga ? "deep" : tone[c.status]}>{paga ? "paga" : c.status}</Chip>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        {paga || c.status === "retida" ? (
+                          <span className={cn("text-xs", c.status === "retida" ? "text-alert" : "text-muted-foreground")}>
+                            {c.status === "retida" ? "em análise" : "liquidada"}
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => setPagas((v) => [...v, c.id])}
+                            className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
+                          >
+                            Pagar
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </Panel>
       </div>
     </AppShell>

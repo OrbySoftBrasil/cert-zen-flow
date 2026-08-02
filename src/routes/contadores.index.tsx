@@ -306,78 +306,80 @@ function Contadores() {
             </div>
           }
         >
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-2 font-medium">Parceiro</th>
-                <th className="px-4 py-2 font-medium">Status</th>
-                <th className="px-4 py-2 font-medium">Clientes</th>
-                <th className="px-4 py-2 font-medium">Pedidos</th>
-                <th className="px-4 py-2 font-medium">Meta do mês</th>
-                <th className="px-4 py-2 text-right font-medium">Receita</th>
-                <th className="px-4 py-2 text-right font-medium">Comissão</th>
-                <th className="px-4 py-2 font-medium">Gestor</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {lista.map((c) => {
-                const abertos = c.pedidos.filter((p) => p.stage !== "concluido").length;
-                const risco = c.pedidos.filter((p) => p.slaRestanteHoras <= 4).length;
-                const atingimento = Math.round((c.emissoesMes / c.metaMes) * 100);
-                return (
-                  <tr key={c.id} className="transition-colors hover:bg-muted/50">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary-deep">
-                          <Building2 className="size-4" />
-                        </span>
-                        <span className="min-w-0">
-                          <Link
-                            to="/contadores/$id"
-                            params={{ id: c.id }}
-                            className="font-medium text-primary hover:underline"
-                          >
-                            {c.nome}
-                          </Link>
-                          <span className="block text-xs text-muted-foreground">
-                            {c.responsavel} · {c.cidade}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-2 font-medium">Parceiro</th>
+                  <th className="px-4 py-2 font-medium">Status</th>
+                  <th className="px-4 py-2 font-medium">Clientes</th>
+                  <th className="px-4 py-2 font-medium">Pedidos</th>
+                  <th className="px-4 py-2 font-medium">Meta do mês</th>
+                  <th className="px-4 py-2 text-right font-medium">Receita</th>
+                  <th className="px-4 py-2 text-right font-medium">Comissão</th>
+                  <th className="px-4 py-2 font-medium">Gestor</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {lista.map((c) => {
+                  const abertos = c.pedidos.filter((p) => p.stage !== "concluido").length;
+                  const risco = c.pedidos.filter((p) => p.slaRestanteHoras <= 4).length;
+                  const atingimento = Math.round((c.emissoesMes / c.metaMes) * 100);
+                  return (
+                    <tr key={c.id} className="transition-colors hover:bg-muted/50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary-deep">
+                            <Building2 className="size-4" />
                           </span>
+                          <span className="min-w-0">
+                            <Link
+                              to="/contadores/$id"
+                              params={{ id: c.id }}
+                              className="font-medium text-primary hover:underline"
+                            >
+                              {c.nome}
+                            </Link>
+                            <span className="block text-xs text-muted-foreground">
+                              {c.responsavel} · {c.cidade}
+                            </span>
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <Chip tone={statusTone[c.status]}>{c.status}</Chip>
+                          <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-medium", tierTone[c.tier])}>
+                            <Award className="mr-0.5 inline size-3" />
+                            {c.tier}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 tabular">{c.carteira.length}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="tabular">{abertos} em curso</span>
+                        {risco > 0 && (
+                          <span className="ml-1.5 text-[11px] font-medium text-alert">{risco} SLA</span>
+                        )}
+                      </td>
+                      <td className="w-44 px-4 py-3">
+                        <Bar value={atingimento} />
+                        <span className="tabular text-[11px] text-muted-foreground">
+                          {c.emissoesMes}/{c.metaMes} · {atingimento}%
                         </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap items-center gap-1">
-                        <Chip tone={statusTone[c.status]}>{c.status}</Chip>
-                        <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-medium", tierTone[c.tier])}>
-                          <Award className="mr-0.5 inline size-3" />
-                          {c.tier}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 tabular">{c.carteira.length}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="tabular">{abertos} em curso</span>
-                      {risco > 0 && (
-                        <span className="ml-1.5 text-[11px] font-medium text-alert">{risco} SLA</span>
-                      )}
-                    </td>
-                    <td className="w-44 px-4 py-3">
-                      <Bar value={atingimento} />
-                      <span className="tabular text-[11px] text-muted-foreground">
-                        {c.emissoesMes}/{c.metaMes} · {atingimento}%
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right tabular">{brl(c.receitaMes)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="tabular block">{brl(c.comissaoMes)}</span>
-                      <span className="text-[11px] text-muted-foreground">{c.comissaoPercentual}%</span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">{c.gestor}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-4 py-3 text-right tabular">{brl(c.receitaMes)}</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="tabular block">{brl(c.comissaoMes)}</span>
+                        <span className="text-[11px] text-muted-foreground">{c.comissaoPercentual}%</span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">{c.gestor}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </Panel>
       </div>
     </AppShell>

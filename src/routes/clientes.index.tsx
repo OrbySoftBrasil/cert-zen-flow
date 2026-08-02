@@ -43,60 +43,62 @@ function Clientes() {
           />
         }
       >
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <th className="px-4 py-2 font-medium">Cliente</th>
-              <th className="px-4 py-2 font-medium">Documento</th>
-              <th className="px-4 py-2 font-medium">Certificados</th>
-              <th className="px-4 py-2 font-medium">LTV</th>
-              <th className="px-4 py-2 font-medium">Saúde</th>
-              <th className="px-4 py-2 font-medium">Contador parceiro</th>
-              <th className="px-4 py-2 font-medium">Gestor</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {lista.map((c) => (
-              <tr key={c.id} className="transition-colors hover:bg-muted/50">
-                <td className="px-4 py-3">
-                  <Link to="/clientes/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
-                    {c.nome}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">{c.cidade}</p>
-                </td>
-                <td className="px-4 py-3 tabular text-muted-foreground">{c.documento}</td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1">
-                    <Chip tone="blue">{c.certificados.filter((x) => x.status === "ativo").length} ativos</Chip>
-                    {c.certificados.some((x) => x.status === "a vencer") && <Chip tone="alert">a vencer</Chip>}
-                  </div>
-                </td>
-                <td className="px-4 py-3 tabular">{brl(c.ltv)}</td>
-                <td className="w-40 px-4 py-3">
-                  <Bar value={c.saude} />
-                  <span className="tabular text-[11px] text-muted-foreground">{c.saude}/100</span>
-                </td>
-                <td className="px-4 py-3">
-                  {(() => {
-                    const ct = contadorDoCliente(c.id);
-                    return ct ? (
-                      <Link
-                        to="/contadores/$id"
-                        params={{ id: ct.id }}
-                        className="text-primary hover:underline"
-                      >
-                        {ct.nome}
-                      </Link>
-                    ) : (
-                      <span className="text-muted-foreground">direto</span>
-                    );
-                  })()}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">{c.gestor}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-2 font-medium">Cliente</th>
+                <th className="px-4 py-2 font-medium">Documento</th>
+                <th className="px-4 py-2 font-medium">Certificados</th>
+                <th className="px-4 py-2 font-medium">LTV</th>
+                <th className="px-4 py-2 font-medium">Saúde</th>
+                <th className="px-4 py-2 font-medium">Contador parceiro</th>
+                <th className="px-4 py-2 font-medium">Gestor</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {lista.map((c) => (
+                <tr key={c.id} className="transition-colors hover:bg-muted/50">
+                  <td className="px-4 py-3">
+                    <Link to="/clientes/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
+                      {c.nome}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">{c.cidade}</p>
+                  </td>
+                  <td className="px-4 py-3 tabular text-muted-foreground">{c.documento}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      <Chip tone="blue">{c.certificados.filter((x) => x.status === "ativo").length} ativos</Chip>
+                      {c.certificados.some((x) => x.status === "a vencer") && <Chip tone="alert">a vencer</Chip>}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 tabular">{brl(c.ltv)}</td>
+                  <td className="w-40 px-4 py-3">
+                    <Bar value={c.saude} />
+                    <span className="tabular text-[11px] text-muted-foreground">{c.saude}/100</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {(() => {
+                      const ct = contadorDoCliente(c.id);
+                      return ct ? (
+                        <Link
+                          to="/contadores/$id"
+                          params={{ id: ct.id }}
+                          className="text-primary hover:underline"
+                        >
+                          {ct.nome}
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground">direto</span>
+                      );
+                    })()}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.gestor}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Panel>
     </AppShell>
   );

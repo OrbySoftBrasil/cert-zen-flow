@@ -160,70 +160,72 @@ function Caixa() {
             </div>
           }
         >
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-2 font-medium">Data</th>
-                <th className="px-4 py-2 font-medium">Descrição</th>
-                <th className="px-4 py-2 font-medium">Categoria</th>
-                <th className="px-4 py-2 font-medium">Conta</th>
-                <th className="px-4 py-2 font-medium">Método</th>
-                <th className="px-4 py-2 text-right font-medium">Valor</th>
-                <th className="px-4 py-2 font-medium">Conciliação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtrados.map((l) => {
-                const ok = l.conciliado || conciliados.includes(l.id);
-                return (
-                  <tr key={l.id} className="transition-colors hover:bg-muted/50">
-                    <td className="whitespace-nowrap px-4 py-2.5 tabular text-muted-foreground">{dataBR(l.data)}</td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "grid size-6 shrink-0 place-items-center rounded",
-                            l.tipo === "entrada" ? "bg-primary-soft text-primary-deep" : "bg-muted text-muted-foreground",
-                          )}
-                        >
-                          {l.tipo === "entrada" ? <ArrowDownLeft className="size-3.5" /> : <ArrowUpRight className="size-3.5" />}
-                        </span>
-                        <span>
-                          <span className="block">{l.descricao}</span>
-                          <span className="block text-[11px] text-muted-foreground">
-                            {l.contraparte} · {l.documento}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-2 font-medium">Data</th>
+                  <th className="px-4 py-2 font-medium">Descrição</th>
+                  <th className="px-4 py-2 font-medium">Categoria</th>
+                  <th className="px-4 py-2 font-medium">Conta</th>
+                  <th className="px-4 py-2 font-medium">Método</th>
+                  <th className="px-4 py-2 text-right font-medium">Valor</th>
+                  <th className="px-4 py-2 font-medium">Conciliação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtrados.map((l) => {
+                  const ok = l.conciliado || conciliados.includes(l.id);
+                  return (
+                    <tr key={l.id} className="transition-colors hover:bg-muted/50">
+                      <td className="whitespace-nowrap px-4 py-2.5 tabular text-muted-foreground">{dataBR(l.data)}</td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "grid size-6 shrink-0 place-items-center rounded",
+                              l.tipo === "entrada" ? "bg-primary-soft text-primary-deep" : "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {l.tipo === "entrada" ? <ArrowDownLeft className="size-3.5" /> : <ArrowUpRight className="size-3.5" />}
                           </span>
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{l.categoria}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{l.conta}</td>
-                    <td className="px-4 py-2.5">
-                      <Chip>{l.metodo}</Chip>
-                    </td>
-                    <td className={cn("whitespace-nowrap px-4 py-2.5 text-right tabular font-medium", l.tipo === "saida" && "text-alert")}>
-                      {l.tipo === "saida" ? "−" : "+"}
-                      {brl(l.valor)}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      {ok ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-primary">
-                          <CheckCircle2 className="size-3.5" /> conciliado
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => setConciliados((v) => [...v, l.id])}
-                          className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs transition-colors hover:border-border-strong"
-                        >
-                          <Circle className="size-3" /> conciliar
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                          <span>
+                            <span className="block">{l.descricao}</span>
+                            <span className="block text-[11px] text-muted-foreground">
+                              {l.contraparte} · {l.documento}
+                            </span>
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{l.categoria}</td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{l.conta}</td>
+                      <td className="px-4 py-2.5">
+                        <Chip>{l.metodo}</Chip>
+                      </td>
+                      <td className={cn("whitespace-nowrap px-4 py-2.5 text-right tabular font-medium", l.tipo === "saida" && "text-alert")}>
+                        {l.tipo === "saida" ? "−" : "+"}
+                        {brl(l.valor)}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        {ok ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-primary">
+                            <CheckCircle2 className="size-3.5" /> conciliado
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => setConciliados((v) => [...v, l.id])}
+                            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs transition-colors hover:border-border-strong"
+                          >
+                            <Circle className="size-3" /> conciliar
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </Panel>
       </div>
     </AppShell>

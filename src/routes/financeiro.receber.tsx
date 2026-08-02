@@ -163,76 +163,78 @@ function Receber() {
             </select>
           }
         >
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-2 font-medium">Cliente</th>
-                <th className="px-4 py-2 font-medium">Origem</th>
-                <th className="px-4 py-2 font-medium">Vencimento</th>
-                <th className="px-4 py-2 text-right font-medium">Valor</th>
-                <th className="px-4 py-2 font-medium">Método</th>
-                <th className="px-4 py-2 font-medium">Status</th>
-                <th className="px-4 py-2 font-medium">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {[...lista]
-                .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
-                .map((r) => {
-                  const recebido = r.status === "recebido" || baixados.includes(r.id);
-                  const dias = diasAte(r.vencimento);
-                  return (
-                    <tr key={r.id} className="transition-colors hover:bg-muted/50">
-                      <td className="px-4 py-2.5">
-                        <span className="block font-medium">{r.cliente}</span>
-                        <span className="block text-[11px] text-muted-foreground">
-                          {r.descricao} · {r.nf} · parcela {r.parcela}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5 text-muted-foreground">{r.origem}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular">
-                        {dataBR(r.vencimento)}
-                        <span className={cn("ml-1.5 text-[11px]", dias < 0 ? "text-alert" : "text-muted-foreground")}>
-                          {dias < 0 ? `${Math.abs(dias)}d atraso` : `em ${dias}d`}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(r.valor)}</td>
-                      <td className="px-4 py-2.5">
-                        <Chip>{r.metodo}</Chip>
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <Chip tone={recebido ? "deep" : tone[r.status]}>{recebido ? "recebido" : r.status}</Chip>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-2.5">
-                        {recebido ? (
-                          <span className="text-xs text-muted-foreground">liquidado</span>
-                        ) : (
-                          <div className="flex gap-1.5">
-                            <button
-                              onClick={() => setBaixados((v) => [...v, r.id])}
-                              className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
-                            >
-                              Baixar
-                            </button>
-                            <button
-                              onClick={() => setCobrados((v) => [...v, r.id])}
-                              className={cn(
-                                "rounded-md px-2.5 py-1 text-xs transition-colors",
-                                cobrados.includes(r.id)
-                                  ? "bg-primary-soft text-primary-deep"
-                                  : "border border-border hover:border-border-strong",
-                              )}
-                            >
-                              {cobrados.includes(r.id) ? "Cobrança enviada" : "Cobrar"}
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-2 font-medium">Cliente</th>
+                  <th className="px-4 py-2 font-medium">Origem</th>
+                  <th className="px-4 py-2 font-medium">Vencimento</th>
+                  <th className="px-4 py-2 text-right font-medium">Valor</th>
+                  <th className="px-4 py-2 font-medium">Método</th>
+                  <th className="px-4 py-2 font-medium">Status</th>
+                  <th className="px-4 py-2 font-medium">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {[...lista]
+                  .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
+                  .map((r) => {
+                    const recebido = r.status === "recebido" || baixados.includes(r.id);
+                    const dias = diasAte(r.vencimento);
+                    return (
+                      <tr key={r.id} className="transition-colors hover:bg-muted/50">
+                        <td className="px-4 py-2.5">
+                          <span className="block font-medium">{r.cliente}</span>
+                          <span className="block text-[11px] text-muted-foreground">
+                            {r.descricao} · {r.nf} · parcela {r.parcela}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{r.origem}</td>
+                        <td className="whitespace-nowrap px-4 py-2.5 tabular">
+                          {dataBR(r.vencimento)}
+                          <span className={cn("ml-1.5 text-[11px]", dias < 0 ? "text-alert" : "text-muted-foreground")}>
+                            {dias < 0 ? `${Math.abs(dias)}d atraso` : `em ${dias}d`}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(r.valor)}</td>
+                        <td className="px-4 py-2.5">
+                          <Chip>{r.metodo}</Chip>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <Chip tone={recebido ? "deep" : tone[r.status]}>{recebido ? "recebido" : r.status}</Chip>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2.5">
+                          {recebido ? (
+                            <span className="text-xs text-muted-foreground">liquidado</span>
+                          ) : (
+                            <div className="flex gap-1.5">
+                              <button
+                                onClick={() => setBaixados((v) => [...v, r.id])}
+                                className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
+                              >
+                                Baixar
+                              </button>
+                              <button
+                                onClick={() => setCobrados((v) => [...v, r.id])}
+                                className={cn(
+                                  "rounded-md px-2.5 py-1 text-xs transition-colors",
+                                  cobrados.includes(r.id)
+                                    ? "bg-primary-soft text-primary-deep"
+                                    : "border border-border hover:border-border-strong",
+                                )}
+                              >
+                                {cobrados.includes(r.id) ? "Cobrança enviada" : "Cobrar"}
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
         </Panel>
       </div>
     </AppShell>

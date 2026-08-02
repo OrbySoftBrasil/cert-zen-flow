@@ -220,40 +220,42 @@ function Operacao() {
         </div>
       ) : (
         <Panel bodyClassName="p-0">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-2 font-medium">Protocolo</th>
-                <th className="px-4 py-2 font-medium">Cliente</th>
-                <th className="px-4 py-2 font-medium">Tipo</th>
-                <th className="px-4 py-2 font-medium">Etapa</th>
-                <th className="px-4 py-2 font-medium">Responsável</th>
-                <th className="px-4 py-2 font-medium">SLA</th>
-                <th className="px-4 py-2 font-medium">Valor</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtrados.map((r) => (
-                <tr key={r.id} className="transition-colors hover:bg-muted/50">
-                  <td className="px-4 py-2.5 tabular">
-                    <Link to="/solicitacoes/$id" params={{ id: r.id }} className="text-primary hover:underline">
-                      {r.protocolo}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2.5">{r.cliente}</td>
-                  <td className="px-4 py-2.5 text-muted-foreground">{r.tipo}</td>
-                  <td className="px-4 py-2.5">
-                    <Chip tone="blue">{stages.find((s) => s.id === r.stage)?.nome}</Chip>
-                  </td>
-                  <td className="px-4 py-2.5 text-muted-foreground">{agentById(r.responsavelId).nome}</td>
-                  <td className="px-4 py-2.5">
-                    <SlaBadge horas={r.slaRestanteHoras} />
-                  </td>
-                  <td className="px-4 py-2.5 tabular">{brl(r.valor)}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-2 font-medium">Protocolo</th>
+                  <th className="px-4 py-2 font-medium">Cliente</th>
+                  <th className="px-4 py-2 font-medium">Tipo</th>
+                  <th className="px-4 py-2 font-medium">Etapa</th>
+                  <th className="px-4 py-2 font-medium">Responsável</th>
+                  <th className="px-4 py-2 font-medium">SLA</th>
+                  <th className="px-4 py-2 font-medium">Valor</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtrados.map((r) => (
+                  <tr key={r.id} className="transition-colors hover:bg-muted/50">
+                    <td className="px-4 py-2.5 tabular">
+                      <Link to="/solicitacoes/$id" params={{ id: r.id }} className="text-primary hover:underline">
+                        {r.protocolo}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2.5">{r.cliente}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground">{r.tipo}</td>
+                    <td className="px-4 py-2.5">
+                      <Chip tone="blue">{stages.find((s) => s.id === r.stage)?.nome}</Chip>
+                    </td>
+                    <td className="px-4 py-2.5 text-muted-foreground">{agentById(r.responsavelId).nome}</td>
+                    <td className="px-4 py-2.5">
+                      <SlaBadge horas={r.slaRestanteHoras} />
+                    </td>
+                    <td className="px-4 py-2.5 tabular">{brl(r.valor)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Panel>
       )}
     </AppShell>

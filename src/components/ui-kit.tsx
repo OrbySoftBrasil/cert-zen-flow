@@ -19,7 +19,7 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className={cn("rounded-lg border border-border bg-card", className)}>
+    <section className={cn("min-w-0 rounded-lg border border-border bg-card", className)}>
       {(title || actions) && (
         <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
           <div>
@@ -96,7 +96,7 @@ export function Metric({
   hint?: string;
 }) {
   return (
-    <div className="min-w-0 flex-1 border-border px-4 py-3 not-last:border-r">
+    <div className="min-w-0 grow basis-40 border-border px-4 py-3 not-last:border-r sm:basis-44">
       <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-1 font-display text-2xl font-semibold tabular">{value}</p>
       <div className="mt-1 flex items-center gap-2 text-[11px]">
