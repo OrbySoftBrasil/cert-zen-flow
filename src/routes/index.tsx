@@ -76,7 +76,17 @@ const tooltipStyle = {
   fontSize: 12,
 } as const;
 
-function Kpi({ label, value, hint, tone }: { label: string; value: string; hint: string; tone?: "alert" | "ok" }) {
+function Kpi({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  tone?: "alert" | "ok" | undefined;
+}) {
   return (
     <div className="min-w-0 flex-1 border-border px-4 py-3 not-last:border-r">
       <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
