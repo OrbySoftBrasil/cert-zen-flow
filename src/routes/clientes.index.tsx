@@ -75,6 +75,22 @@ function Clientes() {
                   <Bar value={c.saude} />
                   <span className="tabular text-[11px] text-muted-foreground">{c.saude}/100</span>
                 </td>
+                <td className="px-4 py-3">
+                  {(() => {
+                    const ct = contadorDoCliente(c.id);
+                    return ct ? (
+                      <Link
+                        to="/contadores/$id"
+                        params={{ id: ct.id }}
+                        className="text-primary hover:underline"
+                      >
+                        {ct.nome}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">direto</span>
+                    );
+                  })()}
+                </td>
                 <td className="px-4 py-3 text-muted-foreground">{c.gestor}</td>
               </tr>
             ))}
