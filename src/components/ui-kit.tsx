@@ -21,7 +21,7 @@ export function Panel({
   return (
     <section className={cn("min-w-0 rounded-lg border border-border bg-card", className)}>
       {(title || actions) && (
-        <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
           <div>
             {title && <h2 className="font-display text-sm font-semibold">{title}</h2>}
             {hint && <p className="text-xs text-muted-foreground">{hint}</p>}

@@ -373,7 +373,7 @@ export function PortalParceiro() {
               {contador.nome} · {contador.crc}
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
             <Chip tone="blue">Tier {contador.tier}</Chip>
             <Chip tone="outline">Comissão {contador.comissaoPercentual}%</Chip>
             <Link to="/mobile-contador" className="hidden text-xs text-primary hover:underline sm:block">
