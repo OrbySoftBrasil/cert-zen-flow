@@ -420,7 +420,7 @@ function MobileContador() {
                 <MCard title="Produção" hint="emissões e receita por mês">
                   <div className="h-[150px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={contador.serieMensal} margin={{ top: 4, right: 6, left: -18, bottom: 0 }}>
+                      <AreaChart data={contador.serie} margin={{ top: 4, right: 6, left: -18, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                         <XAxis dataKey="mes" tick={axis} axisLine={false} tickLine={false} />
                         <YAxis tick={axis} axisLine={false} tickLine={false} width={30} />
