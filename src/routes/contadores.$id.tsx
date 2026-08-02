@@ -195,6 +195,12 @@ function Cockpit() {
         <div className="flex items-center gap-2">
           <ExportMenu datasets={datasets} base={`certus-contador-${c.id}`} label="Relatórios" />
           <Link
+            to="/parceiro"
+            className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
+          >
+            Portal do parceiro
+          </Link>
+          <Link
             to="/contadores"
             className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
