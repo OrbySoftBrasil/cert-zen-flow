@@ -50,6 +50,7 @@ function Clientes() {
               <th className="px-4 py-2 font-medium">Certificados</th>
               <th className="px-4 py-2 font-medium">LTV</th>
               <th className="px-4 py-2 font-medium">Saúde</th>
+              <th className="px-4 py-2 font-medium">Contador parceiro</th>
               <th className="px-4 py-2 font-medium">Gestor</th>
             </tr>
           </thead>
