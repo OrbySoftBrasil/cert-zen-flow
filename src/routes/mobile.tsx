@@ -19,7 +19,7 @@ import {
   Wallet,
   Wifi,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -106,7 +106,20 @@ const tooltipStyle = {
   fontSize: 11,
 } as const;
 
+function useRelogio() {
+  const [hora, setHora] = useState("--:--");
+  useEffect(() => {
+    const tick = () =>
+      setHora(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+    tick();
+    const t = setInterval(tick, 30_000);
+    return () => clearInterval(t);
+  }, []);
+  return hora;
+}
+
 function MobileExecutivo() {
+  const hora = useRelogio();
   const [tab, setTab] = useState<TabId>("inicio");
   const [alertasAbertos, setAlertasAbertos] = useState(false);
   const [clienteSel, setClienteSel] = useState<string | null>(null);
@@ -166,7 +179,7 @@ function MobileExecutivo() {
         <div className="relative flex h-screen w-full flex-col overflow-hidden bg-background lg:h-[820px] lg:rounded-[2rem]">
           {/* status bar */}
           <div className="flex items-center justify-between bg-primary-deep px-5 pb-1 pt-2 text-[10px] font-medium text-primary-foreground tabular">
-            <span>{new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+            <span>{hora}</span>
             <span className="flex items-center gap-1">
               <Signal className="size-3" />
               <Wifi className="size-3" />
@@ -199,7 +212,7 @@ function MobileExecutivo() {
               </span>
               <span className="text-[10px] text-primary-foreground/70">
                 sincronizado às{" "}
-                {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                {hora}
               </span>
             </div>
           </header>
