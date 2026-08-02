@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { Bar, Chip, Panel } from "@/components/ui-kit";
+import { contadorDoCliente } from "@/lib/contadores-data";
 import { brl, clients } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/clientes/")({
@@ -50,6 +51,7 @@ function Clientes() {
               <th className="px-4 py-2 font-medium">Certificados</th>
               <th className="px-4 py-2 font-medium">LTV</th>
               <th className="px-4 py-2 font-medium">Saúde</th>
+              <th className="px-4 py-2 font-medium">Contador parceiro</th>
               <th className="px-4 py-2 font-medium">Gestor</th>
             </tr>
           </thead>
@@ -73,6 +75,22 @@ function Clientes() {
                 <td className="w-40 px-4 py-3">
                   <Bar value={c.saude} />
                   <span className="tabular text-[11px] text-muted-foreground">{c.saude}/100</span>
+                </td>
+                <td className="px-4 py-3">
+                  {(() => {
+                    const ct = contadorDoCliente(c.id);
+                    return ct ? (
+                      <Link
+                        to="/contadores/$id"
+                        params={{ id: ct.id }}
+                        className="text-primary hover:underline"
+                      >
+                        {ct.nome}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">direto</span>
+                    );
+                  })()}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{c.gestor}</td>
               </tr>

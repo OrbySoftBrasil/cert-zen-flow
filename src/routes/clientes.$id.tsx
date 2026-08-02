@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
   Building2,
+  Handshake,
   FileText,
   MessageSquare,
   Receipt,
@@ -13,6 +14,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Bar, Chip, Panel } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
+import { contadorDoCliente } from "@/lib/contadores-data";
 import { brl, clientById, conversations, requests } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/clientes/$id")({
@@ -63,6 +65,7 @@ function Dossie() {
   const [aba, setAba] = useState<(typeof abas)[number]["id"]>("certificados");
   const solicitacoes = requests.filter((r) => r.clienteId === id);
   const conversas = conversations.filter((c) => c.clienteId === id);
+  const contador = contadorDoCliente(id);
 
   return (
     <AppShell title={cliente.nome} subtitle={`${cliente.documento} · cliente desde ${cliente.desde}`}>
@@ -76,6 +79,20 @@ function Dossie() {
               <p className="font-display text-base font-semibold">{cliente.nome}</p>
               <p className="text-xs text-muted-foreground">
                 {cliente.email} · {cliente.telefone} · {cliente.cidade}
+              </p>
+              <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                <Handshake className="size-3" />
+                {contador ? (
+                  <>
+                    Indicado por{" "}
+                    <Link to="/contadores/$id" params={{ id: contador.id }} className="text-primary hover:underline">
+                      {contador.nome}
+                    </Link>
+                    <Chip tone="outline">{contador.tier}</Chip>
+                  </>
+                ) : (
+                  <>Cliente direto (sem contador parceiro)</>
+                )}
               </p>
             </div>
             <div className="ml-auto flex gap-6 text-right">

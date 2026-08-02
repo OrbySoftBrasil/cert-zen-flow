@@ -1,6 +1,7 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
+  Handshake,
   KanbanSquare,
   Users,
   MessagesSquare,
@@ -33,6 +34,7 @@ const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/operacao", label: "Operação", icon: KanbanSquare },
   { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/contadores", label: "Contadores", icon: Handshake },
   { to: "/chat", label: "Chat", icon: MessagesSquare },
   { to: "/chamados", label: "Chamados", icon: LifeBuoy },
   { to: "/agenda", label: "Agenda", icon: CalendarClock },
