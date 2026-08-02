@@ -14,6 +14,7 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as ConformidadeRouteImport } from './routes/conformidade'
 import { Route as MobileRouteImport } from './routes/mobile'
+import { Route as MobileContadorRouteImport } from './routes/mobile-contador'
 import { Route as OperacaoRouteImport } from './routes/operacao'
 import { Route as ParceiroRouteImport } from './routes/parceiro'
 import { Route as PortalRouteImport } from './routes/portal'
@@ -55,6 +56,11 @@ const ConformidadeRoute = ConformidadeRouteImport.update({
 const MobileRoute = MobileRouteImport.update({
   id: '/mobile',
   path: '/mobile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MobileContadorRoute = MobileContadorRouteImport.update({
+  id: '/mobile-contador',
+  path: '/mobile-contador',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OperacaoRoute = OperacaoRouteImport.update({
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
   '/mobile': typeof MobileRoute
+  '/mobile-contador': typeof MobileContadorRoute
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
   '/mobile': typeof MobileRoute
+  '/mobile-contador': typeof MobileContadorRoute
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
@@ -198,6 +206,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/conformidade': typeof ConformidadeRoute
   '/mobile': typeof MobileRoute
+  '/mobile-contador': typeof MobileContadorRoute
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/conformidade'
     | '/mobile'
+    | '/mobile-contador'
     | '/operacao'
     | '/parceiro'
     | '/portal'
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/conformidade'
     | '/mobile'
+    | '/mobile-contador'
     | '/operacao'
     | '/parceiro'
     | '/portal'
@@ -272,6 +283,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/conformidade'
     | '/mobile'
+    | '/mobile-contador'
     | '/operacao'
     | '/parceiro'
     | '/portal'
@@ -297,6 +309,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   ConformidadeRoute: typeof ConformidadeRoute
   MobileRoute: typeof MobileRoute
+  MobileContadorRoute: typeof MobileContadorRoute
   OperacaoRoute: typeof OperacaoRoute
   ParceiroRoute: typeof ParceiroRoute
   PortalRoute: typeof PortalRoute
@@ -351,6 +364,13 @@ declare module '@tanstack/react-router' {
       path: '/mobile'
       fullPath: '/mobile'
       preLoaderRoute: typeof MobileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mobile-contador': {
+      id: '/mobile-contador'
+      path: '/mobile-contador'
+      fullPath: '/mobile-contador'
+      preLoaderRoute: typeof MobileContadorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/operacao': {
@@ -481,6 +501,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   ConformidadeRoute: ConformidadeRoute,
   MobileRoute: MobileRoute,
+  MobileContadorRoute: MobileContadorRoute,
   OperacaoRoute: OperacaoRoute,
   ParceiroRoute: ParceiroRoute,
   PortalRoute: PortalRoute,
@@ -502,3 +523,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
