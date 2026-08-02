@@ -31,6 +31,7 @@ import { Bar as MiniBar, Chip, Metric, Panel, SlaBadge } from "@/components/ui-k
 import { AppShell } from "@/components/app-shell";
 import { ExportMenu } from "@/components/export-menu";
 import type { Dataset } from "@/lib/export";
+import { contadores } from "@/lib/contadores-data";
 import {
   agentById,
   agents,
