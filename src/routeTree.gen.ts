@@ -22,6 +22,7 @@ import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as FinanceiroIndexRouteImport } from './routes/financeiro.index'
 import { Route as FinanceiroCaixaRouteImport } from './routes/financeiro.caixa'
+import { Route as FinanceiroComissoesRouteImport } from './routes/financeiro.comissoes'
 import { Route as FinanceiroPagarRouteImport } from './routes/financeiro.pagar'
 import { Route as FinanceiroPlanosRouteImport } from './routes/financeiro.planos'
 import { Route as FinanceiroReceberRouteImport } from './routes/financeiro.receber'
@@ -92,6 +93,11 @@ const FinanceiroCaixaRoute = FinanceiroCaixaRouteImport.update({
   path: '/financeiro/caixa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanceiroComissoesRoute = FinanceiroComissoesRouteImport.update({
+  id: '/financeiro/comissoes',
+  path: '/financeiro/comissoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanceiroPagarRoute = FinanceiroPagarRouteImport.update({
   id: '/financeiro/pagar',
   path: '/financeiro/pagar',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
+  '/financeiro/comissoes': typeof FinanceiroComissoesRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
   '/financeiro/planos': typeof FinanceiroPlanosRoute
   '/financeiro/receber': typeof FinanceiroReceberRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
+  '/financeiro/comissoes': typeof FinanceiroComissoesRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
   '/financeiro/planos': typeof FinanceiroPlanosRoute
   '/financeiro/receber': typeof FinanceiroReceberRoute
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
+  '/financeiro/comissoes': typeof FinanceiroComissoesRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
   '/financeiro/planos': typeof FinanceiroPlanosRoute
   '/financeiro/receber': typeof FinanceiroReceberRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/chamados/$id'
     | '/clientes/$id'
     | '/financeiro/caixa'
+    | '/financeiro/comissoes'
     | '/financeiro/pagar'
     | '/financeiro/planos'
     | '/financeiro/receber'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/chamados/$id'
     | '/clientes/$id'
     | '/financeiro/caixa'
+    | '/financeiro/comissoes'
     | '/financeiro/pagar'
     | '/financeiro/planos'
     | '/financeiro/receber'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/chamados/$id'
     | '/clientes/$id'
     | '/financeiro/caixa'
+    | '/financeiro/comissoes'
     | '/financeiro/pagar'
     | '/financeiro/planos'
     | '/financeiro/receber'
@@ -242,6 +254,7 @@ export interface RootRouteChildren {
   ChamadosIdRoute: typeof ChamadosIdRoute
   ClientesIdRoute: typeof ClientesIdRoute
   FinanceiroCaixaRoute: typeof FinanceiroCaixaRoute
+  FinanceiroComissoesRoute: typeof FinanceiroComissoesRoute
   FinanceiroPagarRoute: typeof FinanceiroPagarRoute
   FinanceiroPlanosRoute: typeof FinanceiroPlanosRoute
   FinanceiroReceberRoute: typeof FinanceiroReceberRoute
@@ -344,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceiroCaixaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/financeiro/comissoes': {
+      id: '/financeiro/comissoes'
+      path: '/financeiro/comissoes'
+      fullPath: '/financeiro/comissoes'
+      preLoaderRoute: typeof FinanceiroComissoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/financeiro/pagar': {
       id: '/financeiro/pagar'
       path: '/financeiro/pagar'
@@ -386,6 +406,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChamadosIdRoute: ChamadosIdRoute,
   ClientesIdRoute: ClientesIdRoute,
   FinanceiroCaixaRoute: FinanceiroCaixaRoute,
+  FinanceiroComissoesRoute: FinanceiroComissoesRoute,
   FinanceiroPagarRoute: FinanceiroPagarRoute,
   FinanceiroPlanosRoute: FinanceiroPlanosRoute,
   FinanceiroReceberRoute: FinanceiroReceberRoute,
