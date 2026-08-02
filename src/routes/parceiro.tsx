@@ -4,6 +4,8 @@ import {
   CheckCircle2,
   FileSpreadsheet,
   LayoutDashboard,
+  LifeBuoy,
+  Paperclip,
   Percent,
   Plus,
   Search,
@@ -24,7 +26,15 @@ import {
 import { ExportMenu } from "@/components/export-menu";
 import { Bar, Chip, Panel, SlaBadge } from "@/components/ui-kit";
 import { contadorById, type CarteiraItem, type PedidoContador } from "@/lib/contadores-data";
-import { brl, stages, type CertType } from "@/lib/mock-data";
+import {
+  baseConhecimento,
+  brl,
+  stages,
+  ticketCategorias,
+  type CertType,
+  type TicketCategoria,
+  type TicketStatus,
+} from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/parceiro")({
