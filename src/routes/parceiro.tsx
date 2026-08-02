@@ -62,8 +62,79 @@ const abas = [
   { id: "painel", label: "Painel", icon: LayoutDashboard },
   { id: "pedidos", label: "Pedidos", icon: FileSpreadsheet },
   { id: "clientes", label: "Meus clientes", icon: Users },
+  { id: "chamados", label: "Chamados", icon: LifeBuoy },
   { id: "comissoes", label: "Comissões", icon: Percent },
 ] as const;
+
+const prioridades = ["baixa", "normal", "alta", "critica"] as const;
+
+interface ChamadoParceiro {
+  id: string;
+  numero: string;
+  cliente: string;
+  assunto: string;
+  categoria: TicketCategoria;
+  subcategoria: string;
+  prioridade: (typeof prioridades)[number];
+  status: TicketStatus;
+  abertoEm: string;
+  atualizadoEm: string;
+  responsavel: string;
+  slaRestanteHoras: number;
+}
+
+const chamadosIniciais: ChamadoParceiro[] = [
+  {
+    id: "pch1",
+    numero: "CH-4833",
+    cliente: "Construtora Vale Norte LTDA",
+    assunto: "Cliente não consegue assinar PDF com o token A3",
+    categoria: "Instalação e uso",
+    subcategoria: "Assinatura em PDF",
+    prioridade: "alta",
+    status: "em andamento",
+    abertoEm: "há 1 dia",
+    atualizadoEm: "há 2 h",
+    responsavel: "Suporte N2 · Rafael",
+    slaRestanteHoras: 3,
+  },
+  {
+    id: "pch2",
+    numero: "CH-4829",
+    cliente: "Padaria Trigo de Ouro ME",
+    assunto: "Documento reprovado na validação — reenvio",
+    categoria: "Documentação",
+    subcategoria: "Documento reprovado",
+    prioridade: "normal",
+    status: "aguardando cliente",
+    abertoEm: "há 2 dias",
+    atualizadoEm: "há 6 h",
+    responsavel: "Validação · Marina",
+    slaRestanteHoras: 12,
+  },
+  {
+    id: "pch3",
+    numero: "CH-4810",
+    cliente: "Transportes Aurora S/A",
+    assunto: "2ª via de boleto da competência atual",
+    categoria: "Financeiro",
+    subcategoria: "2ª via de boleto",
+    prioridade: "baixa",
+    status: "resolvido",
+    abertoEm: "há 5 dias",
+    atualizadoEm: "há 4 dias",
+    responsavel: "Financeiro · Ana",
+    slaRestanteHoras: 0,
+  },
+];
+
+const chamadoTone: Record<TicketStatus, "blue" | "neutral" | "outline" | "deep" | "alert"> = {
+  aberto: "deep",
+  "em andamento": "blue",
+  "aguardando cliente": "outline",
+  resolvido: "neutral",
+  fechado: "neutral",
+};
 
 const tabelaPrecos: { tipo: CertType; balcao: number; parceiro: number; prazo: string }[] = [
   { tipo: "e-CPF A1", balcao: 199, parceiro: 155, prazo: "mesmo dia" },
