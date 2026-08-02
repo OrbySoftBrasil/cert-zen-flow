@@ -21,6 +21,7 @@ import { Route as ChamadosIdRouteImport } from './routes/chamados.$id'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as ContadoresIndexRouteImport } from './routes/contadores.index'
+import { Route as ContadoresIdRouteImport } from './routes/contadores.$id'
 import { Route as FinanceiroIndexRouteImport } from './routes/financeiro.index'
 import { Route as FinanceiroCaixaRouteImport } from './routes/financeiro.caixa'
 import { Route as FinanceiroComissoesRouteImport } from './routes/financeiro.comissoes'
@@ -89,6 +90,11 @@ const ContadoresIndexRoute = ContadoresIndexRouteImport.update({
   path: '/contadores/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContadoresIdRoute = ContadoresIdRouteImport.update({
+  id: '/contadores/$id',
+  path: '/contadores/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanceiroIndexRoute = FinanceiroIndexRouteImport.update({
   id: '/financeiro/',
   path: '/financeiro/',
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
+  '/contadores/$id': typeof ContadoresIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
   '/financeiro/comissoes': typeof FinanceiroComissoesRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
+  '/contadores/$id': typeof ContadoresIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
   '/financeiro/comissoes': typeof FinanceiroComissoesRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
+  '/contadores/$id': typeof ContadoresIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
   '/financeiro/comissoes': typeof FinanceiroComissoesRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
+    | '/contadores/$id'
     | '/financeiro/caixa'
     | '/financeiro/comissoes'
     | '/financeiro/pagar'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
+    | '/contadores/$id'
     | '/financeiro/caixa'
     | '/financeiro/comissoes'
     | '/financeiro/pagar'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
+    | '/contadores/$id'
     | '/financeiro/caixa'
     | '/financeiro/comissoes'
     | '/financeiro/pagar'
@@ -265,6 +277,7 @@ export interface RootRouteChildren {
   RenovacoesRoute: typeof RenovacoesRoute
   ChamadosIdRoute: typeof ChamadosIdRoute
   ClientesIdRoute: typeof ClientesIdRoute
+  ContadoresIdRoute: typeof ContadoresIdRoute
   FinanceiroCaixaRoute: typeof FinanceiroCaixaRoute
   FinanceiroComissoesRoute: typeof FinanceiroComissoesRoute
   FinanceiroPagarRoute: typeof FinanceiroPagarRoute
@@ -363,6 +376,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContadoresIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contadores/$id': {
+      id: '/contadores/$id'
+      path: '/contadores/$id'
+      fullPath: '/contadores/$id'
+      preLoaderRoute: typeof ContadoresIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/financeiro/': {
       id: '/financeiro/'
       path: '/financeiro'
@@ -425,6 +445,7 @@ const rootRouteChildren: RootRouteChildren = {
   RenovacoesRoute: RenovacoesRoute,
   ChamadosIdRoute: ChamadosIdRoute,
   ClientesIdRoute: ClientesIdRoute,
+  ContadoresIdRoute: ContadoresIdRoute,
   FinanceiroCaixaRoute: FinanceiroCaixaRoute,
   FinanceiroComissoesRoute: FinanceiroComissoesRoute,
   FinanceiroPagarRoute: FinanceiroPagarRoute,
