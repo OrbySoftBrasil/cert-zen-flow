@@ -145,10 +145,10 @@ export function AppShell({
           </button>
           <button
             onClick={() => setOpen(true)}
-            className="flex h-9 min-w-0 flex-1 max-w-md items-center gap-2 rounded-md border border-border bg-muted/60 px-3 text-sm text-muted-foreground transition-colors hover:border-border-strong"
+            className="flex h-9 min-w-0 flex-1 max-w-md shrink items-center gap-2 rounded-md border border-border bg-muted/60 px-3 text-sm text-muted-foreground transition-colors hover:border-border-strong max-sm:w-9 max-sm:flex-none max-sm:justify-center max-sm:px-0"
           >
-            <Search className="size-4" />
-            <span className="truncate">Buscar cliente, protocolo ou certificado</span>
+            <Search className="size-4 shrink-0" />
+            <span className="truncate max-sm:hidden">Buscar cliente, protocolo ou certificado</span>
             <kbd className="ml-auto hidden rounded border border-border bg-card px-1.5 py-0.5 font-sans text-[10px] text-muted-foreground sm:block">
               ⌘K
             </kbd>
