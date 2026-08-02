@@ -43,6 +43,7 @@ const nav = [
   { to: "/renovacoes", label: "Renovações", icon: RefreshCw },
   { to: "/conformidade", label: "Conformidade", icon: ShieldCheck },
   { to: "/mobile", label: "App executivo", icon: Smartphone },
+  { to: "/mobile-contador", label: "App do contador", icon: Smartphone },
 ] as const;
 
 export function AppShell({
