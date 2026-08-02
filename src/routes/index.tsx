@@ -690,6 +690,57 @@ function Dashboard() {
           </Panel>
         </div>
 
+        <Panel
+          title="Rede de contadores parceiros"
+          hint="Emissões indicadas, comissão apurada e clientes vinculados no mês"
+          actions={
+            <Link to="/contadores" className="text-xs font-medium text-primary hover:underline">
+              Abrir rede
+            </Link>
+          }
+          bodyClassName="p-0"
+        >
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-2 font-medium">Parceiro</th>
+                <th className="px-4 py-2 font-medium">Tier</th>
+                <th className="px-4 py-2 font-medium">Clientes</th>
+                <th className="px-4 py-2 font-medium">Emissões</th>
+                <th className="px-4 py-2 text-right font-medium">Receita</th>
+                <th className="px-4 py-2 text-right font-medium">Comissão</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {[...contadores]
+                .sort((a, b) => b.emissoesMes - a.emissoesMes)
+                .slice(0, 5)
+                .map((c) => (
+                  <tr key={c.id} className="transition-colors hover:bg-muted/50">
+                    <td className="px-4 py-2.5">
+                      <Link to="/contadores/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
+                        {c.nome}
+                      </Link>
+                      <span className="block text-xs text-muted-foreground">{c.cidade}</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <Chip tone={c.status === "ativo" ? "blue" : c.status === "suspenso" ? "alert" : "outline"}>
+                        {c.tier}
+                      </Chip>
+                    </td>
+                    <td className="px-4 py-2.5 tabular">{c.carteira.length}</td>
+                    <td className="px-4 py-2.5 tabular">
+                      {c.emissoesMes}
+                      <span className="text-xs text-muted-foreground"> / {c.metaMes}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right tabular">{brl(c.receitaMes)}</td>
+                    <td className="px-4 py-2.5 text-right tabular">{brl(c.comissaoMes)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </Panel>
+
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <ArrowUpRight className="size-3.5" /> Dados fictícios de demonstração. Exportações geram arquivos reais em CSV, XLSX e JSON.
         </p>
