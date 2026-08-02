@@ -23,6 +23,7 @@ import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as FinanceiroIndexRouteImport } from './routes/financeiro.index'
 import { Route as FinanceiroCaixaRouteImport } from './routes/financeiro.caixa'
 import { Route as FinanceiroPagarRouteImport } from './routes/financeiro.pagar'
+import { Route as FinanceiroPlanosRouteImport } from './routes/financeiro.planos'
 import { Route as FinanceiroReceberRouteImport } from './routes/financeiro.receber'
 import { Route as SolicitacoesIdRouteImport } from './routes/solicitacoes.$id'
 
@@ -96,6 +97,11 @@ const FinanceiroPagarRoute = FinanceiroPagarRouteImport.update({
   path: '/financeiro/pagar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanceiroPlanosRoute = FinanceiroPlanosRouteImport.update({
+  id: '/financeiro/planos',
+  path: '/financeiro/planos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanceiroReceberRoute = FinanceiroReceberRouteImport.update({
   id: '/financeiro/receber',
   path: '/financeiro/receber',
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
+  '/financeiro/planos': typeof FinanceiroPlanosRoute
   '/financeiro/receber': typeof FinanceiroReceberRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados/': typeof ChamadosIndexRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
+  '/financeiro/planos': typeof FinanceiroPlanosRoute
   '/financeiro/receber': typeof FinanceiroReceberRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados': typeof ChamadosIndexRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/clientes/$id': typeof ClientesIdRoute
   '/financeiro/caixa': typeof FinanceiroCaixaRoute
   '/financeiro/pagar': typeof FinanceiroPagarRoute
+  '/financeiro/planos': typeof FinanceiroPlanosRoute
   '/financeiro/receber': typeof FinanceiroReceberRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
   '/chamados/': typeof ChamadosIndexRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/clientes/$id'
     | '/financeiro/caixa'
     | '/financeiro/pagar'
+    | '/financeiro/planos'
     | '/financeiro/receber'
     | '/solicitacoes/$id'
     | '/chamados/'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/clientes/$id'
     | '/financeiro/caixa'
     | '/financeiro/pagar'
+    | '/financeiro/planos'
     | '/financeiro/receber'
     | '/solicitacoes/$id'
     | '/chamados'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/clientes/$id'
     | '/financeiro/caixa'
     | '/financeiro/pagar'
+    | '/financeiro/planos'
     | '/financeiro/receber'
     | '/solicitacoes/$id'
     | '/chamados/'
@@ -231,6 +243,7 @@ export interface RootRouteChildren {
   ClientesIdRoute: typeof ClientesIdRoute
   FinanceiroCaixaRoute: typeof FinanceiroCaixaRoute
   FinanceiroPagarRoute: typeof FinanceiroPagarRoute
+  FinanceiroPlanosRoute: typeof FinanceiroPlanosRoute
   FinanceiroReceberRoute: typeof FinanceiroReceberRoute
   SolicitacoesIdRoute: typeof SolicitacoesIdRoute
   ChamadosIndexRoute: typeof ChamadosIndexRoute
@@ -338,6 +351,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceiroPagarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/financeiro/planos': {
+      id: '/financeiro/planos'
+      path: '/financeiro/planos'
+      fullPath: '/financeiro/planos'
+      preLoaderRoute: typeof FinanceiroPlanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/financeiro/receber': {
       id: '/financeiro/receber'
       path: '/financeiro/receber'
@@ -367,6 +387,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientesIdRoute: ClientesIdRoute,
   FinanceiroCaixaRoute: FinanceiroCaixaRoute,
   FinanceiroPagarRoute: FinanceiroPagarRoute,
+  FinanceiroPlanosRoute: FinanceiroPlanosRoute,
   FinanceiroReceberRoute: FinanceiroReceberRoute,
   SolicitacoesIdRoute: SolicitacoesIdRoute,
   ChamadosIndexRoute: ChamadosIndexRoute,
