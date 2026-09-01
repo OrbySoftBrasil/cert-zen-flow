@@ -10,6 +10,7 @@ import { useStore } from "@/lib/store";
 import { NovoAgendamentoButton } from "@/components/dialogs";
 import { Btn, ConfirmDialog, EmptyState, Field, TextInput } from "@/components/forms";
 import { toast } from "sonner";
+import { Paginacao, usePaginacao } from "@/components/pagination";
 
 export const Route = createFileRoute("/agenda")({
   head: () => ({
@@ -88,6 +89,11 @@ function Agenda() {
     const [ano, mes] = a.dia.split("-").map(Number);
     return ano === cursor.ano && mes === cursor.mes + 1;
   });
+
+  const listaMes = [...doMes]
+    .filter((a) => (somenteFuturos ? a.dia >= hojeISO : true))
+    .sort((a, b) => (a.dia === b.dia ? a.hora.localeCompare(b.hora) : a.dia.localeCompare(b.dia)));
+  const pagMes = usePaginacao(listaMes, 10);
 
   function atualizar(id: string, status: Appointment["status"]) {
     updateAppointment(id, { status });
