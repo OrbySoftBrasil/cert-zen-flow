@@ -315,6 +315,27 @@ function Agenda() {
             title={`${nomesMes[cursor.mes]} ${cursor.ano}`}
             hint={`${doMes.length} agendamentos no mês`}
             bodyClassName="p-3"
+            actions={
+              <div className="flex rounded-md border border-border p-0.5">
+                {([
+                  ["resumo", "Resumo"],
+                  ["completo", "Mostrar todos"],
+                ] as const).map(([v, label]) => (
+                  <button
+                    key={v}
+                    onClick={() => setDensidadeMes(v)}
+                    className={cn(
+                      "rounded px-2 py-1 text-[11px] transition-colors",
+                      densidadeMes === v
+                        ? "bg-primary-soft font-medium text-primary-deep"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            }
           >
             <div className="grid grid-cols-7 gap-1.5">
               {nomesDiaSemana.map((d) => (
