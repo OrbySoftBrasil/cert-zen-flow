@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { clients, requests } from "@/lib/mock-data";
+import { SettingsDialog } from "@/components/settings-workspace";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -47,7 +48,6 @@ const nav = [
   { to: "/conformidade", label: "Conformidade", icon: ShieldCheck },
   { to: "/mobile", label: "App executivo", icon: Smartphone },
   { to: "/mobile-contador", label: "App do contador", icon: Smartphone },
-  { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
 export function AppShell({
@@ -65,6 +65,7 @@ export function AppShell({
   const [dense, setDense] = useState(false);
   const [open, setOpen] = useState(false);
   const [navMobile, setNavMobile] = useState(false);
+  const [configOpen, setConfigOpen] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -125,7 +126,15 @@ export function AppShell({
           })}
         </nav>
 
-        <div className="border-t border-border p-2">
+        <div className="space-y-0.5 border-t border-border p-2">
+          <button
+            onClick={() => setConfigOpen(true)}
+            title="Configurações"
+            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+          >
+            <Settings className="size-4 shrink-0" />
+            {!collapsed && <span>Configurações</span>}
+          </button>
           <button
             onClick={() => setCollapsed((v) => !v)}
             className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
@@ -235,9 +244,23 @@ export function AppShell({
                 );
               })}
             </nav>
+            <div className="border-t border-border p-2">
+              <button
+                onClick={() => {
+                  setNavMobile(false);
+                  setConfigOpen(true);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+              >
+                <Settings className="size-4 shrink-0" />
+                <span>Configurações</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      <SettingsDialog open={configOpen} onClose={() => setConfigOpen(false)} />
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Buscar clientes, solicitações e certificados..." />
