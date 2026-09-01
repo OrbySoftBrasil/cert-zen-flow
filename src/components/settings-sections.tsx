@@ -881,7 +881,7 @@ export function SecaoEquipe() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="flex flex-wrap rounded-lg border border-border bg-card">
         <Metric label="Usuários" value={String(usuarios.length)} hint="cadastrados" />
         <Metric label="Ativos" value={String(usuarios.filter((u) => u.status === "ativo").length)} hint="com acesso" />
         <Metric
