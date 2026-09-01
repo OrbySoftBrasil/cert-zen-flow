@@ -641,6 +641,68 @@ export function seedSettings(): Settings {
   };
 }
 
+/** Cria uma etapa personalizada para a esteira da AC. */
+export function novaEtapa(nome: string, papelResponsavel: string): StageRule {
+  return {
+    id: id("st"),
+    nome,
+    descricao: "Etapa personalizada da esteira.",
+    ativo: true,
+    removivel: true,
+    slaHoras: 8,
+    papelResponsavel,
+    checklist: [],
+    documentos: [],
+    gates: {
+      checklistObrigatorio: true,
+      documentosAprovados: false,
+      pagamentoConfirmado: false,
+      duplaConferencia: false,
+      biometriaValidada: false,
+      gravacaoArquivada: false,
+    },
+    automacoes: {
+      notificarCliente: false,
+      atribuirAutomatico: true,
+      escalarSlaEstourado: true,
+      notificarPapelResponsavel: true,
+    },
+    papeisNotificados: [],
+    canaisNotificacao: ["email", "push"],
+  };
+}
+
+/** Garante que configurações salvas antes de novos campos continuem válidas. */
+function normalizar(s: Settings): Settings {
+  const base = seedSettings();
+  return {
+    ...base,
+    ...s,
+    fluxo: {
+      ...base.fluxo,
+      ...s.fluxo,
+      etapas: (s.fluxo?.etapas ?? base.fluxo.etapas).map((e) => ({
+        ...e,
+        papeisNotificados: e.papeisNotificados ?? [],
+        canaisNotificacao: e.canaisNotificacao ?? ["email", "push"],
+        automacoes: { notificarPapelResponsavel: true, ...e.automacoes },
+      })),
+    },
+    papeis: (s.papeis ?? base.papeis).map((p) => ({ ...p, escopoVisibilidade: p.escopoVisibilidade ?? "todas" })),
+    usuarios: (s.usuarios ?? base.usuarios).map((u) => ({
+      ...u,
+      escopoVisibilidade: u.escopoVisibilidade ?? "herdado",
+    })),
+  };
+}
+
+/** Escopo efetivo de um usuário considerando a herança do papel. */
+export function escopoEfetivo(usuario: UsuarioRule, papel?: PapelRule): EscopoVisibilidade {
+  return usuario.escopoVisibilidade === "herdado"
+    ? (papel?.escopoVisibilidade ?? "todas")
+    : usuario.escopoVisibilidade;
+}
+
 type Patch<T> = (atual: T) => T;
 
 interface SettingsCtx {
@@ -663,7 +725,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setSettings({ ...seedSettings(), ...(JSON.parse(raw) as Settings) });
+      if (raw) setSettings(normalizar(JSON.parse(raw) as Settings));
     } catch {
       /* mantém seed */
     }
