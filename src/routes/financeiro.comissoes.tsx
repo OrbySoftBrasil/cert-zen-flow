@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Percent, ShieldAlert } from "lucide-react";
+import { Pencil, Percent, Plus, ShieldAlert, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -8,9 +8,14 @@ import { ExportMenu } from "@/components/export-menu";
 import { FinanceTabs } from "@/components/finance-tabs";
 import { Chip, Metric, Panel } from "@/components/ui-kit";
 import type { Dataset } from "@/lib/export";
-import { comissoes, dataBR, regrasComissao } from "@/lib/finance-data";
+import { dataBR } from "@/lib/finance-data";
 import { brl } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { RegraComissaoDialog } from "@/components/finance-dialogs";
+import { ConfirmDialog } from "@/components/forms";
+import { Paginacao, usePaginacao } from "@/components/pagination";
+import { useStore } from "@/lib/store";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/financeiro/comissoes")({
   head: () => ({
@@ -38,10 +43,15 @@ const tone = {
 } as const;
 
 function Comissoes() {
+  const { comissoes, regrasComissao, updateComissao, removeRegraComissao } = useStore();
   const [competencia, setCompetencia] = useState("07/2026");
-  const [pagas, setPagas] = useState<string[]>([]);
+  const [novaRegra, setNovaRegra] = useState(false);
+  const [editarRegra, setEditarRegra] = useState<string | null>(null);
+  const [excluirRegra, setExcluirRegra] = useState<string | null>(null);
+  const pagas: string[] = [];
 
   const lista = comissoes.filter((c) => competencia === "todas" || c.competencia === competencia);
+  const pag = usePaginacao(lista, 10);
   const total = lista.reduce((s, c) => s + c.valor, 0);
   const aPagar = lista.filter((c) => c.status !== "paga" && !pagas.includes(c.id)).reduce((s, c) => s + c.valor, 0);
   const retidas = lista.filter((c) => c.status === "retida");
@@ -80,7 +90,18 @@ function Comissoes() {
       actions={
         <>
           <ExportMenu datasets={datasets} base="certus-comissoes" label="Relatórios" />
-          <button className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep">
+          <button
+            onClick={() => {
+              const alvos = lista.filter((c) => c.status === "prevista" || c.status === "apurada");
+              alvos.forEach((c) => updateComissao(c.id, { status: "aprovada" }));
+              toast.success("Competência fechada", {
+                description: alvos.length
+                  ? `${alvos.length} comissões aprovadas para pagamento`
+                  : "Nenhuma comissão pendente de apuração",
+              });
+            }}
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep"
+          >
             Fechar competência
           </button>
         </>
@@ -126,15 +147,44 @@ function Comissoes() {
             </div>
           </Panel>
 
-          <Panel title="Regras vigentes" hint="Política de comissionamento">
+          <Panel
+            title="Regras vigentes"
+            hint="Política de comissionamento"
+            actions={
+              <button
+                onClick={() => setNovaRegra(true)}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs transition-colors hover:border-border-strong print:hidden"
+              >
+                <Plus className="size-3" /> Nova regra
+              </button>
+            }
+          >
             <ul className="space-y-3">
               {regrasComissao.map((r) => (
                 <li key={r.id} className="flex gap-2.5">
                   <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary-soft text-primary-deep">
                     {r.nome === "Estorno" ? <ShieldAlert className="size-3.5" /> : <Percent className="size-3.5" />}
                   </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{r.nome}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-medium">{r.nome}</p>
+                      <span className="flex shrink-0 gap-1 print:hidden">
+                        <button
+                          onClick={() => setEditarRegra(r.id)}
+                          aria-label={`Editar ${r.nome}`}
+                          className="grid size-6 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                        >
+                          <Pencil className="size-3" />
+                        </button>
+                        <button
+                          onClick={() => setExcluirRegra(r.id)}
+                          aria-label={`Excluir ${r.nome}`}
+                          className="grid size-6 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-alert hover:text-alert"
+                        >
+                          <Trash2 className="size-3" />
+                        </button>
+                      </span>
+                    </div>
                     <p className="text-[11px] text-muted-foreground">{r.regra}</p>
                     <p className="text-[11px] text-muted-foreground">
                       Gatilho: {r.gatilho} · Carência: {r.carencia} · Teto: {r.teto}
@@ -178,7 +228,7 @@ function Comissoes() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {lista.map((c) => {
+                {pag.visiveis.map((c) => {
                   const paga = c.status === "paga" || pagas.includes(c.id);
                   return (
                     <tr key={c.id} className="transition-colors hover:bg-muted/50">
@@ -203,7 +253,10 @@ function Comissoes() {
                           </span>
                         ) : (
                           <button
-                            onClick={() => setPagas((v) => [...v, c.id])}
+                            onClick={() => {
+                              updateComissao(c.id, { status: "paga" });
+                              toast.success("Comissão liquidada", { description: `${c.beneficiario} · ${brl(c.valor)}` });
+                            }}
                             className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
                           >
                             Pagar
@@ -216,8 +269,25 @@ function Comissoes() {
               </tbody>
             </table>
           </div>
+          <Paginacao {...pag} rotulo="comissões" className="border-t border-border px-4 py-2" />
         </Panel>
       </div>
+
+      {novaRegra && <RegraComissaoDialog open onClose={() => setNovaRegra(false)} />}
+      {editarRegra && <RegraComissaoDialog open onClose={() => setEditarRegra(null)} regraId={editarRegra} />}
+      <ConfirmDialog
+        open={!!excluirRegra}
+        title="Excluir regra de comissão"
+        descricao="Apurações já geradas permanecem; novas apurações deixam de usar esta regra."
+        confirmLabel="Excluir"
+        destructive
+        onCancel={() => setExcluirRegra(null)}
+        onConfirm={() => {
+          if (excluirRegra) removeRegraComissao(excluirRegra);
+          setExcluirRegra(null);
+          toast.success("Regra removida da política");
+        }}
+      />
     </AppShell>
   );
 }
