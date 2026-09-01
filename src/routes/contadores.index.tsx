@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Bar as RBar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { AppShell } from "@/components/app-shell";
+import { Paginacao, usePaginacao } from "@/components/pagination";
 import { NovoContadorButton } from "@/components/dialogs";
 import { ExportMenu } from "@/components/export-menu";
 import { Bar, Chip, Metric, Panel } from "@/components/ui-kit";
@@ -181,6 +182,8 @@ function Contadores() {
     },
   ];
 
+  const pag = usePaginacao(lista, 25);
+
   return (
     <AppShell
       title="Contadores parceiros"
@@ -322,7 +325,7 @@ function Contadores() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {lista.map((c) => {
+                {pag.visiveis.map((c) => {
                   const abertos = c.pedidos.filter((p) => p.stage !== "concluido").length;
                   const risco = c.pedidos.filter((p) => p.slaRestanteHoras <= 4).length;
                   const atingimento = Math.round((c.emissoesMes / c.metaMes) * 100);
@@ -381,6 +384,7 @@ function Contadores() {
               </tbody>
             </table>
           </div>
+          <Paginacao {...pag} rotulo="contadores" />
         </Panel>
       </div>
     </AppShell>

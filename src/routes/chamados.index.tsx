@@ -3,6 +3,7 @@ import { ExternalLink, LifeBuoy, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { Paginacao, usePaginacao } from "@/components/pagination";
 import { Bar, Chip, Metric, Panel, SlaBadge } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
 import {
@@ -82,6 +83,7 @@ function Chamados() {
     .map((c) => ({ nome: c.nome, total: tickets.filter((t) => t.categoria === c.nome).length }))
     .filter((c) => c.total > 0)
     .sort((a, b) => b.total - a.total);
+  const pag = usePaginacao(lista, 25);
   const maxCat = Math.max(...porCategoria.map((c) => c.total), 1);
 
   return (
@@ -170,7 +172,7 @@ function Chamados() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {lista.map((t) => (
+                {pag.visiveis.map((t) => (
                   <tr key={t.id} className="transition-colors hover:bg-muted/50">
                     <td className="px-4 py-3">
                       <Link
@@ -210,6 +212,7 @@ function Chamados() {
               </tbody>
             </table>
           </div>
+          <Paginacao {...pag} rotulo="chamados" />
         </Panel>
 
         <div className="space-y-4">

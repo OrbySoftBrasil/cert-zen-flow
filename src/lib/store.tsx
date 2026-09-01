@@ -29,8 +29,16 @@ import {
 import {
   pagar as seedPagar,
   receber as seedReceber,
+  planos as seedPlanos,
+  contratos as seedContratos,
+  comissoes as seedComissoes,
+  regrasComissao as seedRegras,
+  type Comissao,
+  type Contrato,
   type Pagar,
+  type Plano,
   type Receber,
+  type RegraComissao,
 } from "@/lib/finance-data";
 
 const STORAGE_KEY = "certus-ac-estado-v1";
@@ -45,6 +53,10 @@ export interface AppState {
   contadores: Contador[];
   pagar: Pagar[];
   receber: Receber[];
+  planos: Plano[];
+  contratos: Contrato[];
+  comissoes: Comissao[];
+  regrasComissao: RegraComissao[];
 }
 
 function seed(): AppState {
@@ -56,6 +68,10 @@ function seed(): AppState {
     contadores: seedContadores,
     pagar: seedPagar,
     receber: seedReceber,
+    planos: seedPlanos,
+    contratos: seedContratos,
+    comissoes: seedComissoes,
+    regrasComissao: seedRegras,
   };
 }
 
@@ -107,6 +123,8 @@ export interface NovoChamadoInput {
   responsavelId: string;
   descricao: string;
   contato?: string;
+  clienteNome?: string;
+  tags?: string[];
 }
 
 export interface NovoAgendamentoInput {
@@ -117,6 +135,7 @@ export interface NovoAgendamentoInput {
   hora: string;
   duracaoMin: number;
   sala: string;
+  clienteNome?: string;
 }
 
 interface Actions {
@@ -147,6 +166,16 @@ interface Actions {
   addReceber: (t: Omit<Receber, "id">) => void;
   updatePagar: (id: string, patch: Partial<Pagar>) => void;
   updateReceber: (id: string, patch: Partial<Receber>) => void;
+  addPlano: (p: Omit<Plano, "id">) => Plano;
+  updatePlano: (id: string, patch: Partial<Plano>) => void;
+  removePlano: (id: string) => void;
+  addContrato: (c: Omit<Contrato, "id">) => Contrato;
+  updateContrato: (id: string, patch: Partial<Contrato>) => void;
+  addComissao: (c: Omit<Comissao, "id">) => Comissao;
+  updateComissao: (id: string, patch: Partial<Comissao>) => void;
+  addRegraComissao: (r: Omit<RegraComissao, "id">) => RegraComissao;
+  updateRegraComissao: (id: string, patch: Partial<RegraComissao>) => void;
+  removeRegraComissao: (id: string) => void;
   // parceiros
   addContador: (c: Pick<Contador, "nome" | "razaoSocial" | "cnpj" | "crc" | "responsavel" | "email" | "telefone" | "cidade" | "gestor" | "comissaoPercentual" | "metaMes">) => Contador;
   updateContador: (id: string, patch: Partial<Contador>) => void;
@@ -367,7 +396,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         const novo: Appointment = {
           id: uid("ag"),
           clienteId: input.clienteId,
-          cliente: cliente?.nome ?? "Cliente",
+          cliente: input.clienteNome ?? cliente?.nome ?? "Cliente",
           tipo: input.tipo,
           agenteId: input.agenteId,
           dia: input.dia,
@@ -378,7 +407,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         };
         setState((s) => ({
           ...s,
-          appointments: [...s.appointments, { ...novo, cliente: s.clients.find((c) => c.id === input.clienteId)?.nome ?? novo.cliente }],
+          appointments: [...s.appointments, { ...novo, cliente: input.clienteNome ?? s.clients.find((c) => c.id === input.clienteId)?.nome ?? novo.cliente }],
         }));
         return novo;
       },
@@ -392,7 +421,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           id: uid("t"),
           numero: `CH-${Math.floor(4000 + Math.random() * 5999)}`,
           clienteId: input.clienteId,
-          cliente: cliente?.nome ?? "Cliente",
+          cliente: input.clienteNome ?? cliente?.nome ?? "Cliente",
           contato: input.contato ?? cliente?.email ?? "",
           assunto: input.assunto,
           categoria: input.categoria,
@@ -404,14 +433,14 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           abertoEm: agora(),
           atualizadoEm: agora(),
           slaRestanteHoras: input.prioridade === "critica" ? 4 : input.prioridade === "alta" ? 8 : 24,
-          tags: [],
+          tags: input.tags ?? [],
           mensagens: [
-            { id: uid("m"), autor: cliente?.nome ?? "Cliente", papel: "cliente", quando: agora(), texto: input.descricao },
+            { id: uid("m"), autor: input.clienteNome ?? cliente?.nome ?? "Cliente", papel: "cliente", quando: agora(), texto: input.descricao },
           ],
         };
         setState((s) => ({
           ...s,
-          tickets: [{ ...novo, cliente: s.clients.find((c) => c.id === input.clienteId)?.nome ?? novo.cliente }, ...s.tickets],
+          tickets: [{ ...novo, cliente: input.clienteNome ?? s.clients.find((c) => c.id === input.clienteId)?.nome ?? novo.cliente }, ...s.tickets],
         }));
         return novo;
       },

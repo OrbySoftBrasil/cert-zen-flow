@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { Paginacao, usePaginacao } from "@/components/pagination";
 import { Bar, Chip, Panel } from "@/components/ui-kit";
 import { contadorDoCliente } from "@/lib/contadores-data";
 import { brl } from "@/lib/mock-data";
@@ -32,6 +33,8 @@ function Clientes() {
     (c) =>
       c.nome.toLowerCase().includes(busca.toLowerCase()) || c.documento.includes(busca),
   );
+
+  const pag = usePaginacao(lista, 25);
 
   return (
     <AppShell
@@ -77,7 +80,7 @@ function Clientes() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {lista.map((c) => (
+              {pag.visiveis.map((c) => (
                 <tr key={c.id} className="transition-colors hover:bg-muted/50">
                   <td className="px-4 py-3">
                     <Link to="/clientes/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
@@ -120,6 +123,7 @@ function Clientes() {
           </table>
         </div>
         )}
+        <Paginacao {...pag} rotulo="clientes" />
       </Panel>
     </AppShell>
   );

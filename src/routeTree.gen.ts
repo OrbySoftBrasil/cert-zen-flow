@@ -14,11 +14,14 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ConformidadeRouteImport } from './routes/conformidade'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as MobileRouteImport } from './routes/mobile'
 import { Route as MobileContadorRouteImport } from './routes/mobile-contador'
 import { Route as OperacaoRouteImport } from './routes/operacao'
 import { Route as ParceiroRouteImport } from './routes/parceiro'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as RenovacoesRouteImport } from './routes/renovacoes'
 import { Route as ChamadosIndexRouteImport } from './routes/chamados.index'
 import { Route as ChamadosIdRouteImport } from './routes/chamados.$id'
@@ -60,6 +63,11 @@ const ConformidadeRoute = ConformidadeRouteImport.update({
   path: '/conformidade',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MobileRoute = MobileRouteImport.update({
   id: '/mobile',
   path: '/mobile',
@@ -83,6 +91,16 @@ const ParceiroRoute = ParceiroRouteImport.update({
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RenovacoesRoute = RenovacoesRouteImport.update({
@@ -167,11 +185,14 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/conformidade': typeof ConformidadeRoute
+  '/login': typeof LoginRoute
   '/mobile': typeof MobileRoute
   '/mobile-contador': typeof MobileContadorRoute
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -194,11 +215,14 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/conformidade': typeof ConformidadeRoute
+  '/login': typeof LoginRoute
   '/mobile': typeof MobileRoute
   '/mobile-contador': typeof MobileContadorRoute
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -222,11 +246,14 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/conformidade': typeof ConformidadeRoute
+  '/login': typeof LoginRoute
   '/mobile': typeof MobileRoute
   '/mobile-contador': typeof MobileContadorRoute
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -251,11 +278,14 @@ export interface FileRouteTypes {
     | '/chat'
     | '/configuracoes'
     | '/conformidade'
+    | '/login'
     | '/mobile'
     | '/mobile-contador'
     | '/operacao'
     | '/parceiro'
     | '/portal'
+    | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -278,11 +308,14 @@ export interface FileRouteTypes {
     | '/chat'
     | '/configuracoes'
     | '/conformidade'
+    | '/login'
     | '/mobile'
     | '/mobile-contador'
     | '/operacao'
     | '/parceiro'
     | '/portal'
+    | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -305,11 +338,14 @@ export interface FileRouteTypes {
     | '/chat'
     | '/configuracoes'
     | '/conformidade'
+    | '/login'
     | '/mobile'
     | '/mobile-contador'
     | '/operacao'
     | '/parceiro'
     | '/portal'
+    | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -333,11 +369,14 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ConformidadeRoute: typeof ConformidadeRoute
+  LoginRoute: typeof LoginRoute
   MobileRoute: typeof MobileRoute
   MobileContadorRoute: typeof MobileContadorRoute
   OperacaoRoute: typeof OperacaoRoute
   ParceiroRoute: typeof ParceiroRoute
   PortalRoute: typeof PortalRoute
+  RecuperarSenhaRoute: typeof RecuperarSenhaRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   RenovacoesRoute: typeof RenovacoesRoute
   ChamadosIdRoute: typeof ChamadosIdRoute
   ClientesIdRoute: typeof ClientesIdRoute
@@ -392,6 +431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConformidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mobile': {
       id: '/mobile'
       path: '/mobile'
@@ -425,6 +471,20 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar-senha': {
+      id: '/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/renovacoes': {
@@ -541,11 +601,14 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   ConformidadeRoute: ConformidadeRoute,
+  LoginRoute: LoginRoute,
   MobileRoute: MobileRoute,
   MobileContadorRoute: MobileContadorRoute,
   OperacaoRoute: OperacaoRoute,
   ParceiroRoute: ParceiroRoute,
   PortalRoute: PortalRoute,
+  RecuperarSenhaRoute: RecuperarSenhaRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
   RenovacoesRoute: RenovacoesRoute,
   ChamadosIdRoute: ChamadosIdRoute,
   ClientesIdRoute: ClientesIdRoute,

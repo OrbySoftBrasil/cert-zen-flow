@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AppStoreProvider } from "@/lib/store";
 import { SettingsProvider } from "@/lib/settings-store";
+import { AuthProvider } from "@/lib/auth-store";
 
 function NotFoundComponent() {
   return (
@@ -138,6 +139,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthProvider>
       <AppStoreProvider>
         <SettingsProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
@@ -145,6 +147,7 @@ function RootComponent() {
           <Toaster position="bottom-right" richColors closeButton />
         </SettingsProvider>
       </AppStoreProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

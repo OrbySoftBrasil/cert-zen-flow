@@ -10,6 +10,8 @@ import {
   SlidersHorizontal,
   Tags,
   Timer,
+  BookOpen,
+  Ticket,
   Users,
   Wallet,
   Workflow,
@@ -31,6 +33,7 @@ import {
   SecaoSeguranca,
   SecaoSla,
 } from "@/components/settings-sections";
+import { SecaoClassificacoes, SecaoConhecimento } from "@/components/settings-chamados";
 import { Chip } from "@/components/ui-kit";
 import { useSettings } from "@/lib/settings-store";
 import { cn } from "@/lib/utils";
@@ -40,6 +43,8 @@ export const secoes = [
   { id: "fluxo", label: "Fluxo & etapas", icon: Workflow, grupo: "Operação" },
   { id: "catalogo", label: "Catálogo", icon: Tags, grupo: "Operação" },
   { id: "sla", label: "SLA & prioridades", icon: Timer, grupo: "Operação" },
+  { id: "classificacoes", label: "Classificações", icon: Ticket, grupo: "Atendimento" },
+  { id: "conhecimento", label: "Base de conhecimento", icon: BookOpen, grupo: "Atendimento" },
   { id: "equipe", label: "Equipe & usuários", icon: Users, grupo: "Acesso" },
   { id: "seguranca", label: "Segurança & acesso", icon: ShieldCheck, grupo: "Acesso" },
   { id: "notificacoes", label: "Notificações", icon: Bell, grupo: "Comunicação" },
@@ -111,6 +116,8 @@ export function SettingsWorkspace({
         {ativa === "fluxo" && <SecaoFluxo />}
         {ativa === "catalogo" && <SecaoCatalogo />}
         {ativa === "sla" && <SecaoSla />}
+        {ativa === "classificacoes" && <SecaoClassificacoes />}
+        {ativa === "conhecimento" && <SecaoConhecimento />}
         {ativa === "equipe" && <SecaoEquipe />}
         {ativa === "seguranca" && <SecaoSeguranca />}
         {ativa === "notificacoes" && <SecaoNotificacoes />}

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { Paginacao, usePaginacao } from "@/components/pagination";
 import { NovaSolicitacaoButton } from "@/components/dialogs";
 import { EmptyState } from "@/components/forms";
 import { ExportMenu } from "@/components/export-menu";
@@ -25,14 +26,12 @@ export const Route = createFileRoute("/solicitacoes/")({
   component: Solicitacoes,
 });
 
-const POR_PAGINA = 12;
 
 function Solicitacoes() {
   const { requests } = useStore();
   const [busca, setBusca] = useState("");
   const [etapa, setEtapa] = useState("todas");
   const [responsavel, setResponsavel] = useState("todos");
-  const [pagina, setPagina] = useState(1);
 
   const lista = useMemo(
     () =>
@@ -50,9 +49,8 @@ function Solicitacoes() {
     [requests, busca, etapa, responsavel],
   );
 
-  const paginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA));
-  const paginaAtual = Math.min(pagina, paginas);
-  const visiveis = lista.slice((paginaAtual - 1) * POR_PAGINA, paginaAtual * POR_PAGINA);
+  const pag = usePaginacao(lista, 25);
+  const visiveis = pag.visiveis;
   const emAtraso = lista.filter((r) => r.slaRestanteHoras < 0).length;
   const valorTotal = lista.reduce((s, r) => s + r.valor, 0);
 
@@ -106,7 +104,7 @@ function Solicitacoes() {
               value={busca}
               onChange={(e) => {
                 setBusca(e.target.value);
-                setPagina(1);
+                pag.setPagina(1);
               }}
               placeholder="Protocolo, cliente ou documento"
               className="w-56 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs outline-none focus:border-primary"
@@ -115,7 +113,7 @@ function Solicitacoes() {
               value={etapa}
               onChange={(e) => {
                 setEtapa(e.target.value);
-                setPagina(1);
+                pag.setPagina(1);
               }}
               className="rounded-md border border-border bg-card px-2 py-1.5 text-xs outline-none focus:border-primary"
             >
@@ -130,7 +128,7 @@ function Solicitacoes() {
               value={responsavel}
               onChange={(e) => {
                 setResponsavel(e.target.value);
-                setPagina(1);
+                pag.setPagina(1);
               }}
               className="rounded-md border border-border bg-card px-2 py-1.5 text-xs outline-none focus:border-primary"
             >
@@ -201,29 +199,7 @@ function Solicitacoes() {
           </div>
         )}
 
-        {paginas > 1 && (
-          <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 text-xs text-muted-foreground">
-            <span className="tabular">
-              Página {paginaAtual} de {paginas}
-            </span>
-            <div className="flex gap-1.5">
-              <button
-                onClick={() => setPagina((p) => Math.max(1, p - 1))}
-                disabled={paginaAtual === 1}
-                className="rounded-md border border-border px-2.5 py-1 transition-colors hover:border-border-strong disabled:opacity-40"
-              >
-                Anterior
-              </button>
-              <button
-                onClick={() => setPagina((p) => Math.min(paginas, p + 1))}
-                disabled={paginaAtual === paginas}
-                className="rounded-md border border-border px-2.5 py-1 transition-colors hover:border-border-strong disabled:opacity-40"
-              >
-                Próxima
-              </button>
-            </div>
-          </div>
-        )}
+        <Paginacao {...pag} rotulo="solicitações" />
       </Panel>
     </AppShell>
   );

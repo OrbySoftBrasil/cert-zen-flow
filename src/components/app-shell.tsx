@@ -19,6 +19,7 @@ import {
   Smartphone,
   Menu,
   Settings,
+  LogOut,
   X,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -34,6 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { clients, requests } from "@/lib/mock-data";
 import { SettingsDialog } from "@/components/settings-workspace";
+import { useAuth } from "@/lib/auth-store";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -67,6 +69,7 @@ export function AppShell({
   const [navMobile, setNavMobile] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
   const navigate = useNavigate();
+  const { sessao, sair } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
@@ -178,12 +181,22 @@ export function AppShell({
             </button>
             <div className="ml-1 flex items-center gap-2 border-l border-border pl-3 max-sm:ml-0 max-sm:border-l-0 max-sm:pl-0">
               <div className="grid size-8 place-items-center rounded-full bg-primary-soft text-xs font-semibold text-primary-deep">
-                MD
+                {sessao?.iniciais ?? "MD"}
               </div>
               <div className="hidden leading-tight lg:block">
-                <p className="text-xs font-medium">Marina Duarte</p>
-                <p className="text-[11px] text-muted-foreground">Agente de Registro</p>
+                <p className="text-xs font-medium">{sessao?.nome ?? "Marina Duarte"}</p>
+                <p className="text-[11px] text-muted-foreground">{sessao?.papel ?? "Agente de Registro"}</p>
               </div>
+              <button
+                onClick={() => {
+                  sair();
+                  navigate({ to: "/login" });
+                }}
+                title="Encerrar sessão"
+                className="grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <LogOut className="size-4" />
+              </button>
             </div>
           </div>
         </header>

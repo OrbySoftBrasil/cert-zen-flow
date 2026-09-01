@@ -10,6 +10,7 @@ import { useStore } from "@/lib/store";
 import { NovoAgendamentoButton } from "@/components/dialogs";
 import { Btn, ConfirmDialog, EmptyState, Field, TextInput } from "@/components/forms";
 import { toast } from "sonner";
+import { Paginacao, usePaginacao } from "@/components/pagination";
 
 export const Route = createFileRoute("/agenda")({
   head: () => ({
@@ -77,6 +78,8 @@ function Agenda() {
   const proximos = dias.filter((d) => d >= hojeISO);
   const [dia, setDia] = useState(proximos[0] ?? dias[0]!);
   const [vista, setVista] = useState<"dia" | "mes">("dia");
+  const [densidadeMes, setDensidadeMes] = useState<"resumo" | "completo">("resumo");
+  const [somenteFuturos, setSomenteFuturos] = useState(true);
   const hoje = new Date();
   const [cursor, setCursor] = useState({ ano: hoje.getFullYear(), mes: hoje.getMonth() });
   const doDia = items.filter((a) => a.dia === dia);
@@ -86,6 +89,11 @@ function Agenda() {
     const [ano, mes] = a.dia.split("-").map(Number);
     return ano === cursor.ano && mes === cursor.mes + 1;
   });
+
+  const listaMes = [...doMes]
+    .filter((a) => (somenteFuturos ? a.dia >= hojeISO : true))
+    .sort((a, b) => (a.dia === b.dia ? a.hora.localeCompare(b.hora) : a.dia.localeCompare(b.dia)));
+  const pagMes = usePaginacao(listaMes, 10);
 
   function atualizar(id: string, status: Appointment["status"]) {
     updateAppointment(id, { status });
@@ -311,10 +319,32 @@ function Agenda() {
 
       {vista === "mes" && (
         <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+          <div className="min-w-0 space-y-4">
           <Panel
             title={`${nomesMes[cursor.mes]} ${cursor.ano}`}
             hint={`${doMes.length} agendamentos no mês`}
             bodyClassName="p-3"
+            actions={
+              <div className="flex rounded-md border border-border p-0.5">
+                {([
+                  ["resumo", "Resumo"],
+                  ["completo", "Mostrar todos"],
+                ] as const).map(([v, label]) => (
+                  <button
+                    key={v}
+                    onClick={() => setDensidadeMes(v)}
+                    className={cn(
+                      "rounded px-2 py-1 text-[11px] transition-colors",
+                      densidadeMes === v
+                        ? "bg-primary-soft font-medium text-primary-deep"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            }
           >
             <div className="grid grid-cols-7 gap-1.5">
               {nomesDiaSemana.map((d) => (
@@ -336,7 +366,8 @@ function Agenda() {
                       setVista("dia");
                     }}
                     className={cn(
-                      "flex min-h-24 flex-col rounded-md border p-1.5 text-left transition-colors hover:border-primary",
+                      "flex flex-col rounded-md border p-1.5 text-left transition-colors hover:border-primary",
+                      densidadeMes === "completo" ? "min-h-28" : "min-h-24",
                       foraDoMes ? "border-border/60 bg-muted/30 opacity-60" : "border-border bg-card",
                       chave === dia && "border-primary",
                     )}
@@ -350,7 +381,7 @@ function Agenda() {
                       {d.getDate()}
                     </span>
                     <span className="flex-1 space-y-0.5">
-                      {doDiaCel.slice(0, 2).map((a) => (
+                      {(densidadeMes === "completo" ? doDiaCel : doDiaCel.slice(0, 2)).map((a) => (
                         <span
                           key={a.id}
                           className={cn(
@@ -365,7 +396,7 @@ function Agenda() {
                           {a.hora} {a.cliente}
                         </span>
                       ))}
-                      {doDiaCel.length > 2 && (
+                      {densidadeMes === "resumo" && doDiaCel.length > 2 && (
                         <span className="block px-1 text-[10px] text-muted-foreground">
                           +{doDiaCel.length - 2} agendamentos
                         </span>
@@ -377,6 +408,53 @@ function Agenda() {
               })}
             </div>
           </Panel>
+
+          <Panel
+            title="Agendamentos do mês"
+            hint="Lista completa, ordenada por data e hora — clique para abrir o dia."
+            bodyClassName="p-0"
+            actions={
+              <button
+                onClick={() => setSomenteFuturos((v) => !v)}
+                className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+              >
+                {somenteFuturos ? "Somente futuros" : "Mês inteiro"}
+              </button>
+            }
+          >
+            <ul className="divide-y divide-border">
+              {pagMes.visiveis.map((a) => (
+                <li key={a.id}>
+                  <button
+                    onClick={() => {
+                      setDia(a.dia);
+                      setVista("dia");
+                    }}
+                    className="flex w-full flex-wrap items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
+                  >
+                    <span className="tabular w-14 shrink-0 text-xs text-muted-foreground">
+                      {a.dia.slice(8, 10)}/{a.dia.slice(5, 7)}
+                    </span>
+                    <span className="tabular w-12 shrink-0 text-sm font-medium">{a.hora}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm">{a.cliente}</span>
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {a.tipo} · {a.sala} · {a.duracaoMin} min
+                      </span>
+                    </span>
+                    <Chip tone={statusTone[a.status]}>{a.status}</Chip>
+                  </button>
+                </li>
+              ))}
+              {listaMes.length === 0 && (
+                <li className="px-3 py-8 text-center text-sm text-muted-foreground">
+                  Nenhum agendamento neste período.
+                </li>
+              )}
+            </ul>
+            <Paginacao {...pagMes} rotulo="agendamentos" />
+          </Panel>
+          </div>
 
           <div className="space-y-4">
             <Panel title="Resumo do mês">

@@ -144,6 +144,36 @@ export type NotifEvento = {
   push: boolean;
 };
 
+export type PrioridadeChamado = "baixa" | "normal" | "alta" | "critica";
+
+/** Classificação (categoria) de chamado — configurável por AC. */
+export interface ClassificacaoChamado {
+  id: string;
+  nome: string;
+  descricao: string;
+  subcategorias: string[];
+  prioridadePadrao: PrioridadeChamado;
+  slaRespostaHoras: number;
+  slaResolucaoHoras: number;
+  papelResponsavel: string;
+  visivelPortal: boolean;
+  ativo: boolean;
+}
+
+/** Documento da base de conhecimento (upload simples de arquivo pronto). */
+export interface DocumentoConhecimento {
+  id: string;
+  titulo: string;
+  classificacao: string;
+  arquivo: string;
+  formato: string;
+  tamanhoKb: number;
+  atualizadoEm: string;
+  autor: string;
+  publicadoNoPortal: boolean;
+  downloads: number;
+}
+
 export interface Settings {
   org: {
     nome: string;
@@ -227,6 +257,8 @@ export interface Settings {
     mensagemPortal: string;
     formatoData: string;
   };
+  classificacoes: ClassificacaoChamado[];
+  conhecimento: DocumentoConhecimento[];
   dados: {
     retencaoDocumentosMeses: number;
     anonimizarAposEncerrar: boolean;
@@ -306,6 +338,30 @@ function seedEtapas(): StageRule[] {
     papeisNotificados: s.id === "bloqueado" ? ["r4"] : s.id === "emissao" ? ["r1"] : [],
     canaisNotificacao: ["email", "push"],
   }));
+}
+
+function seedClassificacoes(): ClassificacaoChamado[] {
+  const base: Omit<ClassificacaoChamado, "id">[] = [
+    { nome: "Instalação e uso", descricao: "Dúvidas de instalação de driver, uso do token e assinatura de documentos.", subcategorias: ["Driver do token", "Assinatura em PDF", "Navegador / Java", "Acesso na nuvem"], prioridadePadrao: "normal", slaRespostaHoras: 4, slaResolucaoHoras: 24, papelResponsavel: "Atendimento", visivelPortal: true, ativo: true },
+    { nome: "Documentação", descricao: "Reenvio, reprovação e conferência de documentos do titular.", subcategorias: ["Documento reprovado", "Reenvio de arquivo", "Procuração"], prioridadePadrao: "normal", slaRespostaHoras: 4, slaResolucaoHoras: 24, papelResponsavel: "Validação Documental", visivelPortal: true, ativo: true },
+    { nome: "Agendamento", descricao: "Remarcações e problemas na videoconferência de validação.", subcategorias: ["Remarcar videoconferência", "Não consegui entrar na sala", "Confirmar horário"], prioridadePadrao: "alta", slaRespostaHoras: 2, slaResolucaoHoras: 8, papelResponsavel: "Atendimento", visivelPortal: true, ativo: true },
+    { nome: "Financeiro", descricao: "Boletos, notas fiscais, reembolsos e cobranças.", subcategorias: ["2ª via de boleto", "Nota fiscal", "Reembolso", "Cobrança indevida"], prioridadePadrao: "normal", slaRespostaHoras: 8, slaResolucaoHoras: 48, papelResponsavel: "Financeiro", visivelPortal: true, ativo: true },
+    { nome: "Revogação", descricao: "Perda, comprometimento ou desligamento do titular.", subcategorias: ["Perda do token", "Suspeita de comprometimento", "Desligamento do titular"], prioridadePadrao: "critica", slaRespostaHoras: 1, slaResolucaoHoras: 4, papelResponsavel: "Compliance", visivelPortal: true, ativo: true },
+    { nome: "Erro no certificado", descricao: "Certificado com dados incorretos ou não reconhecido pelos sistemas.", subcategorias: ["Dados incorretos", "Certificado não reconhecido", "Expirado antes do prazo"], prioridadePadrao: "alta", slaRespostaHoras: 2, slaResolucaoHoras: 12, papelResponsavel: "Agente de Registro", visivelPortal: true, ativo: true },
+    { nome: "Outros", descricao: "Assuntos gerais, sugestões e reclamações.", subcategorias: ["Dúvida geral", "Sugestão", "Reclamação"], prioridadePadrao: "baixa", slaRespostaHoras: 8, slaResolucaoHoras: 72, papelResponsavel: "Atendimento", visivelPortal: true, ativo: true },
+  ];
+  return base.map((c) => ({ ...c, id: id("cl") }));
+}
+
+function seedConhecimento(): DocumentoConhecimento[] {
+  const base: Omit<DocumentoConhecimento, "id">[] = [
+    { titulo: "Como instalar o driver do token A3", classificacao: "Instalação e uso", arquivo: "guia-driver-token-a3.pdf", formato: "PDF", tamanhoKb: 842, atualizadoEm: "2026-06-18", autor: "Marina Duarte", publicadoNoPortal: true, downloads: 3120 },
+    { titulo: "Certificado não aparece no e-CAC — checklist", classificacao: "Erro no certificado", arquivo: "checklist-ecac.pdf", formato: "PDF", tamanhoKb: 512, atualizadoEm: "2026-05-02", autor: "Diego Nunes", publicadoNoPortal: true, downloads: 2410 },
+    { titulo: "Documentos aceitos para e-CNPJ", classificacao: "Documentação", arquivo: "documentos-ecnpj.pdf", formato: "PDF", tamanhoKb: 388, atualizadoEm: "2026-07-09", autor: "Compliance", publicadoNoPortal: true, downloads: 1980 },
+    { titulo: "Roteiro de atendimento — revogação emergencial", classificacao: "Revogação", arquivo: "roteiro-revogacao.docx", formato: "DOCX", tamanhoKb: 96, atualizadoEm: "2026-07-22", autor: "Helena Prado", publicadoNoPortal: false, downloads: 74 },
+    { titulo: "Emitir 2ª via de boleto e nota fiscal", classificacao: "Financeiro", arquivo: "segunda-via-boleto.pdf", formato: "PDF", tamanhoKb: 265, atualizadoEm: "2026-04-11", autor: "Financeiro", publicadoNoPortal: true, downloads: 1201 },
+  ];
+  return base.map((d) => ({ ...d, id: id("kb") }));
 }
 
 export function seedSettings(): Settings {
@@ -631,6 +687,8 @@ export function seedSettings(): Settings {
       mensagemPortal: "Precisa de ajuda com seu certificado? Abra um chamado — respondemos em até 4 horas úteis.",
       formatoData: "dd/MM/yyyy",
     },
+    classificacoes: seedClassificacoes(),
+    conhecimento: seedConhecimento(),
     dados: {
       retencaoDocumentosMeses: 72,
       anonimizarAposEncerrar: false,
