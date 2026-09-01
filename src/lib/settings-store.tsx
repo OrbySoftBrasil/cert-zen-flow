@@ -23,11 +23,14 @@ export interface StageGates {
   gravacaoArquivada: boolean;
 }
 
+export type CanalNotificacao = "email" | "push" | "whatsapp";
+
 export interface StageRule {
-  id: StageId;
+  id: string;
   nome: string;
   descricao: string;
   ativo: boolean;
+  removivel?: boolean;
   slaHoras: number;
   papelResponsavel: string;
   checklist: ChecklistRule[];
@@ -37,7 +40,12 @@ export interface StageRule {
     notificarCliente: boolean;
     atribuirAutomatico: boolean;
     escalarSlaEstourado: boolean;
+    /** Notifica as pessoas do papel responsável quando a solicitação entra nesta etapa. */
+    notificarPapelResponsavel: boolean;
   };
+  /** Papéis adicionais avisados na chegada da solicitação (ids de PapelRule). */
+  papeisNotificados: string[];
+  canaisNotificacao: CanalNotificacao[];
 }
 
 export interface ProdutoRule {
