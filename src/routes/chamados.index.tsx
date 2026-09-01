@@ -10,9 +10,11 @@ import {
   baseConhecimento,
   ticketCategorias,
   ticketStatuses,
-  tickets,
   type TicketStatus,
 } from "@/lib/mock-data";
+import { useStore } from "@/lib/store";
+import { NovoChamadoButton } from "@/components/dialogs";
+import { EmptyState } from "@/components/forms";
 
 export const Route = createFileRoute("/chamados/")({
   head: () => ({
@@ -45,6 +47,7 @@ export function prioridadeTone(p: string) {
 }
 
 function Chamados() {
+  const { tickets } = useStore();
   const [busca, setBusca] = useState("");
   const [status, setStatus] = useState<TicketStatus | "todos">("todos");
   const [categoria, setCategoria] = useState<string>("todas");
@@ -64,7 +67,7 @@ function Chamados() {
           (categoria === "todas" || t.categoria === categoria)
         );
       }),
-    [busca, status, categoria],
+    [tickets, busca, status, categoria],
   );
 
   const abertos = tickets.filter((t) => t.status !== "resolvido" && t.status !== "fechado");
@@ -86,12 +89,15 @@ function Chamados() {
       title="Chamados"
       subtitle="Helpdesk de clientes — categorização, SLA e responsáveis"
       actions={
+        <>
+        <NovoChamadoButton />
         <Link
           to="/portal"
           className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:border-primary"
         >
           <ExternalLink className="size-3.5" /> Abrir portal do cliente
         </Link>
+        </>
       }
     >
       <div className="mb-4 flex flex-wrap divide-border rounded-lg border border-border bg-card">
