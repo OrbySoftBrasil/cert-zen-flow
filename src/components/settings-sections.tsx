@@ -1179,6 +1179,12 @@ export function SecaoEquipe() {
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <Chip tone="outline">{nomePapel(u.papelId)}</Chip>
+                  <Chip tone="neutral">
+                    Fila:{" "}
+                    {escoposVisibilidade.find(
+                      (x) => x.id === escopoEfetivo(u, papeis.find((p) => p.id === u.papelId)),
+                    )?.label ?? "Todas"}
+                  </Chip>
                   <Chip tone={statusTone[u.status]}>{statusLabel[u.status]}</Chip>
                   {u.mfa ? (
                     <Chip tone="blue">MFA</Chip>
