@@ -205,9 +205,9 @@ export function NovoClienteDialog({ open, onClose }: { open: boolean; onClose: (
 
   function salvar() {
     const e: Record<string, string> = {};
-    if (form.nome.trim().length < 3) e.nome = "Informe o nome ou razão social.";
-    if (form.documento.trim().length < 11) e.documento = "Informe um CPF ou CNPJ válido.";
-    if (!/.+@.+\..+/.test(form.email)) e.email = "E-mail inválido.";
+    if (form.nome.trim().length < 3) e["nome"] = "Informe o nome ou razão social.";
+    if (form.documento.trim().length < 11) e["documento"] = "Informe um CPF ou CNPJ válido.";
+    if (!/.+@.+\..+/.test(form.email)) e["email"] = "E-mail inválido.";
     setErros(e);
     if (Object.keys(e).length) return;
     const c = addClient(form);
@@ -232,7 +232,7 @@ export function NovoClienteDialog({ open, onClose }: { open: boolean; onClose: (
       }
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Nome / razão social" className="sm:col-span-2" {...(erros.nome ? { error: erros.nome } : {})}>
+        <Field label="Nome / razão social" className="sm:col-span-2" {...(erros["nome"] ? { error: erros["nome"] } : {})}>
           <TextInput value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
         </Field>
         <Field label="Tipo de pessoa">
@@ -244,10 +244,10 @@ export function NovoClienteDialog({ open, onClose }: { open: boolean; onClose: (
             <option value="PF">Pessoa física</option>
           </SelectInput>
         </Field>
-        <Field label="CPF / CNPJ" {...(erros.documento ? { error: erros.documento } : {})}>
+        <Field label="CPF / CNPJ" {...(erros["documento"] ? { error: erros["documento"] } : {})}>
           <TextInput value={form.documento} onChange={(e) => setForm({ ...form, documento: e.target.value })} />
         </Field>
-        <Field label="E-mail" {...(erros.email ? { error: erros.email } : {})}>
+        <Field label="E-mail" {...(erros["email"] ? { error: erros["email"] } : {})}>
           <TextInput type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         </Field>
         <Field label="Telefone">
@@ -568,9 +568,9 @@ export function NovoContadorDialog({ open, onClose }: { open: boolean; onClose: 
 
   function salvar() {
     const e: Record<string, string> = {};
-    if (form.nome.trim().length < 3) e.nome = "Informe o nome do escritório.";
-    if (form.cnpj.trim().length < 11) e.cnpj = "Informe o CNPJ.";
-    if (!/.+@.+\..+/.test(form.email)) e.email = "E-mail inválido.";
+    if (form.nome.trim().length < 3) e["nome"] = "Informe o nome do escritório.";
+    if (form.cnpj.trim().length < 11) e["cnpj"] = "Informe o CNPJ.";
+    if (!/.+@.+\..+/.test(form.email)) e["email"] = "E-mail inválido.";
     setErros(e);
     if (Object.keys(e).length) return;
     const c = addContador({ ...form, razaoSocial: form.razaoSocial || form.nome });
@@ -595,13 +595,13 @@ export function NovoContadorDialog({ open, onClose }: { open: boolean; onClose: 
       }
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Nome do escritório" {...(erros.nome ? { error: erros.nome } : {})}>
+        <Field label="Nome do escritório" {...(erros["nome"] ? { error: erros["nome"] } : {})}>
           <TextInput value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
         </Field>
         <Field label="Razão social">
           <TextInput value={form.razaoSocial} onChange={(e) => setForm({ ...form, razaoSocial: e.target.value })} />
         </Field>
-        <Field label="CNPJ" {...(erros.cnpj ? { error: erros.cnpj } : {})}>
+        <Field label="CNPJ" {...(erros["cnpj"] ? { error: erros["cnpj"] } : {})}>
           <TextInput value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} />
         </Field>
         <Field label="Registro CRC">
@@ -610,7 +610,7 @@ export function NovoContadorDialog({ open, onClose }: { open: boolean; onClose: 
         <Field label="Responsável">
           <TextInput value={form.responsavel} onChange={(e) => setForm({ ...form, responsavel: e.target.value })} />
         </Field>
-        <Field label="E-mail" {...(erros.email ? { error: erros.email } : {})}>
+        <Field label="E-mail" {...(erros["email"] ? { error: erros["email"] } : {})}>
           <TextInput type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         </Field>
         <Field label="Telefone">
