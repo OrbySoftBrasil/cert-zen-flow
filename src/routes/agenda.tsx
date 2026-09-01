@@ -439,7 +439,7 @@ function Agenda() {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm">{a.cliente}</span>
                       <span className="block truncate text-[11px] text-muted-foreground">
-                        {a.tipo} · {a.canal}
+                        {a.tipo} · {a.sala} · {a.duracaoMin} min
                       </span>
                     </span>
                     <Chip tone={statusTone[a.status]}>{a.status}</Chip>
