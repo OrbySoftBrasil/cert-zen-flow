@@ -4,7 +4,10 @@ import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Bar, Chip, Panel } from "@/components/ui-kit";
 import { contadorDoCliente } from "@/lib/contadores-data";
-import { brl, clients } from "@/lib/mock-data";
+import { brl } from "@/lib/mock-data";
+import { useStore } from "@/lib/store";
+import { NovaSolicitacaoButton, NovoClienteButton } from "@/components/dialogs";
+import { EmptyState } from "@/components/forms";
 
 export const Route = createFileRoute("/clientes/")({
   head: () => ({
@@ -23,6 +26,7 @@ export const Route = createFileRoute("/clientes/")({
 });
 
 function Clientes() {
+  const { clients } = useStore();
   const [busca, setBusca] = useState("");
   const lista = clients.filter(
     (c) =>
@@ -30,7 +34,16 @@ function Clientes() {
   );
 
   return (
-    <AppShell title="Clientes" subtitle={`${lista.length} contas na carteira`}>
+    <AppShell
+      title="Clientes"
+      subtitle={`${lista.length} contas na carteira`}
+      actions={
+        <>
+          <NovaSolicitacaoButton variant="ghost" />
+          <NovoClienteButton />
+        </>
+      }
+    >
       <Panel
         bodyClassName="p-0"
         title="Carteira"
@@ -43,6 +56,13 @@ function Clientes() {
           />
         }
       >
+        {lista.length === 0 ? (
+          <EmptyState
+            titulo="Nenhum cliente encontrado"
+            descricao="Nenhum registro corresponde à busca. Ajuste o filtro ou cadastre um novo cliente."
+            acao={<div className="mt-2"><NovoClienteButton /></div>}
+          />
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -99,6 +119,7 @@ function Clientes() {
             </tbody>
           </table>
         </div>
+        )}
       </Panel>
     </AppShell>
   );
