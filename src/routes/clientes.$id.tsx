@@ -15,11 +15,15 @@ import { AppShell } from "@/components/app-shell";
 import { Bar, Chip, Panel } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
 import { contadorDoCliente } from "@/lib/contadores-data";
-import { brl, clientById, conversations, requests } from "@/lib/mock-data";
+import { brl, clientById as seedClientById, conversations } from "@/lib/mock-data";
+import { useStore } from "@/lib/store";
+import { NovaSolicitacaoButton, NovoAgendamentoButton, NovoChamadoButton } from "@/components/dialogs";
+import { Btn, ConfirmDialog, EmptyState, Field, TextArea } from "@/components/forms";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/clientes/$id")({
   loader: ({ params }) => {
-    const cliente = clientById(params.id);
+    const cliente = seedClientById(params.id);
     if (!cliente) throw notFound();
     return { nome: cliente.nome };
   },
@@ -61,14 +65,30 @@ const statusTone = {
 
 function Dossie() {
   const { id } = Route.useParams();
-  const cliente = clientById(id)!;
+  const { clients, requests, setDocumentStatus, revokeCertificate, addClientNote } = useStore();
+  const cliente = clients.find((c) => c.id === id) ?? seedClientById(id)!;
   const [aba, setAba] = useState<(typeof abas)[number]["id"]>("certificados");
+  const [nota, setNota] = useState("");
+  const [reprovando, setReprovando] = useState<{ docId: string; nome: string } | null>(null);
+  const [motivo, setMotivo] = useState("");
+  const [revogando, setRevogando] = useState<{ certId: string; serie: string } | null>(null);
+  const [motivoRevog, setMotivoRevog] = useState("");
   const solicitacoes = requests.filter((r) => r.clienteId === id);
   const conversas = conversations.filter((c) => c.clienteId === id);
   const contador = contadorDoCliente(id);
 
   return (
-    <AppShell title={cliente.nome} subtitle={`${cliente.documento} · cliente desde ${cliente.desde}`}>
+    <AppShell
+      title={cliente.nome}
+      subtitle={`${cliente.documento} · cliente desde ${cliente.desde}`}
+      actions={
+        <div className="flex flex-wrap items-center gap-2">
+          <NovaSolicitacaoButton clienteId={cliente.id} />
+          <NovoAgendamentoButton />
+          <NovoChamadoButton clienteId={cliente.id} />
+        </div>
+      }
+    >
       <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4">
@@ -136,6 +156,7 @@ function Dossie() {
                       <th className="px-4 py-2 font-medium">Emissão</th>
                       <th className="px-4 py-2 font-medium">Validade</th>
                       <th className="px-4 py-2 font-medium">Status</th>
+                      <th className="px-4 py-2 font-medium">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -148,8 +169,30 @@ function Dossie() {
                         <td className="px-4 py-2.5">
                           <Chip tone={statusTone[c.status]}>{c.status}</Chip>
                         </td>
+                        <td className="px-4 py-2.5">
+                          {c.status === "revogado" ? (
+                            <span className="text-xs text-muted-foreground">revogado</span>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setRevogando({ certId: c.id, serie: c.serie });
+                                setMotivoRevog("");
+                              }}
+                              className="rounded-md border border-border px-2.5 py-1 text-xs text-alert transition-colors hover:border-alert"
+                            >
+                              Revogar
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))}
+                    {cliente.certificados.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                          Nenhum certificado emitido para este titular.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -173,10 +216,40 @@ function Dossie() {
                         <Chip tone={statusTone[d.status]}>{d.status}</Chip>
                       </div>
                       {d.motivo && <p className="mt-1 text-xs text-alert">{d.motivo}</p>}
+                      {d.status !== "aprovado" && (
+                        <div className="mt-2 flex gap-1.5">
+                          <button
+                            onClick={() => {
+                              setDocumentStatus(cliente.id, d.id, "aprovado");
+                              toast.success("Documento aprovado", { description: d.nome });
+                            }}
+                            className="rounded border border-border px-2 py-1 text-[11px] transition-colors hover:border-primary"
+                          >
+                            Aprovar
+                          </button>
+                          <button
+                            onClick={() => {
+                              setReprovando({ docId: d.id, nome: d.nome });
+                              setMotivo("");
+                            }}
+                            className="rounded border border-border px-2 py-1 text-[11px] text-alert transition-colors hover:border-alert"
+                          >
+                            Reprovar
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Panel>
               ))}
+              {cliente.documentos.length === 0 && (
+                <div className="sm:col-span-2">
+                  <EmptyState
+                    titulo="Nenhum documento enviado"
+                    descricao="Os documentos aparecem aqui quando o titular envia pelo portal ou pelo parceiro contábil."
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -296,9 +369,76 @@ function Dossie() {
               ))}
               {cliente.notas.length === 0 && <li className="text-sm text-muted-foreground">Sem notas.</li>}
             </ul>
+            <div className="mt-3 space-y-2 border-t border-border pt-3">
+              <Field label="Nova nota interna">
+                <TextArea
+                  value={nota}
+                  onChange={(e) => setNota(e.target.value)}
+                  placeholder="Registre um contexto relevante para a equipe"
+                />
+              </Field>
+              <Btn
+                className="w-full"
+                disabled={!nota.trim()}
+                onClick={() => {
+                  addClientNote(cliente.id, nota.trim());
+                  setNota("");
+                  toast.success("Nota registrada no dossiê");
+                }}
+              >
+                Adicionar nota
+              </Btn>
+            </div>
           </Panel>
         </aside>
       </div>
+      <ConfirmDialog
+        open={!!reprovando}
+        title="Reprovar documento"
+        {...(reprovando ? { descricao: reprovando.nome } : {})}
+        confirmLabel="Reprovar"
+        destructive
+        onCancel={() => setReprovando(null)}
+        onConfirm={() => {
+          if (!reprovando || !motivo.trim()) {
+            toast.error("Informe o motivo da reprovação.");
+            return;
+          }
+          setDocumentStatus(cliente.id, reprovando.docId, "reprovado", motivo.trim());
+          toast.success("Documento reprovado", { description: "O titular será notificado para reenvio." });
+          setReprovando(null);
+        }}
+      >
+        <Field label="Motivo da reprovação">
+          <TextArea value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ex.: imagem ilegível" />
+        </Field>
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={!!revogando}
+        title="Revogar certificado"
+        {...(revogando ? { descricao: `Série ${revogando.serie} — ação irreversível` } : {})}
+        confirmLabel="Revogar certificado"
+        destructive
+        onCancel={() => setRevogando(null)}
+        onConfirm={() => {
+          if (!revogando || !motivoRevog.trim()) {
+            toast.error("Informe o motivo da revogação.");
+            return;
+          }
+          revokeCertificate(cliente.id, revogando.certId, motivoRevog.trim());
+          toast.success("Certificado revogado", { description: "Publicado na LCR e registrado na auditoria." });
+          setRevogando(null);
+        }}
+      >
+        <Field label="Motivo da revogação">
+          <TextArea
+            value={motivoRevog}
+            onChange={(e) => setMotivoRevog(e.target.value)}
+            placeholder="Ex.: comprometimento de chave privada"
+          />
+        </Field>
+      </ConfirmDialog>
     </AppShell>
   );
 }
