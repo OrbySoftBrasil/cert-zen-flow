@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { Paginacao, usePaginacao } from "@/components/pagination";
 import { NovaSolicitacaoButton } from "@/components/dialogs";
 import { EmptyState } from "@/components/forms";
 import { ExportMenu } from "@/components/export-menu";
@@ -50,9 +51,8 @@ function Solicitacoes() {
     [requests, busca, etapa, responsavel],
   );
 
-  const paginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA));
-  const paginaAtual = Math.min(pagina, paginas);
-  const visiveis = lista.slice((paginaAtual - 1) * POR_PAGINA, paginaAtual * POR_PAGINA);
+  const pag = usePaginacao(lista, 25);
+  const visiveis = pag.visiveis;
   const emAtraso = lista.filter((r) => r.slaRestanteHoras < 0).length;
   const valorTotal = lista.reduce((s, r) => s + r.valor, 0);
 
@@ -201,29 +201,7 @@ function Solicitacoes() {
           </div>
         )}
 
-        {paginas > 1 && (
-          <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 text-xs text-muted-foreground">
-            <span className="tabular">
-              Página {paginaAtual} de {paginas}
-            </span>
-            <div className="flex gap-1.5">
-              <button
-                onClick={() => setPagina((p) => Math.max(1, p - 1))}
-                disabled={paginaAtual === 1}
-                className="rounded-md border border-border px-2.5 py-1 transition-colors hover:border-border-strong disabled:opacity-40"
-              >
-                Anterior
-              </button>
-              <button
-                onClick={() => setPagina((p) => Math.min(paginas, p + 1))}
-                disabled={paginaAtual === paginas}
-                className="rounded-md border border-border px-2.5 py-1 transition-colors hover:border-border-strong disabled:opacity-40"
-              >
-                Próxima
-              </button>
-            </div>
-          </div>
-        )}
+        <Paginacao {...pag} rotulo="solicitações" />
       </Panel>
     </AppShell>
   );
