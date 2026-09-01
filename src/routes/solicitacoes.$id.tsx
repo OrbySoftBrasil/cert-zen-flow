@@ -407,7 +407,7 @@ function Solicitacao() {
       <ConfirmDialog
         open={confirmar === "revogar"}
         title="Revogar certificado"
-        descricao={certificadoAtivo ? `Série ${certificadoAtivo.serie} · ${certificadoAtivo.tipo}` : undefined}
+        {...(certificadoAtivo ? { descricao: `Série ${certificadoAtivo.serie} · ${certificadoAtivo.tipo}` } : {})}
         confirmLabel="Revogar"
         destructive
         onCancel={() => setConfirmar(null)}

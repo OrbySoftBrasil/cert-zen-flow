@@ -64,7 +64,7 @@ function Solicitacoes() {
         <>
           <ExportMenu
             base="solicitacoes"
-            datasets={[
+            datasets={() => [
               {
                 nome: "Solicitacoes",
                 linhas: lista.map((r) => ({
