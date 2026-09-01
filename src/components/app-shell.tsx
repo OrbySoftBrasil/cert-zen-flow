@@ -19,6 +19,7 @@ import {
   Smartphone,
   Menu,
   Settings,
+  LogOut,
   X,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -34,6 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { clients, requests } from "@/lib/mock-data";
 import { SettingsDialog } from "@/components/settings-workspace";
+import { useAuth } from "@/lib/auth-store";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -67,6 +69,7 @@ export function AppShell({
   const [navMobile, setNavMobile] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
   const navigate = useNavigate();
+  const { sessao, sair } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
