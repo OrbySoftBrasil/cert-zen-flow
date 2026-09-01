@@ -40,6 +40,7 @@ import { Route as FinanceiroReceberRouteImport } from './routes/financeiro.receb
 import { Route as SolicitacoesIndexRouteImport } from './routes/solicitacoes.index'
 import { Route as SolicitacoesIdRouteImport } from './routes/solicitacoes.$id'
 import { Route as AdminTenantsIndexRouteImport } from './routes/admin.tenants.index'
+import { Route as AdminTenantsIdRouteImport } from './routes/admin.tenants.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -196,6 +197,11 @@ const AdminTenantsIndexRoute = AdminTenantsIndexRouteImport.update({
   path: '/tenants/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTenantsIdRoute = AdminTenantsIdRouteImport.update({
+  id: '/tenants/$id',
+  path: '/tenants/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/contadores/': typeof ContadoresIndexRoute
   '/financeiro/': typeof FinanceiroIndexRoute
   '/solicitacoes/': typeof SolicitacoesIndexRoute
+  '/admin/tenants/$id': typeof AdminTenantsIdRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/contadores': typeof ContadoresIndexRoute
   '/financeiro': typeof FinanceiroIndexRoute
   '/solicitacoes': typeof SolicitacoesIndexRoute
+  '/admin/tenants/$id': typeof AdminTenantsIdRoute
   '/admin/tenants': typeof AdminTenantsIndexRoute
 }
 export interface FileRoutesById {
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/contadores/': typeof ContadoresIndexRoute
   '/financeiro/': typeof FinanceiroIndexRoute
   '/solicitacoes/': typeof SolicitacoesIndexRoute
+  '/admin/tenants/$id': typeof AdminTenantsIdRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
 }
 export interface FileRouteTypes {
@@ -329,6 +338,7 @@ export interface FileRouteTypes {
     | '/contadores/'
     | '/financeiro/'
     | '/solicitacoes/'
+    | '/admin/tenants/$id'
     | '/admin/tenants/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -361,6 +371,7 @@ export interface FileRouteTypes {
     | '/contadores'
     | '/financeiro'
     | '/solicitacoes'
+    | '/admin/tenants/$id'
     | '/admin/tenants'
   id:
     | '__root__'
@@ -394,6 +405,7 @@ export interface FileRouteTypes {
     | '/contadores/'
     | '/financeiro/'
     | '/solicitacoes/'
+    | '/admin/tenants/$id'
     | '/admin/tenants/'
   fileRoutesById: FileRoutesById
 }
@@ -648,16 +660,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTenantsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/tenants/$id': {
+      id: '/admin/tenants/$id'
+      path: '/tenants/$id'
+      fullPath: '/admin/tenants/$id'
+      preLoaderRoute: typeof AdminTenantsIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminTenantsIdRoute: typeof AdminTenantsIdRoute
   AdminTenantsIndexRoute: typeof AdminTenantsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminTenantsIdRoute: AdminTenantsIdRoute,
   AdminTenantsIndexRoute: AdminTenantsIndexRoute,
 }
 
