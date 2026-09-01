@@ -686,6 +686,44 @@ export function novoChecklistItem(label: string): ChecklistRule {
   return { id: id("ck"), label, obrigatorio: false, evidencia: "nenhuma" };
 }
 
+export function iniciaisDe(nome: string) {
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return "??";
+  const primeira = partes[0]![0] ?? "";
+  const ultima = partes.length > 1 ? (partes[partes.length - 1]![0] ?? "") : (partes[0]![1] ?? "");
+  return (primeira + ultima).toUpperCase();
+}
+
+export function novoUsuario(dados: {
+  nome: string;
+  email: string;
+  papelId: string;
+  unidade: string;
+  telefone: string;
+  status: StatusUsuario;
+  mfa: boolean;
+  limiteWip: number;
+  observacao: string;
+}): UsuarioRule {
+  const agora = new Date().toLocaleDateString("pt-BR");
+  return {
+    id: id("u"),
+    iniciais: iniciaisDe(dados.nome),
+    criadoEm: agora,
+    ultimoAcesso: dados.status === "convidado" ? "convite pendente" : "—",
+    ...dados,
+  };
+}
+
+export const unidadesDisponiveis = [
+  "Matriz — São Paulo",
+  "Filial — Campinas",
+  "Filial — Recife",
+  "Remoto",
+];
+
+
+
 export const permissoesDisponiveis = [
   { id: "config", label: "Configurações" },
   { id: "financeiro", label: "Financeiro" },
