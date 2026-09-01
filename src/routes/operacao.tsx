@@ -9,11 +9,13 @@ import {
   agentById,
   agents,
   brl,
-  requests as seedRequests,
   stages,
   type Request,
   type StageId,
 } from "@/lib/mock-data";
+import { useStore } from "@/lib/store";
+import { NovaSolicitacaoButton } from "@/components/dialogs";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/operacao")({
   head: () => ({
@@ -39,7 +41,7 @@ const prioridadeTone = {
 } as const;
 
 function Operacao() {
-  const [items, setItems] = useState<Request[]>(seedRequests);
+  const { requests: items, moveRequest } = useStore();
   const [view, setView] = useState<"kanban" | "tabela">("kanban");
   const [responsavel, setResponsavel] = useState("todos");
   const [prioridade, setPrioridade] = useState("todas");
@@ -68,7 +70,8 @@ function Operacao() {
       return;
     }
     setAviso(null);
-    setItems((prev) => prev.map((r) => (r.id === id ? { ...r, stage } : r)));
+    moveRequest(id, stage, "Movido no Kanban");
+    toast.success(`${item.protocolo} → ${stages.find((s) => s.id === stage)?.nome}`);
   }
 
   return (
@@ -76,6 +79,7 @@ function Operacao() {
       title="Central operacional"
       subtitle={`${filtrados.length} solicitações em fluxo · regra de checklist ativa`}
       actions={
+        <>
         <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
           {(
             [
@@ -95,6 +99,8 @@ function Operacao() {
             </button>
           ))}
         </div>
+        <NovaSolicitacaoButton />
+        </>
       }
     >
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">

@@ -31,6 +31,7 @@ import { Route as FinanceiroComissoesRouteImport } from './routes/financeiro.com
 import { Route as FinanceiroPagarRouteImport } from './routes/financeiro.pagar'
 import { Route as FinanceiroPlanosRouteImport } from './routes/financeiro.planos'
 import { Route as FinanceiroReceberRouteImport } from './routes/financeiro.receber'
+import { Route as SolicitacoesIndexRouteImport } from './routes/solicitacoes.index'
 import { Route as SolicitacoesIdRouteImport } from './routes/solicitacoes.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -143,6 +144,11 @@ const FinanceiroReceberRoute = FinanceiroReceberRouteImport.update({
   path: '/financeiro/receber',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SolicitacoesIndexRoute = SolicitacoesIndexRouteImport.update({
+  id: '/solicitacoes/',
+  path: '/solicitacoes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SolicitacoesIdRoute = SolicitacoesIdRouteImport.update({
   id: '/solicitacoes/$id',
   path: '/solicitacoes/$id',
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/clientes/': typeof ClientesIndexRoute
   '/contadores/': typeof ContadoresIndexRoute
   '/financeiro/': typeof FinanceiroIndexRoute
+  '/solicitacoes/': typeof SolicitacoesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/clientes': typeof ClientesIndexRoute
   '/contadores': typeof ContadoresIndexRoute
   '/financeiro': typeof FinanceiroIndexRoute
+  '/solicitacoes': typeof SolicitacoesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/clientes/': typeof ClientesIndexRoute
   '/contadores/': typeof ContadoresIndexRoute
   '/financeiro/': typeof FinanceiroIndexRoute
+  '/solicitacoes/': typeof SolicitacoesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/clientes/'
     | '/contadores/'
     | '/financeiro/'
+    | '/solicitacoes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -276,6 +286,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/contadores'
     | '/financeiro'
+    | '/solicitacoes'
   id:
     | '__root__'
     | '/'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '/clientes/'
     | '/contadores/'
     | '/financeiro/'
+    | '/solicitacoes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -327,6 +339,7 @@ export interface RootRouteChildren {
   ClientesIndexRoute: typeof ClientesIndexRoute
   ContadoresIndexRoute: typeof ContadoresIndexRoute
   FinanceiroIndexRoute: typeof FinanceiroIndexRoute
+  SolicitacoesIndexRoute: typeof SolicitacoesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -485,6 +498,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceiroReceberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/solicitacoes/': {
+      id: '/solicitacoes/'
+      path: '/solicitacoes'
+      fullPath: '/solicitacoes/'
+      preLoaderRoute: typeof SolicitacoesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/solicitacoes/$id': {
       id: '/solicitacoes/$id'
       path: '/solicitacoes/$id'
@@ -519,7 +539,18 @@ const rootRouteChildren: RootRouteChildren = {
   ClientesIndexRoute: ClientesIndexRoute,
   ContadoresIndexRoute: ContadoresIndexRoute,
   FinanceiroIndexRoute: FinanceiroIndexRoute,
+  SolicitacoesIndexRoute: SolicitacoesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -29,6 +29,7 @@ import {
 
 import { Bar as MiniBar, Chip, Metric, Panel, SlaBadge } from "@/components/ui-kit";
 import { AppShell } from "@/components/app-shell";
+import { NovaSolicitacaoButton } from "@/components/dialogs";
 import { ExportMenu } from "@/components/export-menu";
 import type { Dataset } from "@/lib/export";
 import { contadores } from "@/lib/contadores-data";
@@ -271,9 +272,7 @@ function Dashboard() {
       actions={
         <>
           <ExportMenu datasets={datasets} base="certus-operacao" />
-          <button className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep print:hidden">
-            Nova solicitação
-          </button>
+          <NovaSolicitacaoButton />
         </>
       }
     >

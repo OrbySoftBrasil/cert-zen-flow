@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { Bar as RBar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { AppShell } from "@/components/app-shell";
+import { NovoContadorButton } from "@/components/dialogs";
 import { ExportMenu } from "@/components/export-menu";
 import { Bar, Chip, Metric, Panel } from "@/components/ui-kit";
-import { contadores, funilCredenciamento, tierRegras, type ContadorStatus } from "@/lib/contadores-data";
+import { funilCredenciamento, tierRegras, type ContadorStatus } from "@/lib/contadores-data";
+import { useStore } from "@/lib/store";
 import { brl } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +45,7 @@ const tierTone: Record<string, string> = {
 };
 
 function Contadores() {
+  const { contadores } = useStore();
   const [busca, setBusca] = useState("");
   const [status, setStatus] = useState<"todos" | ContadorStatus>("todos");
   const [tier, setTier] = useState("todos");
@@ -185,9 +188,7 @@ function Contadores() {
       actions={
         <div className="flex items-center gap-2">
           <ExportMenu datasets={datasets} base="certus-contadores" label="Relatórios" />
-          <button className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">
-            <UserPlus className="size-3.5" /> Credenciar parceiro
-          </button>
+          <NovoContadorButton />
         </div>
       }
     >

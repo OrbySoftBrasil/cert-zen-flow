@@ -9,32 +9,22 @@ import {
   agentById,
   agents,
   ticketStatuses,
-  tickets,
-  type TicketMessage,
   type TicketStatus,
 } from "@/lib/mock-data";
+import { useStore } from "@/lib/store";
+import { toast } from "sonner";
 import { prioridadeTone, statusTone } from "./chamados.index";
 
 export const Route = createFileRoute("/chamados/$id")({
-  loader: ({ params }) => {
-    const ticket = tickets.find((t) => t.id === params.id);
-    if (!ticket) throw notFound();
-    return { ticket };
-  },
-  head: ({ loaderData }) => {
-    if (!loaderData) {
-      return { meta: [{ title: "Chamado não encontrado — Certus AC" }, { name: "robots", content: "noindex" }] };
-    }
-    const t = loaderData.ticket;
-    return {
-      meta: [
-        { title: `${t.numero} · ${t.assunto} — Certus AC` },
-        { name: "description", content: `Chamado ${t.numero} de ${t.cliente}: ${t.categoria} / ${t.subcategoria}.` },
-        { property: "og:title", content: `${t.numero} — ${t.assunto}` },
-        { property: "og:description", content: `Helpdesk Certus AC · ${t.cliente}` },
-      ],
-    };
-  },
+  loader: ({ params }) => ({ id: params.id }),
+  head: () => ({
+    meta: [
+      { title: "Detalhe do chamado — Certus AC" },
+      { name: "description", content: "Histórico do chamado, respostas ao cliente, notas internas, SLA e classificação." },
+      { property: "og:title", content: "Detalhe do chamado — Certus AC" },
+      { property: "og:description", content: "Conversa, SLA, responsável e histórico do cliente." },
+    ],
+  }),
   component: ChamadoDetalhe,
   notFoundComponent: ChamadoNaoEncontrado,
 });
@@ -50,26 +40,29 @@ function ChamadoNaoEncontrado() {
 }
 
 function ChamadoDetalhe() {
-  const { ticket } = Route.useLoaderData();
-  const [status, setStatus] = useState<TicketStatus>(ticket.status);
-  const [responsavel, setResponsavel] = useState(ticket.responsavelId);
-  const [mensagens, setMensagens] = useState<TicketMessage[]>(ticket.mensagens);
+  const { id } = Route.useParams();
+  const { tickets, updateTicket, addTicketMessage } = useStore();
+  const ticket = tickets.find((t) => t.id === id);
   const [texto, setTexto] = useState("");
   const [interna, setInterna] = useState(false);
 
+  if (!ticket) return <ChamadoNaoEncontrado />;
+
+  const status = ticket.status;
+  const responsavel = ticket.responsavelId;
+  const mensagens = ticket.mensagens;
+
   function enviar() {
-    if (!texto.trim()) return;
-    setMensagens((m) => [
-      ...m,
-      {
-        id: `novo-${m.length}`,
-        autor: interna ? "Nota interna · Marina Duarte" : "Marina Duarte",
-        papel: interna ? "sistema" : "suporte",
-        quando: "agora",
-        texto: texto.trim(),
-      },
-    ]);
+    if (!texto.trim() || !ticket) return;
+    addTicketMessage(
+      ticket.id,
+      texto.trim(),
+      interna ? "sistema" : "suporte",
+      interna ? "Nota interna · Marina Duarte" : "Marina Duarte",
+    );
+    if (!interna && ticket.status === "aberto") updateTicket(ticket.id, { status: "em andamento" });
     setTexto("");
+    toast.success(interna ? "Nota interna registrada" : "Resposta enviada ao cliente");
   }
 
   return (
@@ -192,7 +185,10 @@ function ChamadoDetalhe() {
                 <span className="text-xs text-muted-foreground">Status</span>
                 <select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value as TicketStatus)}
+                  onChange={(e) => {
+                    updateTicket(ticket.id, { status: e.target.value as TicketStatus });
+                    toast.success(`Status alterado para ${e.target.value}`);
+                  }}
                   className="mt-1 w-full rounded-md border border-border bg-card px-2 py-1.5 text-sm capitalize outline-none focus:border-primary"
                 >
                   {ticketStatuses.map((s) => (
@@ -206,7 +202,10 @@ function ChamadoDetalhe() {
                 <span className="text-xs text-muted-foreground">Responsável</span>
                 <select
                   value={responsavel}
-                  onChange={(e) => setResponsavel(e.target.value)}
+                  onChange={(e) => {
+                    updateTicket(ticket.id, { responsavelId: e.target.value });
+                    toast.success(`Chamado atribuído a ${agentById(e.target.value).nome}`);
+                  }}
                   className="mt-1 w-full rounded-md border border-border bg-card px-2 py-1.5 text-sm outline-none focus:border-primary"
                 >
                   {agents.map((a) => (

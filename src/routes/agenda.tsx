@@ -1,11 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarCheck2, CalendarX2, ChevronLeft, ChevronRight, Clock3, Video } from "lucide-react";
 import { useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { Chip, Metric, Panel } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
-import { agents, appointments as seed, type Appointment } from "@/lib/mock-data";
+import { agents, type Appointment } from "@/lib/mock-data";
+import { useStore } from "@/lib/store";
+import { NovoAgendamentoButton } from "@/components/dialogs";
+import { Btn, ConfirmDialog, EmptyState, Field, TextInput } from "@/components/forms";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/agenda")({
   head: () => ({
@@ -65,7 +69,10 @@ function gradeDoMes(ano: number, mes: number) {
 }
 
 function Agenda() {
-  const [items, setItems] = useState<Appointment[]>(seed);
+  const { appointments: items, updateAppointment } = useStore();
+  const [remarcando, setRemarcando] = useState<Appointment | null>(null);
+  const [novoDia, setNovoDia] = useState("");
+  const [novaHora, setNovaHora] = useState("");
   const dias = Array.from(new Set(items.map((a) => a.dia))).sort();
   const proximos = dias.filter((d) => d >= hojeISO);
   const [dia, setDia] = useState(proximos[0] ?? dias[0]!);
@@ -81,7 +88,18 @@ function Agenda() {
   });
 
   function atualizar(id: string, status: Appointment["status"]) {
-    setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+    updateAppointment(id, { status });
+    toast.success(`Atendimento marcado como ${status}`);
+  }
+
+  function confirmarRemarcacao() {
+    if (!remarcando || !novoDia || !novaHora) {
+      toast.error("Informe a nova data e horário.");
+      return;
+    }
+    updateAppointment(remarcando.id, { dia: novoDia, hora: novaHora, status: "remarcado" });
+    toast.success("Atendimento remarcado", { description: `${remarcando.cliente} · ${novoDia} às ${novaHora}` });
+    setRemarcando(null);
   }
 
   function moverMes(delta: number) {
@@ -97,6 +115,7 @@ function Agenda() {
       subtitle="Videoconferências de validação presencial remota"
       actions={
         <div className="flex flex-wrap items-center gap-2">
+          <NovoAgendamentoButton diaInicial={dia} />
           <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
             {(["dia", "mes"] as const).map((v) => (
               <button
@@ -213,11 +232,25 @@ function Agenda() {
         <div className="space-y-4">
           <Panel title="Próximos atendimentos" bodyClassName="p-0">
             <ul className="divide-y divide-border">
+              {doDia.length === 0 && (
+                <li>
+                  <EmptyState
+                    titulo="Nenhum atendimento neste dia"
+                    descricao="Agende uma videoconferência de validação para preencher a grade."
+                  />
+                </li>
+              )}
               {doDia.map((a) => (
                 <li key={a.id} className="px-3 py-3">
                   <div className="flex items-center gap-2">
                     <span className="tabular text-sm font-semibold">{a.hora}</span>
-                    <span className="min-w-0 flex-1 truncate text-sm">{a.cliente}</span>
+                    <Link
+                      to="/clientes/$id"
+                      params={{ id: a.clienteId }}
+                      className="min-w-0 flex-1 truncate text-sm hover:text-primary hover:underline"
+                    >
+                      {a.cliente}
+                    </Link>
                     <Chip tone={statusTone[a.status]}>{a.status}</Chip>
                   </div>
                   <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
@@ -231,7 +264,11 @@ function Agenda() {
                       <CalendarCheck2 className="size-3" /> Confirmar
                     </button>
                     <button
-                      onClick={() => atualizar(a.id, "remarcado")}
+                      onClick={() => {
+                        setRemarcando(a);
+                        setNovoDia(a.dia);
+                        setNovaHora(a.hora);
+                      }}
                       className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] transition-colors hover:border-primary"
                     >
                       <Clock3 className="size-3" /> Remarcar
@@ -408,6 +445,23 @@ function Agenda() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={!!remarcando}
+        title="Remarcar atendimento"
+        {...(remarcando ? { descricao: `${remarcando.cliente} · ${remarcando.tipo}` } : {})}
+        confirmLabel="Remarcar"
+        onCancel={() => setRemarcando(null)}
+        onConfirm={confirmarRemarcacao}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Nova data">
+            <TextInput type="date" value={novoDia} onChange={(e) => setNovoDia(e.target.value)} />
+          </Field>
+          <Field label="Novo horário">
+            <TextInput type="time" value={novaHora} onChange={(e) => setNovaHora(e.target.value)} />
+          </Field>
+        </div>
+      </ConfirmDialog>
     </AppShell>
 
   );
