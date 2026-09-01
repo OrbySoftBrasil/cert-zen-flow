@@ -144,6 +144,36 @@ export type NotifEvento = {
   push: boolean;
 };
 
+export type PrioridadeChamado = "baixa" | "normal" | "alta" | "critica";
+
+/** Classificação (categoria) de chamado — configurável por AC. */
+export interface ClassificacaoChamado {
+  id: string;
+  nome: string;
+  descricao: string;
+  subcategorias: string[];
+  prioridadePadrao: PrioridadeChamado;
+  slaRespostaHoras: number;
+  slaResolucaoHoras: number;
+  papelResponsavel: string;
+  visivelPortal: boolean;
+  ativo: boolean;
+}
+
+/** Documento da base de conhecimento (upload simples de arquivo pronto). */
+export interface DocumentoConhecimento {
+  id: string;
+  titulo: string;
+  classificacao: string;
+  arquivo: string;
+  formato: string;
+  tamanhoKb: number;
+  atualizadoEm: string;
+  autor: string;
+  publicadoNoPortal: boolean;
+  downloads: number;
+}
+
 export interface Settings {
   org: {
     nome: string;
@@ -227,6 +257,8 @@ export interface Settings {
     mensagemPortal: string;
     formatoData: string;
   };
+  classificacoes: ClassificacaoChamado[];
+  conhecimento: DocumentoConhecimento[];
   dados: {
     retencaoDocumentosMeses: number;
     anonimizarAposEncerrar: boolean;
