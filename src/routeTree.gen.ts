@@ -25,6 +25,7 @@ import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as RenovacoesRouteImport } from './routes/renovacoes'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminPlanosRouteImport } from './routes/admin.planos'
 import { Route as ChamadosIndexRouteImport } from './routes/chamados.index'
 import { Route as ChamadosIdRouteImport } from './routes/chamados.$id'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
@@ -120,6 +121,11 @@ const RenovacoesRoute = RenovacoesRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPlanosRoute = AdminPlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
   getParentRoute: () => AdminRoute,
 } as any)
 const ChamadosIndexRoute = ChamadosIndexRouteImport.update({
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/contadores/$id': typeof ContadoresIdRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/contadores/$id': typeof ContadoresIdRoute
@@ -287,6 +295,7 @@ export interface FileRoutesById {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/contadores/$id': typeof ContadoresIdRoute
@@ -323,6 +332,7 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/redefinir-senha'
     | '/renovacoes'
+    | '/admin/planos'
     | '/chamados/$id'
     | '/clientes/$id'
     | '/contadores/$id'
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/redefinir-senha'
     | '/renovacoes'
+    | '/admin/planos'
     | '/chamados/$id'
     | '/clientes/$id'
     | '/contadores/$id'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/redefinir-senha'
     | '/renovacoes'
+    | '/admin/planos'
     | '/chamados/$id'
     | '/clientes/$id'
     | '/contadores/$id'
@@ -555,6 +567,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/planos': {
+      id: '/admin/planos'
+      path: '/planos'
+      fullPath: '/admin/planos'
+      preLoaderRoute: typeof AdminPlanosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/chamados/': {
       id: '/chamados/'
       path: '/chamados'
@@ -671,12 +690,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminPlanosRoute: typeof AdminPlanosRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminTenantsIdRoute: typeof AdminTenantsIdRoute
   AdminTenantsIndexRoute: typeof AdminTenantsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminPlanosRoute: AdminPlanosRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminTenantsIdRoute: AdminTenantsIdRoute,
   AdminTenantsIndexRoute: AdminTenantsIndexRoute,
