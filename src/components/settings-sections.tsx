@@ -16,18 +16,23 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Btn, ConfirmDialog, Field, SelectInput, TextArea, TextInput } from "@/components/forms";
+import { Btn, ConfirmDialog, EmptyState, Field, Modal, SelectInput, TextArea, TextInput } from "@/components/forms";
 import { Grid, Rows, TagList, Toggle } from "@/components/settings-kit";
-import { Chip, Panel } from "@/components/ui-kit";
+import { Chip, Metric, Panel } from "@/components/ui-kit";
 import { agents } from "@/lib/mock-data";
 import {
+  iniciaisDe,
   novoChecklistItem,
+  novoUsuario,
   permissoesDisponiveis,
+  unidadesDisponiveis,
   useSettings,
   type ChaveApi,
   type ChecklistRule,
   type ProdutoRule,
   type StageRule,
+  type StatusUsuario,
+  type UsuarioRule,
 } from "@/lib/settings-store";
 import { cn } from "@/lib/utils";
 
@@ -722,7 +727,7 @@ const rascunhoVazio = (papelId: string): RascunhoUsuario => ({
   observacao: "",
 });
 
-const statusTone: Record<StatusUsuario, "blue" | "outline" | "alert"> = {
+const statusTone: Record<StatusUsuario, "blue" | "outline" | "alert" | "deep" | "neutral"> = {
   ativo: "blue",
   convidado: "outline",
   suspenso: "alert",
