@@ -49,7 +49,7 @@ function RecuperarSenha() {
               caixa de spam.
             </p>
           </div>
-          <Link to="/redefinir-senha" search={{ token: "demo" }}>
+          <Link to="/redefinir-senha">
             <Btn className="w-full">Abrir link de redefinição (demo)</Btn>
           </Link>
           <button

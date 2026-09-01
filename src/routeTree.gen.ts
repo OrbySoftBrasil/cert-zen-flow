@@ -21,6 +21,7 @@ import { Route as OperacaoRouteImport } from './routes/operacao'
 import { Route as ParceiroRouteImport } from './routes/parceiro'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as RenovacoesRouteImport } from './routes/renovacoes'
 import { Route as ChamadosIndexRouteImport } from './routes/chamados.index'
 import { Route as ChamadosIdRouteImport } from './routes/chamados.$id'
@@ -95,6 +96,11 @@ const PortalRoute = PortalRouteImport.update({
 const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
   id: '/recuperar-senha',
   path: '/recuperar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RenovacoesRoute = RenovacoesRouteImport.update({
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -215,6 +222,7 @@ export interface FileRoutesByTo {
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -245,6 +253,7 @@ export interface FileRoutesById {
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -276,6 +285,7 @@ export interface FileRouteTypes {
     | '/parceiro'
     | '/portal'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -305,6 +315,7 @@ export interface FileRouteTypes {
     | '/parceiro'
     | '/portal'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -334,6 +345,7 @@ export interface FileRouteTypes {
     | '/parceiro'
     | '/portal'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -364,6 +376,7 @@ export interface RootRouteChildren {
   ParceiroRoute: typeof ParceiroRoute
   PortalRoute: typeof PortalRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   RenovacoesRoute: typeof RenovacoesRoute
   ChamadosIdRoute: typeof ChamadosIdRoute
   ClientesIdRoute: typeof ClientesIdRoute
@@ -465,6 +478,13 @@ declare module '@tanstack/react-router' {
       path: '/recuperar-senha'
       fullPath: '/recuperar-senha'
       preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/renovacoes': {
@@ -588,6 +608,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParceiroRoute: ParceiroRoute,
   PortalRoute: PortalRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
   RenovacoesRoute: RenovacoesRoute,
   ChamadosIdRoute: ChamadosIdRoute,
   ClientesIdRoute: ClientesIdRoute,
