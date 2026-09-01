@@ -26,14 +26,12 @@ export const Route = createFileRoute("/solicitacoes/")({
   component: Solicitacoes,
 });
 
-const POR_PAGINA = 12;
 
 function Solicitacoes() {
   const { requests } = useStore();
   const [busca, setBusca] = useState("");
   const [etapa, setEtapa] = useState("todas");
   const [responsavel, setResponsavel] = useState("todos");
-  const [pagina, setPagina] = useState(1);
 
   const lista = useMemo(
     () =>
@@ -106,7 +104,7 @@ function Solicitacoes() {
               value={busca}
               onChange={(e) => {
                 setBusca(e.target.value);
-                setPagina(1);
+                pag.setPagina(1);
               }}
               placeholder="Protocolo, cliente ou documento"
               className="w-56 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs outline-none focus:border-primary"
@@ -115,7 +113,7 @@ function Solicitacoes() {
               value={etapa}
               onChange={(e) => {
                 setEtapa(e.target.value);
-                setPagina(1);
+                pag.setPagina(1);
               }}
               className="rounded-md border border-border bg-card px-2 py-1.5 text-xs outline-none focus:border-primary"
             >
@@ -130,7 +128,7 @@ function Solicitacoes() {
               value={responsavel}
               onChange={(e) => {
                 setResponsavel(e.target.value);
-                setPagina(1);
+                pag.setPagina(1);
               }}
               className="rounded-md border border-border bg-card px-2 py-1.5 text-xs outline-none focus:border-primary"
             >
