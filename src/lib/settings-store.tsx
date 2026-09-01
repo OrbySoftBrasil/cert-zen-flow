@@ -57,12 +57,22 @@ export interface ProdutoRule {
   ativo: boolean;
 }
 
+/** Até onde o usuário enxerga a fila de solicitações. */
+export type EscopoVisibilidade = "proprias" | "unidade" | "todas";
+
+export const escoposVisibilidade: { id: EscopoVisibilidade; label: string; hint: string }[] = [
+  { id: "proprias", label: "Somente as suas", hint: "Vê apenas solicitações atribuídas a ela." },
+  { id: "unidade", label: "Da unidade", hint: "Vê as solicitações da própria unidade/filial." },
+  { id: "todas", label: "Todas", hint: "Vê a fila completa da AC." },
+];
+
 export interface PapelRule {
   id: string;
   nome: string;
   descricao: string;
   permissoes: string[];
   usuarios: number;
+  escopoVisibilidade: EscopoVisibilidade;
 }
 
 export type StatusUsuario = "ativo" | "convidado" | "suspenso";
