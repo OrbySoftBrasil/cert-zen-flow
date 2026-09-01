@@ -3,7 +3,10 @@
 import {
   AlertTriangle,
   ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   ArrowUp,
+  Bell,
   CheckCircle2,
   KeyRound,
   Laptop,
@@ -21,14 +24,20 @@ import { Grid, Rows, TagList, Toggle } from "@/components/settings-kit";
 import { Chip, Metric, Panel } from "@/components/ui-kit";
 import { agents } from "@/lib/mock-data";
 import {
+  escoposVisibilidade,
+  escopoEfetivo,
   iniciaisDe,
+  novaEtapa,
   novoChecklistItem,
   novoUsuario,
   permissoesDisponiveis,
   unidadesDisponiveis,
   useSettings,
+  type CanalNotificacao,
   type ChaveApi,
   type ChecklistRule,
+  type EscopoVisibilidade,
+  type PapelRule,
   type ProdutoRule,
   type StageRule,
   type StatusUsuario,
@@ -154,8 +163,15 @@ export function SecaoOrganizacao() {
 
 /* ---------------------------------------------------------------------- Fluxo */
 
+const canais: { id: CanalNotificacao; label: string }[] = [
+  { id: "email", label: "E-mail" },
+  { id: "push", label: "Push no app" },
+  { id: "whatsapp", label: "WhatsApp" },
+];
+
 function EditorEtapa({ etapa }: { etapa: StageRule }) {
-  const { updateEtapa } = useSettings();
+  const { settings, updateEtapa } = useSettings();
+  const papeis = settings.papeis;
   const [novo, setNovo] = useState("");
 
   const setChecklist = (checklist: ChecklistRule[]) => updateEtapa(etapa.id, { checklist });
@@ -367,6 +383,80 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
           </div>
 
           <div className="rounded-lg border border-border p-3">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Bell className="size-3.5" /> Aviso de chegada na etapa
+            </p>
+            <Rows>
+              <Toggle
+                label={`Notificar o papel responsável (${etapa.papelResponsavel})`}
+                hint="Todas as pessoas desse papel recebem o aviso quando a solicitação entra nesta etapa."
+                checked={etapa.automacoes.notificarPapelResponsavel}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, { automacoes: { ...etapa.automacoes, notificarPapelResponsavel: v } })
+                }
+              />
+            </Rows>
+            <p className="mb-1.5 mt-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Papéis adicionais avisados
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {papeis.map((papel) => {
+                const on = etapa.papeisNotificados.includes(papel.id);
+                return (
+                  <button
+                    key={papel.id}
+                    type="button"
+                    onClick={() =>
+                      updateEtapa(etapa.id, {
+                        papeisNotificados: on
+                          ? etapa.papeisNotificados.filter((x) => x !== papel.id)
+                          : [...etapa.papeisNotificados, papel.id],
+                      })
+                    }
+                    className={cn(
+                      "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                      on
+                        ? "border-primary bg-primary-soft text-primary-deep"
+                        : "border-border text-muted-foreground hover:border-border-strong",
+                    )}
+                  >
+                    {papel.nome}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mb-1.5 mt-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Canais do aviso
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {canais.map((c) => {
+                const on = etapa.canaisNotificacao.includes(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() =>
+                      updateEtapa(etapa.id, {
+                        canaisNotificacao: on
+                          ? etapa.canaisNotificacao.filter((x) => x !== c.id)
+                          : [...etapa.canaisNotificacao, c.id],
+                      })
+                    }
+                    className={cn(
+                      "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                      on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground hover:border-border-strong",
+                    )}
+                  >
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border p-3">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Documentos exigidos
             </p>
@@ -385,8 +475,39 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
 export function SecaoFluxo() {
   const { settings, update, updateEtapa, patchEtapas } = useSettings();
   const etapas = settings.fluxo.etapas;
-  const [sel, setSel] = useState(etapas[1]?.id ?? etapas[0]?.id);
+  const [sel, setSel] = useState<string | undefined>(etapas[1]?.id ?? etapas[0]?.id);
   const atual = etapas.find((e) => e.id === sel) ?? etapas[0];
+  const [criando, setCriando] = useState(false);
+  const [novaEtapaDraft, setNovaEtapaDraft] = useState({ nome: "", papel: "Agente de Registro", posicao: "fim" });
+
+  const criarEtapa = () => {
+    const nome = novaEtapaDraft.nome.trim();
+    if (!nome) {
+      toast.error("Dê um nome à etapa.");
+      return;
+    }
+    const etapa = novaEtapa(nome, novaEtapaDraft.papel);
+    patchEtapas((l) => {
+      const idx = l.findIndex((e) => e.id === novaEtapaDraft.posicao);
+      if (idx === -1) return [...l, etapa];
+      return [...l.slice(0, idx + 1), etapa, ...l.slice(idx + 1)];
+    });
+    setSel(etapa.id);
+    setCriando(false);
+    setNovaEtapaDraft({ nome: "", papel: "Agente de Registro", posicao: "fim" });
+    toast.success("Etapa adicionada à esteira", { description: "Configure checklist, gates e avisos abaixo." });
+  };
+
+  const moverEtapa = (etapaId: string, dir: -1 | 1) =>
+    patchEtapas((l) => {
+      const i = l.findIndex((e) => e.id === etapaId);
+      const alvo = i + dir;
+      if (i === -1 || alvo < 0 || alvo >= l.length) return l;
+      const copia = [...l];
+      const [it] = copia.splice(i, 1);
+      if (it) copia.splice(alvo, 0, it);
+      return copia;
+    });
 
   return (
     <div className="space-y-4">
@@ -436,8 +557,13 @@ export function SecaoFluxo() {
 
       <Panel
         title="Desenho do fluxo"
-        hint="Selecione uma etapa para personalizar checklist, requisitos de avanço e automações."
+        hint="Selecione uma etapa para personalizar checklist, requisitos de avanço, avisos e automações."
         bodyClassName="p-0"
+        actions={
+          <Btn variant="ghost" onClick={() => setCriando(true)}>
+            <Plus className="size-4" /> Nova etapa
+          </Btn>
+        }
       >
         <div className="flex flex-wrap gap-1.5 border-b border-border p-3">
           {etapas.map((e, i) => (
@@ -473,6 +599,40 @@ export function SecaoFluxo() {
                 </Chip>
               </div>
               <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label="Mover etapa para trás"
+                    disabled={etapas.findIndex((e) => e.id === atual.id) === 0}
+                    onClick={() => moverEtapa(atual.id, -1)}
+                    className="grid size-7 place-items-center rounded border border-border text-muted-foreground hover:text-foreground disabled:opacity-30"
+                  >
+                    <ArrowLeft className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Mover etapa para frente"
+                    disabled={etapas.findIndex((e) => e.id === atual.id) === etapas.length - 1}
+                    onClick={() => moverEtapa(atual.id, 1)}
+                    className="grid size-7 place-items-center rounded border border-border text-muted-foreground hover:text-foreground disabled:opacity-30"
+                  >
+                    <ArrowRight className="size-3.5" />
+                  </button>
+                  {atual.removivel && (
+                    <button
+                      type="button"
+                      aria-label="Remover etapa"
+                      onClick={() => {
+                        patchEtapas((l) => l.filter((e) => e.id !== atual.id));
+                        setSel(etapas[0]?.id);
+                        toast.success("Etapa removida da esteira");
+                      }}
+                      className="grid size-7 place-items-center rounded border border-border text-muted-foreground hover:border-alert hover:text-alert"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  )}
+                </div>
                 <Btn
                   variant="ghost"
                   onClick={() => updateEtapa(atual.id, { ativo: !atual.ativo })}
@@ -504,6 +664,55 @@ export function SecaoFluxo() {
           </>
         )}
       </Panel>
+
+      <Modal
+        open={criando}
+        onClose={() => setCriando(false)}
+        title="Nova etapa da esteira"
+        hint="A etapa entra no fluxo e pode receber checklist, gates e avisos próprios."
+        width="max-w-md"
+        footer={
+          <>
+            <Btn variant="ghost" onClick={() => setCriando(false)}>
+              Cancelar
+            </Btn>
+            <Btn onClick={criarEtapa}>Adicionar etapa</Btn>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <Field label="Nome da etapa">
+            <TextInput
+              value={novaEtapaDraft.nome}
+              onChange={(e) => setNovaEtapaDraft({ ...novaEtapaDraft, nome: e.target.value })}
+              placeholder="Ex.: Conferência jurídica"
+            />
+          </Field>
+          <Field label="Papel responsável">
+            <SelectInput
+              value={novaEtapaDraft.papel}
+              onChange={(e) => setNovaEtapaDraft({ ...novaEtapaDraft, papel: e.target.value })}
+            >
+              {settings.papeis.map((p) => (
+                <option key={p.id}>{p.nome}</option>
+              ))}
+            </SelectInput>
+          </Field>
+          <Field label="Posição no fluxo">
+            <SelectInput
+              value={novaEtapaDraft.posicao}
+              onChange={(e) => setNovaEtapaDraft({ ...novaEtapaDraft, posicao: e.target.value })}
+            >
+              <option value="fim">No final da esteira</option>
+              {etapas.map((e) => (
+                <option key={e.id} value={e.id}>
+                  Depois de “{e.nome}”
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -712,6 +921,7 @@ type RascunhoUsuario = {
   status: StatusUsuario;
   mfa: boolean;
   limiteWip: number;
+  escopoVisibilidade: EscopoVisibilidade | "herdado";
   observacao: string;
 };
 
@@ -724,6 +934,7 @@ const rascunhoVazio = (papelId: string): RascunhoUsuario => ({
   status: "convidado",
   mfa: true,
   limiteWip: 10,
+  escopoVisibilidade: "herdado",
   observacao: "",
 });
 
@@ -783,6 +994,7 @@ export function SecaoEquipe() {
       status: u.status,
       mfa: u.mfa,
       limiteWip: u.limiteWip,
+      escopoVisibilidade: u.escopoVisibilidade ?? "herdado",
       observacao: u.observacao,
     });
     setEditando(u.id);
@@ -870,6 +1082,7 @@ export function SecaoEquipe() {
         descricao: papelDraft.descricao.trim() || "Papel personalizado.",
         permissoes: [],
         usuarios: 0,
+        escopoVisibilidade: "proprias",
       },
     ]);
     setPapelDraft({ nome: "", descricao: "" });
@@ -966,6 +1179,12 @@ export function SecaoEquipe() {
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <Chip tone="outline">{nomePapel(u.papelId)}</Chip>
+                  <Chip tone="neutral">
+                    Fila:{" "}
+                    {escoposVisibilidade.find(
+                      (x) => x.id === escopoEfetivo(u, papeis.find((p) => p.id === u.papelId)),
+                    )?.label ?? "Todas"}
+                  </Chip>
                   <Chip tone={statusTone[u.status]}>{statusLabel[u.status]}</Chip>
                   {u.mfa ? (
                     <Chip tone="blue">MFA</Chip>
@@ -1010,6 +1229,7 @@ export function SecaoEquipe() {
                     {p.label}
                   </th>
                 ))}
+                <th className="px-4 py-2 font-medium">Visibilidade da fila</th>
                 <th className="px-4 py-2 text-right font-medium">Usuários</th>
                 <th className="px-2 py-2" />
               </tr>
@@ -1041,6 +1261,29 @@ export function SecaoEquipe() {
                       </td>
                     );
                   })}
+                  <td className="px-4 py-2">
+                    <SelectInput
+                      aria-label={`Visibilidade do papel ${papel.nome}`}
+                      value={papel.escopoVisibilidade}
+                      onChange={(e) =>
+                        replace(
+                          "papeis",
+                          papeis.map((x) =>
+                            x.id === papel.id
+                              ? { ...x, escopoVisibilidade: e.target.value as EscopoVisibilidade }
+                              : x,
+                          ) as PapelRule[],
+                        )
+                      }
+                      className="h-8 w-40"
+                    >
+                      {escoposVisibilidade.map((esc) => (
+                        <option key={esc.id} value={esc.id}>
+                          {esc.label}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </td>
                   <td className="px-4 py-2 text-right tabular">{contarUsuarios(papel.id)}</td>
                   <td className="px-2 py-2 text-right">
                     <button
@@ -1159,6 +1402,35 @@ export function SecaoEquipe() {
                 value={rascunho.limiteWip}
                 onChange={(e) => setRascunho({ ...rascunho, limiteWip: Number(e.target.value) || 1 })}
               />
+            </Field>
+            <Field
+              label="Visibilidade das solicitações"
+              hint={
+                rascunho.escopoVisibilidade === "herdado"
+                  ? `Herda do papel: ${
+                      escoposVisibilidade.find(
+                        (x) => x.id === papeis.find((p) => p.id === rascunho.papelId)?.escopoVisibilidade,
+                      )?.label ?? "Todas"
+                    }`
+                  : (escoposVisibilidade.find((x) => x.id === rascunho.escopoVisibilidade)?.hint ?? "")
+              }
+            >
+              <SelectInput
+                value={rascunho.escopoVisibilidade}
+                onChange={(e) =>
+                  setRascunho({
+                    ...rascunho,
+                    escopoVisibilidade: e.target.value as EscopoVisibilidade | "herdado",
+                  })
+                }
+              >
+                <option value="herdado">Herdar do papel</option>
+                {escoposVisibilidade.map((esc) => (
+                  <option key={esc.id} value={esc.id}>
+                    {esc.label}
+                  </option>
+                ))}
+              </SelectInput>
             </Field>
           </Grid>
 

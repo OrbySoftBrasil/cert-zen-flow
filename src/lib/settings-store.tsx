@@ -23,11 +23,14 @@ export interface StageGates {
   gravacaoArquivada: boolean;
 }
 
+export type CanalNotificacao = "email" | "push" | "whatsapp";
+
 export interface StageRule {
-  id: StageId;
+  id: string;
   nome: string;
   descricao: string;
   ativo: boolean;
+  removivel?: boolean;
   slaHoras: number;
   papelResponsavel: string;
   checklist: ChecklistRule[];
@@ -37,7 +40,12 @@ export interface StageRule {
     notificarCliente: boolean;
     atribuirAutomatico: boolean;
     escalarSlaEstourado: boolean;
+    /** Notifica as pessoas do papel responsável quando a solicitação entra nesta etapa. */
+    notificarPapelResponsavel: boolean;
   };
+  /** Papéis adicionais avisados na chegada da solicitação (ids de PapelRule). */
+  papeisNotificados: string[];
+  canaisNotificacao: CanalNotificacao[];
 }
 
 export interface ProdutoRule {
@@ -49,12 +57,22 @@ export interface ProdutoRule {
   ativo: boolean;
 }
 
+/** Até onde o usuário enxerga a fila de solicitações. */
+export type EscopoVisibilidade = "proprias" | "unidade" | "todas";
+
+export const escoposVisibilidade: { id: EscopoVisibilidade; label: string; hint: string }[] = [
+  { id: "proprias", label: "Somente as suas", hint: "Vê apenas solicitações atribuídas a ela." },
+  { id: "unidade", label: "Da unidade", hint: "Vê as solicitações da própria unidade/filial." },
+  { id: "todas", label: "Todas", hint: "Vê a fila completa da AC." },
+];
+
 export interface PapelRule {
   id: string;
   nome: string;
   descricao: string;
   permissoes: string[];
   usuarios: number;
+  escopoVisibilidade: EscopoVisibilidade;
 }
 
 export type StatusUsuario = "ativo" | "convidado" | "suspenso";
@@ -70,6 +88,8 @@ export interface UsuarioRule {
   status: StatusUsuario;
   mfa: boolean;
   limiteWip: number;
+  /** "herdado" usa o escopo do papel. */
+  escopoVisibilidade: EscopoVisibilidade | "herdado";
   criadoEm: string;
   ultimoAcesso: string;
   observacao: string;
@@ -281,7 +301,10 @@ function seedEtapas(): StageRule[] {
       notificarCliente: s.id !== "bloqueado",
       atribuirAutomatico: true,
       escalarSlaEstourado: true,
+      notificarPapelResponsavel: true,
     },
+    papeisNotificados: s.id === "bloqueado" ? ["r4"] : s.id === "emissao" ? ["r1"] : [],
+    canaisNotificacao: ["email", "push"],
   }));
 }
 
@@ -336,6 +359,7 @@ export function seedSettings(): Settings {
         descricao: "Acesso total, inclusive configurações e financeiro.",
         permissoes: ["config", "financeiro", "emitir", "revogar", "clientes", "relatorios", "parceiros"],
         usuarios: 2,
+        escopoVisibilidade: "todas",
       },
       {
         id: "r2",
@@ -343,6 +367,7 @@ export function seedSettings(): Settings {
         descricao: "Conduz validação, videoconferência e emissão.",
         permissoes: ["emitir", "clientes", "relatorios"],
         usuarios: 6,
+        escopoVisibilidade: "proprias",
       },
       {
         id: "r3",
@@ -350,6 +375,7 @@ export function seedSettings(): Settings {
         descricao: "Chamados, chat e agendamentos.",
         permissoes: ["clientes"],
         usuarios: 5,
+        escopoVisibilidade: "todas",
       },
       {
         id: "r4",
@@ -357,6 +383,7 @@ export function seedSettings(): Settings {
         descricao: "Auditoria, revogações e conformidade.",
         permissoes: ["revogar", "relatorios", "config"],
         usuarios: 2,
+        escopoVisibilidade: "todas",
       },
       {
         id: "r5",
@@ -364,6 +391,7 @@ export function seedSettings(): Settings {
         descricao: "Portal externo: pedidos, clientes e comissões.",
         permissoes: ["clientes"],
         usuarios: 38,
+        escopoVisibilidade: "proprias",
       },
     ],
     usuarios: [
@@ -378,6 +406,7 @@ export function seedSettings(): Settings {
         status: "ativo",
         mfa: true,
         limiteWip: 12,
+        escopoVisibilidade: "herdado",
         criadoEm: "12/03/2024",
         ultimoAcesso: "hoje, 08:42",
         observacao: "AR sênior, habilitada para videoconferência.",
@@ -393,6 +422,7 @@ export function seedSettings(): Settings {
         status: "ativo",
         mfa: true,
         limiteWip: 10,
+        escopoVisibilidade: "herdado",
         criadoEm: "02/07/2024",
         ultimoAcesso: "hoje, 09:15",
         observacao: "",
@@ -408,6 +438,7 @@ export function seedSettings(): Settings {
         status: "ativo",
         mfa: false,
         limiteWip: 14,
+        escopoVisibilidade: "herdado",
         criadoEm: "19/09/2024",
         ultimoAcesso: "ontem, 18:03",
         observacao: "Foco em validação documental.",
@@ -423,6 +454,7 @@ export function seedSettings(): Settings {
         status: "ativo",
         mfa: true,
         limiteWip: 20,
+        escopoVisibilidade: "herdado",
         criadoEm: "05/01/2025",
         ultimoAcesso: "hoje, 07:58",
         observacao: "",
@@ -438,6 +470,7 @@ export function seedSettings(): Settings {
         status: "ativo",
         mfa: true,
         limiteWip: 8,
+        escopoVisibilidade: "herdado",
         criadoEm: "22/02/2024",
         ultimoAcesso: "hoje, 09:31",
         observacao: "Encarregada de dados (DPO).",
@@ -453,6 +486,7 @@ export function seedSettings(): Settings {
         status: "ativo",
         mfa: true,
         limiteWip: 6,
+        escopoVisibilidade: "herdado",
         criadoEm: "10/01/2024",
         ultimoAcesso: "hoje, 06:40",
         observacao: "Administrador da conta.",
@@ -468,6 +502,7 @@ export function seedSettings(): Settings {
         status: "convidado",
         mfa: false,
         limiteWip: 15,
+        escopoVisibilidade: "herdado",
         criadoEm: "28/08/2026",
         ultimoAcesso: "convite pendente",
         observacao: "Convite enviado, aguardando primeiro acesso.",
@@ -483,6 +518,7 @@ export function seedSettings(): Settings {
         status: "suspenso",
         mfa: false,
         limiteWip: 10,
+        escopoVisibilidade: "herdado",
         criadoEm: "14/05/2025",
         ultimoAcesso: "11/07/2026, 16:22",
         observacao: "Acesso suspenso durante afastamento.",
@@ -605,13 +641,78 @@ export function seedSettings(): Settings {
   };
 }
 
+/** Cria uma etapa personalizada para a esteira da AC. */
+export function novaEtapa(nome: string, papelResponsavel: string): StageRule {
+  return {
+    id: id("st"),
+    nome,
+    descricao: "Etapa personalizada da esteira.",
+    ativo: true,
+    removivel: true,
+    slaHoras: 8,
+    papelResponsavel,
+    checklist: [],
+    documentos: [],
+    gates: {
+      checklistObrigatorio: true,
+      documentosAprovados: false,
+      pagamentoConfirmado: false,
+      duplaConferencia: false,
+      biometriaValidada: false,
+      gravacaoArquivada: false,
+    },
+    automacoes: {
+      notificarCliente: false,
+      atribuirAutomatico: true,
+      escalarSlaEstourado: true,
+      notificarPapelResponsavel: true,
+    },
+    papeisNotificados: [],
+    canaisNotificacao: ["email", "push"],
+  };
+}
+
+/** Garante que configurações salvas antes de novos campos continuem válidas. */
+function normalizar(s: Settings): Settings {
+  const base = seedSettings();
+  return {
+    ...base,
+    ...s,
+    fluxo: {
+      ...base.fluxo,
+      ...s.fluxo,
+      etapas: (s.fluxo?.etapas ?? base.fluxo.etapas).map((e) => ({
+        ...e,
+        papeisNotificados: e.papeisNotificados ?? [],
+        canaisNotificacao: e.canaisNotificacao ?? ["email", "push"],
+        automacoes: {
+          ...e.automacoes,
+          notificarPapelResponsavel: e.automacoes?.notificarPapelResponsavel ?? true,
+        },
+      })),
+    },
+    papeis: (s.papeis ?? base.papeis).map((p) => ({ ...p, escopoVisibilidade: p.escopoVisibilidade ?? "todas" })),
+    usuarios: (s.usuarios ?? base.usuarios).map((u) => ({
+      ...u,
+      escopoVisibilidade: u.escopoVisibilidade ?? "herdado",
+    })),
+  };
+}
+
+/** Escopo efetivo de um usuário considerando a herança do papel. */
+export function escopoEfetivo(usuario: UsuarioRule, papel?: PapelRule): EscopoVisibilidade {
+  return usuario.escopoVisibilidade === "herdado"
+    ? (papel?.escopoVisibilidade ?? "todas")
+    : usuario.escopoVisibilidade;
+}
+
 type Patch<T> = (atual: T) => T;
 
 interface SettingsCtx {
   settings: Settings;
   update: <K extends keyof Settings>(chave: K, patch: Partial<Settings[K]>) => void;
   replace: <K extends keyof Settings>(chave: K, valor: Settings[K]) => void;
-  updateEtapa: (etapaId: StageId, patch: Partial<StageRule>) => void;
+  updateEtapa: (etapaId: string, patch: Partial<StageRule>) => void;
   patchEtapas: (fn: Patch<StageRule[]>) => void;
   resetSettings: () => void;
   dirty: boolean;
@@ -627,7 +728,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setSettings({ ...seedSettings(), ...(JSON.parse(raw) as Settings) });
+      if (raw) setSettings(normalizar(JSON.parse(raw) as Settings));
     } catch {
       /* mantém seed */
     }
@@ -703,6 +804,7 @@ export function novoUsuario(dados: {
   status: StatusUsuario;
   mfa: boolean;
   limiteWip: number;
+  escopoVisibilidade: EscopoVisibilidade | "herdado";
   observacao: string;
 }): UsuarioRule {
   const agora = new Date().toLocaleDateString("pt-BR");
