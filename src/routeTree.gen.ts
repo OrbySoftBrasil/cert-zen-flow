@@ -26,6 +26,7 @@ import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as RenovacoesRouteImport } from './routes/renovacoes'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminFaturamentoRouteImport } from './routes/admin.faturamento'
+import { Route as AdminIncidentesRouteImport } from './routes/admin.incidentes'
 import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes'
 import { Route as AdminObservabilidadeRouteImport } from './routes/admin.observabilidade'
 import { Route as AdminPlanosRouteImport } from './routes/admin.planos'
@@ -129,6 +130,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminFaturamentoRoute = AdminFaturamentoRouteImport.update({
   id: '/faturamento',
   path: '/faturamento',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIncidentesRoute = AdminIncidentesRouteImport.update({
+  id: '/incidentes',
+  path: '/incidentes',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminIntegracoesRoute = AdminIntegracoesRouteImport.update({
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/admin/faturamento': typeof AdminFaturamentoRoute
+  '/admin/incidentes': typeof AdminIncidentesRoute
   '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/observabilidade': typeof AdminObservabilidadeRoute
   '/admin/planos': typeof AdminPlanosRoute
@@ -281,6 +288,7 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/admin/faturamento': typeof AdminFaturamentoRoute
+  '/admin/incidentes': typeof AdminIncidentesRoute
   '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/observabilidade': typeof AdminObservabilidadeRoute
   '/admin/planos': typeof AdminPlanosRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/admin/faturamento': typeof AdminFaturamentoRoute
+  '/admin/incidentes': typeof AdminIncidentesRoute
   '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/observabilidade': typeof AdminObservabilidadeRoute
   '/admin/planos': typeof AdminPlanosRoute
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/renovacoes'
     | '/admin/faturamento'
+    | '/admin/incidentes'
     | '/admin/integracoes'
     | '/admin/observabilidade'
     | '/admin/planos'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/renovacoes'
     | '/admin/faturamento'
+    | '/admin/incidentes'
     | '/admin/integracoes'
     | '/admin/observabilidade'
     | '/admin/planos'
@@ -435,6 +446,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/renovacoes'
     | '/admin/faturamento'
+    | '/admin/incidentes'
     | '/admin/integracoes'
     | '/admin/observabilidade'
     | '/admin/planos'
@@ -610,6 +622,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFaturamentoRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/incidentes': {
+      id: '/admin/incidentes'
+      path: '/incidentes'
+      fullPath: '/admin/incidentes'
+      preLoaderRoute: typeof AdminIncidentesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/integracoes': {
       id: '/admin/integracoes'
       path: '/integracoes'
@@ -748,6 +767,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminFaturamentoRoute: typeof AdminFaturamentoRoute
+  AdminIncidentesRoute: typeof AdminIncidentesRoute
   AdminIntegracoesRoute: typeof AdminIntegracoesRoute
   AdminObservabilidadeRoute: typeof AdminObservabilidadeRoute
   AdminPlanosRoute: typeof AdminPlanosRoute
@@ -758,6 +778,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminFaturamentoRoute: AdminFaturamentoRoute,
+  AdminIncidentesRoute: AdminIncidentesRoute,
   AdminIntegracoesRoute: AdminIntegracoesRoute,
   AdminObservabilidadeRoute: AdminObservabilidadeRoute,
   AdminPlanosRoute: AdminPlanosRoute,
