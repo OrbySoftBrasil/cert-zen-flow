@@ -18,6 +18,7 @@ import {
   Wallet,
   Smartphone,
   Menu,
+  Settings,
   X,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -46,6 +47,7 @@ const nav = [
   { to: "/conformidade", label: "Conformidade", icon: ShieldCheck },
   { to: "/mobile", label: "App executivo", icon: Smartphone },
   { to: "/mobile-contador", label: "App do contador", icon: Smartphone },
+  { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
 export function AppShell({
