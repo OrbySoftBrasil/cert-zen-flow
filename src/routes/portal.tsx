@@ -48,7 +48,7 @@ function Portal() {
       assunto: assunto.trim(),
       categoria,
       subcategoria: sub,
-      canal: "Portal",
+      canal: "Site",
       prioridade,
       responsavelId: "a1",
       descricao: descricao.trim(),
