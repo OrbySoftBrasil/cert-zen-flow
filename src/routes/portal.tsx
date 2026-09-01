@@ -20,7 +20,7 @@ import { toast } from "sonner";
 
 import { Chip } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
-import { agents, certTypes, type CertType, type Priority, type TicketCategoria } from "@/lib/mock-data";
+import { agents, type CertType, type Priority, type TicketCategoria } from "@/lib/mock-data";
 import { useStore } from "@/lib/store";
 import { useSettings } from "@/lib/settings-store";
 
@@ -48,6 +48,7 @@ export const Route = createFileRoute("/portal")({
 const prioridades: Priority[] = ["baixa", "normal", "alta", "critica"];
 const horariosBase = ["08:00", "09:00", "10:00", "11:00", "13:30", "14:00", "15:00", "16:00", "17:00"];
 const nomesDia = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const tiposCert: CertType[] = ["e-CPF A1", "e-CPF A3", "e-CNPJ A1", "e-CNPJ A3", "Nuvem PJ"];
 
 function iso(d: Date) {
   return d.toISOString().slice(0, 10);
@@ -232,7 +233,7 @@ function Portal() {
   // ---------- agendamento (autoatendimento) ----------
   const [identAgenda, setIdentAgenda] = useState<Identificacao>(identificacaoVazia);
   const [errosAgenda, setErrosAgenda] = useState(false);
-  const [tipo, setTipo] = useState<CertType>(certTypes[0] as CertType);
+  const [tipo, setTipo] = useState<CertType>("e-CNPJ A1");
   const [semana, setSemana] = useState(0);
   const [diaSel, setDiaSel] = useState<string | null>(null);
   const [horaSel, setHoraSel] = useState<string | null>(null);
@@ -498,7 +499,7 @@ function Portal() {
                     onChange={(e) => setTipo(e.target.value as CertType)}
                     className="mt-1 w-full rounded-md border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-primary"
                   >
-                    {certTypes.map((t) => (
+                    {tiposCert.map((t) => (
                       <option key={t} value={t}>
                         {t}
                       </option>
