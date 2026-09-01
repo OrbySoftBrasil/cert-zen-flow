@@ -472,6 +472,45 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       updateReceber: (id, patch) =>
         setState((s) => ({ ...s, receber: s.receber.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
 
+      addPlano: (p) => {
+        const novo: Plano = { ...p, id: uid("pl") };
+        setState((s) => ({ ...s, planos: [...s.planos, novo] }));
+        return novo;
+      },
+      updatePlano: (id, patch) =>
+        setState((s) => ({ ...s, planos: s.planos.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
+      removePlano: (id) => setState((s) => ({ ...s, planos: s.planos.filter((p) => p.id !== id) })),
+
+      addContrato: (c) => {
+        const novo: Contrato = { ...c, id: uid("ct") };
+        setState((s) => ({ ...s, contratos: [novo, ...s.contratos] }));
+        return novo;
+      },
+      updateContrato: (id, patch) =>
+        setState((s) => ({ ...s, contratos: s.contratos.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
+
+      addComissao: (c) => {
+        const novo: Comissao = { ...c, id: uid("cm") };
+        setState((s) => ({ ...s, comissoes: [novo, ...s.comissoes] }));
+        return novo;
+      },
+      updateComissao: (id, patch) =>
+        setState((s) => ({ ...s, comissoes: s.comissoes.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
+
+      addRegraComissao: (r) => {
+        const nova: RegraComissao = { ...r, id: uid("rg") };
+        setState((s) => ({ ...s, regrasComissao: [...s.regrasComissao, nova] }));
+        return nova;
+      },
+      updateRegraComissao: (id, patch) =>
+        setState((s) => ({
+          ...s,
+          regrasComissao: s.regrasComissao.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+        })),
+      removeRegraComissao: (id) =>
+        setState((s) => ({ ...s, regrasComissao: s.regrasComissao.filter((r) => r.id !== id) })),
+
+
       addContador: (c) => {
         const base = seedContadores[0] as Contador;
         const novo: Contador = {
