@@ -942,9 +942,9 @@ export function SecaoEquipe() {
         {filtrados.length === 0 ? (
           <div className="p-6">
             <EmptyState
-              title="Nenhum usuário encontrado"
+              titulo="Nenhum usuário encontrado"
               descricao="Ajuste os filtros ou cadastre uma nova pessoa na equipe."
-              action={
+              acao={
                 <Btn onClick={abrirNovo}>
                   <Plus className="size-4" /> Novo usuário
                 </Btn>
