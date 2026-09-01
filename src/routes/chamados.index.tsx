@@ -62,9 +62,7 @@ function Chamados() {
           t.numero.toLowerCase().includes(q) ||
           t.cliente.toLowerCase().includes(q) ||
           t.assunto.toLowerCase().includes(q);
-        const pag = usePaginacao(lista, 25);
-
-  return (
+        return (
           matchBusca &&
           (status === "todos" || t.status === status) &&
           (categoria === "todas" || t.categoria === categoria)
@@ -85,6 +83,7 @@ function Chamados() {
     .map((c) => ({ nome: c.nome, total: tickets.filter((t) => t.categoria === c.nome).length }))
     .filter((c) => c.total > 0)
     .sort((a, b) => b.total - a.total);
+  const pag = usePaginacao(lista, 25);
   const maxCat = Math.max(...porCategoria.map((c) => c.total), 1);
 
   return (
