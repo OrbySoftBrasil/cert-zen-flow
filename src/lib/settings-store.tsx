@@ -663,6 +663,8 @@ export function seedSettings(): Settings {
       mensagemPortal: "Precisa de ajuda com seu certificado? Abra um chamado — respondemos em até 4 horas úteis.",
       formatoData: "dd/MM/yyyy",
     },
+    classificacoes: seedClassificacoes(),
+    conhecimento: seedConhecimento(),
     dados: {
       retencaoDocumentosMeses: 72,
       anonimizarAposEncerrar: false,
