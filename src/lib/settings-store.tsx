@@ -685,7 +685,10 @@ function normalizar(s: Settings): Settings {
         ...e,
         papeisNotificados: e.papeisNotificados ?? [],
         canaisNotificacao: e.canaisNotificacao ?? ["email", "push"],
-        automacoes: { notificarPapelResponsavel: true, ...e.automacoes },
+        automacoes: {
+          ...e.automacoes,
+          notificarPapelResponsavel: e.automacoes?.notificarPapelResponsavel ?? true,
+        },
       })),
     },
     papeis: (s.papeis ?? base.papeis).map((p) => ({ ...p, escopoVisibilidade: p.escopoVisibilidade ?? "todas" })),

@@ -1406,7 +1406,7 @@ export function SecaoEquipe() {
                         (x) => x.id === papeis.find((p) => p.id === rascunho.papelId)?.escopoVisibilidade,
                       )?.label ?? "Todas"
                     }`
-                  : escoposVisibilidade.find((x) => x.id === rascunho.escopoVisibilidade)?.hint
+                  : (escoposVisibilidade.find((x) => x.id === rascunho.escopoVisibilidade)?.hint ?? "")
               }
             >
               <SelectInput
