@@ -26,6 +26,8 @@ import { AppShell } from "@/components/app-shell";
 import { Chip, Panel } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
 import { conversations as seed, type Conversation } from "@/lib/mock-data";
+import { useStore } from "@/lib/store";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({
@@ -95,6 +97,7 @@ function Avatar({ nome, size = 40, canal }: { nome: string; size?: number; canal
 
 function Chat() {
   const [convs, setConvs] = useState<Conversation[]>(seed);
+  const { addTicket } = useStore();
   const [ativoId, setAtivoId] = useState(seed[0]!.id);
   const [rascunho, setRascunho] = useState("");
   const [busca, setBusca] = useState("");
@@ -277,7 +280,32 @@ function Chat() {
               </p>
             </div>
             <div className="flex items-center gap-0.5 text-muted-foreground">
-              <button title="Iniciar videochamada" className="grid size-8 place-items-center rounded-full hover:bg-muted hover:text-foreground">
+              <button
+                title="Converter conversa em chamado"
+                onClick={() => {
+                  const t = addTicket({
+                    clienteId: ativo.clienteId,
+                    assunto: ativo.intencao,
+                    categoria: "Instalação e uso",
+                    subcategoria: "Atendimento via chat",
+                    canal: ativo.canal,
+                    prioridade: ativo.sentimento === "frustrado" ? "alta" : "normal",
+                    responsavelId: "a1",
+                    descricao: ativo.resumo,
+                  });
+                  toast.success(`Chamado ${t.numero} criado`, {
+                    description: "Conversa convertida em chamado formal no helpdesk.",
+                  });
+                }}
+                className="grid size-8 place-items-center rounded-full hover:bg-muted hover:text-foreground"
+              >
+                <Ticket className="size-4" />
+              </button>
+              <button
+                title="Iniciar videochamada"
+                onClick={() => toast.info("Convite de videochamada enviado ao cliente")}
+                className="grid size-8 place-items-center rounded-full hover:bg-muted hover:text-foreground"
+              >
                 <Video className="size-4" />
               </button>
               <button title="Buscar na conversa" className="grid size-8 place-items-center rounded-full hover:bg-muted hover:text-foreground">
@@ -392,11 +420,12 @@ function Chat() {
                   O assistente está conduzindo esta conversa. Assuma para responder como humano.
                 </p>
                 <button
-                  onClick={() =>
+                  onClick={() => {
                     setConvs((prev) =>
                       prev.map((c) => (c.id === ativoId ? { ...c, status: "humano", aguardandoMin: 0 } : c)),
-                    )
-                  }
+                    );
+                    toast.success("Atendimento assumido", { description: `${ativo.cliente} agora fala com você.` });
+                  }}
                   className="flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary-deep"
                 >
                   <Hand className="size-3.5" /> Assumir
