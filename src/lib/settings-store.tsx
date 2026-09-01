@@ -57,6 +57,25 @@ export interface PapelRule {
   usuarios: number;
 }
 
+export type StatusUsuario = "ativo" | "convidado" | "suspenso";
+
+export interface UsuarioRule {
+  id: string;
+  nome: string;
+  email: string;
+  iniciais: string;
+  papelId: string;
+  unidade: string;
+  telefone: string;
+  status: StatusUsuario;
+  mfa: boolean;
+  limiteWip: number;
+  criadoEm: string;
+  ultimoAcesso: string;
+  observacao: string;
+}
+
+
 export interface SessaoAtiva {
   id: string;
   dispositivo: string;
@@ -138,6 +157,8 @@ export interface Settings {
     pausarAguardandoCliente: boolean;
   };
   papeis: PapelRule[];
+  usuarios: UsuarioRule[];
+
   seguranca: {
     mfaObrigatorio: boolean;
     metodosMfa: string[];
@@ -345,6 +366,129 @@ export function seedSettings(): Settings {
         usuarios: 38,
       },
     ],
+    usuarios: [
+      {
+        id: "u1",
+        nome: "Marina Duarte",
+        email: "marina.duarte@certus.com.br",
+        iniciais: "MD",
+        papelId: "r2",
+        unidade: "Matriz — São Paulo",
+        telefone: "(11) 98812-4410",
+        status: "ativo",
+        mfa: true,
+        limiteWip: 12,
+        criadoEm: "12/03/2024",
+        ultimoAcesso: "hoje, 08:42",
+        observacao: "AR sênior, habilitada para videoconferência.",
+      },
+      {
+        id: "u2",
+        nome: "Rafael Bastos",
+        email: "rafael.bastos@certus.com.br",
+        iniciais: "RB",
+        papelId: "r2",
+        unidade: "Matriz — São Paulo",
+        telefone: "(11) 99120-7781",
+        status: "ativo",
+        mfa: true,
+        limiteWip: 10,
+        criadoEm: "02/07/2024",
+        ultimoAcesso: "hoje, 09:15",
+        observacao: "",
+      },
+      {
+        id: "u3",
+        nome: "Carolina Ito",
+        email: "carolina.ito@certus.com.br",
+        iniciais: "CI",
+        papelId: "r2",
+        unidade: "Filial — Campinas",
+        telefone: "(19) 99871-3320",
+        status: "ativo",
+        mfa: false,
+        limiteWip: 14,
+        criadoEm: "19/09/2024",
+        ultimoAcesso: "ontem, 18:03",
+        observacao: "Foco em validação documental.",
+      },
+      {
+        id: "u4",
+        nome: "Diego Nunes",
+        email: "diego.nunes@certus.com.br",
+        iniciais: "DN",
+        papelId: "r3",
+        unidade: "Matriz — São Paulo",
+        telefone: "(11) 98450-2214",
+        status: "ativo",
+        mfa: true,
+        limiteWip: 20,
+        criadoEm: "05/01/2025",
+        ultimoAcesso: "hoje, 07:58",
+        observacao: "",
+      },
+      {
+        id: "u5",
+        nome: "Helena Prado",
+        email: "helena.prado@certus.com.br",
+        iniciais: "HP",
+        papelId: "r4",
+        unidade: "Matriz — São Paulo",
+        telefone: "(11) 97731-9002",
+        status: "ativo",
+        mfa: true,
+        limiteWip: 8,
+        criadoEm: "22/02/2024",
+        ultimoAcesso: "hoje, 09:31",
+        observacao: "Encarregada de dados (DPO).",
+      },
+      {
+        id: "u6",
+        nome: "Bruno Tavares",
+        email: "bruno.tavares@certus.com.br",
+        iniciais: "BT",
+        papelId: "r1",
+        unidade: "Matriz — São Paulo",
+        telefone: "(11) 98003-4471",
+        status: "ativo",
+        mfa: true,
+        limiteWip: 6,
+        criadoEm: "10/01/2024",
+        ultimoAcesso: "hoje, 06:40",
+        observacao: "Administrador da conta.",
+      },
+      {
+        id: "u7",
+        nome: "Letícia Amaral",
+        email: "leticia.amaral@certus.com.br",
+        iniciais: "LA",
+        papelId: "r3",
+        unidade: "Filial — Campinas",
+        telefone: "(19) 98220-5514",
+        status: "convidado",
+        mfa: false,
+        limiteWip: 15,
+        criadoEm: "28/08/2026",
+        ultimoAcesso: "convite pendente",
+        observacao: "Convite enviado, aguardando primeiro acesso.",
+      },
+      {
+        id: "u8",
+        nome: "Otávio Lins",
+        email: "otavio.lins@certus.com.br",
+        iniciais: "OL",
+        papelId: "r2",
+        unidade: "Filial — Recife",
+        telefone: "(81) 99614-2287",
+        status: "suspenso",
+        mfa: false,
+        limiteWip: 10,
+        criadoEm: "14/05/2025",
+        ultimoAcesso: "11/07/2026, 16:22",
+        observacao: "Acesso suspenso durante afastamento.",
+      },
+    ],
+
     seguranca: {
       mfaObrigatorio: true,
       metodosMfa: ["app", "sms"],
@@ -541,6 +685,44 @@ export function useSettings() {
 export function novoChecklistItem(label: string): ChecklistRule {
   return { id: id("ck"), label, obrigatorio: false, evidencia: "nenhuma" };
 }
+
+export function iniciaisDe(nome: string) {
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return "??";
+  const primeira = partes[0]![0] ?? "";
+  const ultima = partes.length > 1 ? (partes[partes.length - 1]![0] ?? "") : (partes[0]![1] ?? "");
+  return (primeira + ultima).toUpperCase();
+}
+
+export function novoUsuario(dados: {
+  nome: string;
+  email: string;
+  papelId: string;
+  unidade: string;
+  telefone: string;
+  status: StatusUsuario;
+  mfa: boolean;
+  limiteWip: number;
+  observacao: string;
+}): UsuarioRule {
+  const agora = new Date().toLocaleDateString("pt-BR");
+  return {
+    id: id("u"),
+    iniciais: iniciaisDe(dados.nome),
+    criadoEm: agora,
+    ultimoAcesso: dados.status === "convidado" ? "convite pendente" : "—",
+    ...dados,
+  };
+}
+
+export const unidadesDisponiveis = [
+  "Matriz — São Paulo",
+  "Filial — Campinas",
+  "Filial — Recife",
+  "Remoto",
+];
+
+
 
 export const permissoesDisponiveis = [
   { id: "config", label: "Configurações" },

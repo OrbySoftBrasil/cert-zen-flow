@@ -16,18 +16,23 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Btn, ConfirmDialog, Field, SelectInput, TextArea, TextInput } from "@/components/forms";
+import { Btn, ConfirmDialog, EmptyState, Field, Modal, SelectInput, TextArea, TextInput } from "@/components/forms";
 import { Grid, Rows, TagList, Toggle } from "@/components/settings-kit";
-import { Chip, Panel } from "@/components/ui-kit";
+import { Chip, Metric, Panel } from "@/components/ui-kit";
 import { agents } from "@/lib/mock-data";
 import {
+  iniciaisDe,
   novoChecklistItem,
+  novoUsuario,
   permissoesDisponiveis,
+  unidadesDisponiveis,
   useSettings,
   type ChaveApi,
   type ChecklistRule,
   type ProdutoRule,
   type StageRule,
+  type StatusUsuario,
+  type UsuarioRule,
 } from "@/lib/settings-store";
 import { cn } from "@/lib/utils";
 
@@ -698,9 +703,144 @@ export function SecaoSla() {
 
 /* ------------------------------------------------------------------- Equipe */
 
+type RascunhoUsuario = {
+  nome: string;
+  email: string;
+  papelId: string;
+  unidade: string;
+  telefone: string;
+  status: StatusUsuario;
+  mfa: boolean;
+  limiteWip: number;
+  observacao: string;
+};
+
+const rascunhoVazio = (papelId: string): RascunhoUsuario => ({
+  nome: "",
+  email: "",
+  papelId,
+  unidade: unidadesDisponiveis[0] as string,
+  telefone: "",
+  status: "convidado",
+  mfa: true,
+  limiteWip: 10,
+  observacao: "",
+});
+
+const statusTone: Record<StatusUsuario, "blue" | "outline" | "alert" | "deep" | "neutral"> = {
+  ativo: "blue",
+  convidado: "outline",
+  suspenso: "alert",
+};
+
+const statusLabel: Record<StatusUsuario, string> = {
+  ativo: "Ativo",
+  convidado: "Convite pendente",
+  suspenso: "Suspenso",
+};
+
 export function SecaoEquipe() {
   const { settings, replace } = useSettings();
   const papeis = settings.papeis;
+  const usuarios = settings.usuarios;
+
+  const [busca, setBusca] = useState("");
+  const [filtroPapel, setFiltroPapel] = useState("todos");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [editando, setEditando] = useState<string | "novo" | null>(null);
+  const [rascunho, setRascunho] = useState<RascunhoUsuario>(rascunhoVazio(papeis[0]?.id ?? "r2"));
+  const [remover, setRemover] = useState<UsuarioRule | null>(null);
+  const [novoPapel, setNovoPapel] = useState(false);
+  const [papelDraft, setPapelDraft] = useState({ nome: "", descricao: "" });
+  const [removerPapel, setRemoverPapel] = useState<string | null>(null);
+
+  const nomePapel = (id: string) => papeis.find((p) => p.id === id)?.nome ?? "Sem papel";
+  const contarUsuarios = (papelId: string) =>
+    usuarios.filter((u) => u.papelId === papelId && u.status !== "suspenso").length;
+
+  const setUsuarios = (lista: UsuarioRule[]) => replace("usuarios", lista);
+
+  const filtrados = usuarios.filter((u) => {
+    const texto = `${u.nome} ${u.email} ${u.unidade}`.toLowerCase();
+    if (busca && !texto.includes(busca.toLowerCase())) return false;
+    if (filtroPapel !== "todos" && u.papelId !== filtroPapel) return false;
+    if (filtroStatus !== "todos" && u.status !== filtroStatus) return false;
+    return true;
+  });
+
+  const abrirNovo = () => {
+    setRascunho(rascunhoVazio(papeis[0]?.id ?? "r2"));
+    setEditando("novo");
+  };
+
+  const abrirEdicao = (u: UsuarioRule) => {
+    setRascunho({
+      nome: u.nome,
+      email: u.email,
+      papelId: u.papelId,
+      unidade: u.unidade,
+      telefone: u.telefone,
+      status: u.status,
+      mfa: u.mfa,
+      limiteWip: u.limiteWip,
+      observacao: u.observacao,
+    });
+    setEditando(u.id);
+  };
+
+  const salvarUsuario = () => {
+    if (!rascunho.nome.trim() || !rascunho.email.trim()) {
+      toast.error("Informe nome e e-mail corporativo.");
+      return;
+    }
+    const duplicado = usuarios.some(
+      (u) => u.email.toLowerCase() === rascunho.email.trim().toLowerCase() && u.id !== editando,
+    );
+    if (duplicado) {
+      toast.error("Já existe um usuário com este e-mail.");
+      return;
+    }
+    if (settings.seguranca.mfaObrigatorio && !rascunho.mfa && rascunho.status === "ativo") {
+      toast.error("A política da AC exige MFA para usuários ativos.");
+      return;
+    }
+
+    if (editando === "novo") {
+      setUsuarios([...usuarios, novoUsuario({ ...rascunho, email: rascunho.email.trim() })]);
+      toast.success("Usuário criado", {
+        description:
+          rascunho.status === "convidado"
+            ? `Convite enviado para ${rascunho.email.trim()}.`
+            : `${rascunho.nome} já pode acessar o sistema.`,
+      });
+    } else {
+      setUsuarios(
+        usuarios.map((u) =>
+          u.id === editando
+            ? { ...u, ...rascunho, email: rascunho.email.trim(), iniciais: iniciaisDe(rascunho.nome) }
+            : u,
+        ),
+      );
+      toast.success("Usuário atualizado", { description: "Alteração registrada na trilha de auditoria." });
+    }
+    setEditando(null);
+  };
+
+  const alternarStatus = (u: UsuarioRule) => {
+    const novo: StatusUsuario = u.status === "suspenso" ? "ativo" : "suspenso";
+    setUsuarios(usuarios.map((x) => (x.id === u.id ? { ...x, status: novo } : x)));
+    toast.success(novo === "ativo" ? "Acesso reativado" : "Acesso suspenso", {
+      description: `${u.nome} — sessões encerradas imediatamente.`,
+    });
+  };
+
+  const reenviarConvite = (u: UsuarioRule) =>
+    toast.success("Convite reenviado", { description: `Link válido por 24h enviado para ${u.email}.` });
+
+  const resetarMfa = (u: UsuarioRule) => {
+    setUsuarios(usuarios.map((x) => (x.id === u.id ? { ...x, mfa: false } : x)));
+    toast.success("MFA redefinido", { description: `${u.nome} fará novo cadastro do app autenticador no login.` });
+  };
 
   const togglePerm = (papelId: string, perm: string) =>
     replace(
@@ -717,11 +857,151 @@ export function SecaoEquipe() {
       ),
     );
 
+  const criarPapel = () => {
+    if (!papelDraft.nome.trim()) {
+      toast.error("Dê um nome ao papel.");
+      return;
+    }
+    replace("papeis", [
+      ...papeis,
+      {
+        id: `r${Math.random().toString(36).slice(2, 7)}`,
+        nome: papelDraft.nome.trim(),
+        descricao: papelDraft.descricao.trim() || "Papel personalizado.",
+        permissoes: [],
+        usuarios: 0,
+      },
+    ]);
+    setPapelDraft({ nome: "", descricao: "" });
+    setNovoPapel(false);
+    toast.success("Papel criado", { description: "Marque as permissões na matriz de acesso." });
+  };
+
+  const usuarioEditado = editando && editando !== "novo" ? usuarios.find((u) => u.id === editando) : null;
+
   return (
     <div className="space-y-4">
-      <Panel title="Papéis e permissões" hint="Matriz de acesso aplicada a todos os módulos." bodyClassName="p-0">
+      <div className="flex flex-wrap rounded-lg border border-border bg-card">
+        <Metric label="Usuários" value={String(usuarios.length)} hint="cadastrados" />
+        <Metric label="Ativos" value={String(usuarios.filter((u) => u.status === "ativo").length)} hint="com acesso" />
+        <Metric
+          label="Convites pendentes"
+          value={String(usuarios.filter((u) => u.status === "convidado").length)}
+          hint="aguardando 1º acesso"
+        />
+        <Metric
+          label="Sem MFA"
+          value={String(usuarios.filter((u) => !u.mfa).length)}
+          hint="risco de conformidade"
+        />
+      </div>
+
+      <Panel
+        title="Usuários"
+        hint="Crie, edite, suspenda e defina papel, unidade e limite de trabalho de cada pessoa."
+        bodyClassName="p-0"
+        actions={
+          <Btn onClick={abrirNovo}>
+            <Plus className="size-4" /> Novo usuário
+          </Btn>
+        }
+      >
+        <div className="flex flex-wrap gap-2 border-b border-border p-3">
+          <TextInput
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por nome, e-mail ou unidade"
+            className="h-9 min-w-[220px] flex-1"
+          />
+          <SelectInput
+            value={filtroPapel}
+            onChange={(e) => setFiltroPapel(e.target.value)}
+            className="h-9 w-auto"
+            aria-label="Filtrar por papel"
+          >
+            <option value="todos">Todos os papéis</option>
+            {papeis.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nome}
+              </option>
+            ))}
+          </SelectInput>
+          <SelectInput
+            value={filtroStatus}
+            onChange={(e) => setFiltroStatus(e.target.value)}
+            className="h-9 w-auto"
+            aria-label="Filtrar por status"
+          >
+            <option value="todos">Todos os status</option>
+            <option value="ativo">Ativos</option>
+            <option value="convidado">Convite pendente</option>
+            <option value="suspenso">Suspensos</option>
+          </SelectInput>
+        </div>
+
+        {filtrados.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              titulo="Nenhum usuário encontrado"
+              descricao="Ajuste os filtros ou cadastre uma nova pessoa na equipe."
+              acao={
+                <Btn onClick={abrirNovo}>
+                  <Plus className="size-4" /> Novo usuário
+                </Btn>
+              }
+            />
+          </div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {filtrados.map((u) => (
+              <li key={u.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-xs font-semibold text-primary-deep">
+                  {u.iniciais}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{u.nome}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    {u.email} · {u.unidade}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Chip tone="outline">{nomePapel(u.papelId)}</Chip>
+                  <Chip tone={statusTone[u.status]}>{statusLabel[u.status]}</Chip>
+                  {u.mfa ? (
+                    <Chip tone="blue">MFA</Chip>
+                  ) : (
+                    <Chip tone="alert">Sem MFA</Chip>
+                  )}
+                </div>
+                <div className="ml-auto flex items-center gap-1.5">
+                  <span className="hidden text-[11px] text-muted-foreground lg:block">
+                    Último acesso: {u.ultimoAcesso}
+                  </span>
+                  <Btn variant="ghost" onClick={() => abrirEdicao(u)}>
+                    Editar
+                  </Btn>
+                  <Btn variant="ghost" onClick={() => setRemover(u)}>
+                    <Trash2 className="size-4" />
+                  </Btn>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+
+      <Panel
+        title="Papéis e permissões"
+        hint="Matriz de acesso aplicada a todos os módulos."
+        bodyClassName="p-0"
+        actions={
+          <Btn variant="ghost" onClick={() => setNovoPapel(true)}>
+            <Plus className="size-4" /> Novo papel
+          </Btn>
+        }
+      >
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] text-sm">
+          <table className="w-full min-w-[880px] text-sm">
             <thead className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="px-4 py-2 font-medium">Papel</th>
@@ -731,6 +1011,7 @@ export function SecaoEquipe() {
                   </th>
                 ))}
                 <th className="px-4 py-2 text-right font-medium">Usuários</th>
+                <th className="px-2 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -760,7 +1041,17 @@ export function SecaoEquipe() {
                       </td>
                     );
                   })}
-                  <td className="px-4 py-2 text-right tabular">{papel.usuarios}</td>
+                  <td className="px-4 py-2 text-right tabular">{contarUsuarios(papel.id)}</td>
+                  <td className="px-2 py-2 text-right">
+                    <button
+                      type="button"
+                      aria-label={`Remover papel ${papel.nome}`}
+                      onClick={() => setRemoverPapel(papel.id)}
+                      className="text-muted-foreground transition-colors hover:text-alert"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -768,28 +1059,214 @@ export function SecaoEquipe() {
         </div>
       </Panel>
 
-      <Panel title="Equipe ativa" hint="Usuários internos com acesso ao sistema." bodyClassName="p-0">
-        <ul className="divide-y divide-border">
-          {agents.map((a) => (
-            <li key={a.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
-              <span className="grid size-8 place-items-center rounded-full bg-primary-soft text-xs font-semibold text-primary-deep">
-                {a.iniciais}
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{a.nome}</p>
-                <p className="text-[11px] text-muted-foreground">{a.papel}</p>
+      <Modal
+        open={editando !== null}
+        onClose={() => setEditando(null)}
+        title={editando === "novo" ? "Novo usuário" : `Editar ${usuarioEditado?.nome ?? "usuário"}`}
+        hint="Papel, unidade e políticas de acesso valem imediatamente após salvar."
+        width="max-w-2xl"
+        footer={
+          <>
+            {usuarioEditado && (
+              <div className="mr-auto flex flex-wrap gap-2">
+                {usuarioEditado.status === "convidado" && (
+                  <Btn variant="ghost" onClick={() => reenviarConvite(usuarioEditado)}>
+                    Reenviar convite
+                  </Btn>
+                )}
+                <Btn variant="ghost" onClick={() => resetarMfa(usuarioEditado)}>
+                  Redefinir MFA
+                </Btn>
+                <Btn
+                  variant="ghost"
+                  onClick={() => {
+                    alternarStatus(usuarioEditado);
+                    setEditando(null);
+                  }}
+                >
+                  {usuarioEditado.status === "suspenso" ? "Reativar acesso" : "Suspender acesso"}
+                </Btn>
               </div>
-              <div className="ml-auto flex items-center gap-2">
-                <Chip tone="blue">MFA ativo</Chip>
-                <Chip tone="outline">{a.emissoes} emissões</Chip>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </Panel>
+            )}
+            <Btn variant="ghost" onClick={() => setEditando(null)}>
+              Cancelar
+            </Btn>
+            <Btn onClick={salvarUsuario}>{editando === "novo" ? "Criar usuário" : "Salvar alterações"}</Btn>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <Grid>
+            <Field label="Nome completo">
+              <TextInput
+                value={rascunho.nome}
+                onChange={(e) => setRascunho({ ...rascunho, nome: e.target.value })}
+                placeholder="Ex.: Ana Ribeiro"
+              />
+            </Field>
+            <Field label="E-mail corporativo">
+              <TextInput
+                value={rascunho.email}
+                onChange={(e) => setRascunho({ ...rascunho, email: e.target.value })}
+                placeholder="nome@certus.com.br"
+              />
+            </Field>
+            <Field label="Papel">
+              <SelectInput
+                value={rascunho.papelId}
+                onChange={(e) => setRascunho({ ...rascunho, papelId: e.target.value })}
+              >
+                {papeis.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nome}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+            <Field label="Unidade">
+              <SelectInput
+                value={rascunho.unidade}
+                onChange={(e) => setRascunho({ ...rascunho, unidade: e.target.value })}
+              >
+                {unidadesDisponiveis.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+            <Field label="Telefone">
+              <TextInput
+                value={rascunho.telefone}
+                onChange={(e) => setRascunho({ ...rascunho, telefone: e.target.value })}
+                placeholder="(11) 90000-0000"
+              />
+            </Field>
+            <Field label="Status inicial">
+              <SelectInput
+                value={rascunho.status}
+                onChange={(e) => setRascunho({ ...rascunho, status: e.target.value as StatusUsuario })}
+              >
+                <option value="convidado">Convite pendente</option>
+                <option value="ativo">Ativo</option>
+                <option value="suspenso">Suspenso</option>
+              </SelectInput>
+            </Field>
+            <Field label="Limite de solicitações simultâneas (WIP)">
+              <TextInput
+                type="number"
+                min={1}
+                value={rascunho.limiteWip}
+                onChange={(e) => setRascunho({ ...rascunho, limiteWip: Number(e.target.value) || 1 })}
+              />
+            </Field>
+          </Grid>
+
+          <Field label="Observações internas">
+            <TextArea
+              rows={2}
+              value={rascunho.observacao}
+              onChange={(e) => setRascunho({ ...rascunho, observacao: e.target.value })}
+              placeholder="Contexto de atuação, restrições ou período de afastamento."
+            />
+          </Field>
+
+          <div className="rounded-md border border-border px-3">
+            <Toggle
+              checked={rascunho.mfa}
+              onChange={(v) => setRascunho({ ...rascunho, mfa: v })}
+              label="MFA configurado"
+              hint={
+                settings.seguranca.mfaObrigatorio
+                  ? "A política atual exige MFA para usuários ativos."
+                  : "Recomendado para todos os perfis com acesso a emissão."
+              }
+            />
+          </div>
+
+          <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">Permissões herdadas do papel</p>
+            <p className="mt-1">
+              {(papeis.find((p) => p.id === rascunho.papelId)?.permissoes ?? [])
+                .map((perm) => permissoesDisponiveis.find((x) => x.id === perm)?.label ?? perm)
+                .join(" · ") || "Nenhuma permissão marcada para este papel."}
+            </p>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={novoPapel}
+        onClose={() => setNovoPapel(false)}
+        title="Novo papel"
+        hint="Depois marque as permissões diretamente na matriz."
+        width="max-w-md"
+        footer={
+          <>
+            <Btn variant="ghost" onClick={() => setNovoPapel(false)}>
+              Cancelar
+            </Btn>
+            <Btn onClick={criarPapel}>Criar papel</Btn>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <Field label="Nome do papel">
+            <TextInput
+              value={papelDraft.nome}
+              onChange={(e) => setPapelDraft({ ...papelDraft, nome: e.target.value })}
+              placeholder="Ex.: Supervisor de emissão"
+            />
+          </Field>
+          <Field label="Descrição">
+            <TextInput
+              value={papelDraft.descricao}
+              onChange={(e) => setPapelDraft({ ...papelDraft, descricao: e.target.value })}
+              placeholder="O que este papel pode fazer"
+            />
+          </Field>
+        </div>
+      </Modal>
+
+      <ConfirmDialog
+        open={remover !== null}
+        title={`Remover ${remover?.nome ?? "usuário"}?`}
+        descricao="O acesso é revogado imediatamente e as solicitações em aberto voltam para a fila."
+        confirmLabel="Remover usuário"
+        destructive
+        onCancel={() => setRemover(null)}
+        onConfirm={() => {
+          setUsuarios(usuarios.filter((u) => u.id !== remover?.id));
+          toast.success("Usuário removido", { description: "Registro mantido na trilha de auditoria." });
+          setRemover(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={removerPapel !== null}
+        title="Remover papel?"
+        descricao="Usuários vinculados precisarão ser realocados em outro papel."
+        confirmLabel="Remover papel"
+        destructive
+        onCancel={() => setRemoverPapel(null)}
+        onConfirm={() => {
+          const vinculados = usuarios.filter((u) => u.papelId === removerPapel).length;
+          if (vinculados > 0) {
+            toast.error("Papel em uso", {
+              description: `${vinculados} usuário(s) ainda estão neste papel. Realoque antes de remover.`,
+            });
+            setRemoverPapel(null);
+            return;
+          }
+          replace("papeis", papeis.filter((p) => p.id !== removerPapel));
+          toast.success("Papel removido");
+          setRemoverPapel(null);
+        }}
+      />
     </div>
   );
 }
+
 
 /* ---------------------------------------------------------------- Segurança */
 
