@@ -921,6 +921,7 @@ type RascunhoUsuario = {
   status: StatusUsuario;
   mfa: boolean;
   limiteWip: number;
+  escopoVisibilidade: EscopoVisibilidade | "herdado";
   observacao: string;
 };
 
@@ -933,6 +934,7 @@ const rascunhoVazio = (papelId: string): RascunhoUsuario => ({
   status: "convidado",
   mfa: true,
   limiteWip: 10,
+  escopoVisibilidade: "herdado",
   observacao: "",
 });
 
@@ -992,6 +994,7 @@ export function SecaoEquipe() {
       status: u.status,
       mfa: u.mfa,
       limiteWip: u.limiteWip,
+      escopoVisibilidade: u.escopoVisibilidade ?? "herdado",
       observacao: u.observacao,
     });
     setEditando(u.id);
@@ -1079,6 +1082,7 @@ export function SecaoEquipe() {
         descricao: papelDraft.descricao.trim() || "Papel personalizado.",
         permissoes: [],
         usuarios: 0,
+        escopoVisibilidade: "proprias",
       },
     ]);
     setPapelDraft({ nome: "", descricao: "" });
@@ -1219,6 +1223,7 @@ export function SecaoEquipe() {
                     {p.label}
                   </th>
                 ))}
+                <th className="px-4 py-2 font-medium">Visibilidade da fila</th>
                 <th className="px-4 py-2 text-right font-medium">Usuários</th>
                 <th className="px-2 py-2" />
               </tr>
@@ -1250,6 +1255,29 @@ export function SecaoEquipe() {
                       </td>
                     );
                   })}
+                  <td className="px-4 py-2">
+                    <SelectInput
+                      aria-label={`Visibilidade do papel ${papel.nome}`}
+                      value={papel.escopoVisibilidade}
+                      onChange={(e) =>
+                        replace(
+                          "papeis",
+                          papeis.map((x) =>
+                            x.id === papel.id
+                              ? { ...x, escopoVisibilidade: e.target.value as EscopoVisibilidade }
+                              : x,
+                          ) as PapelRule[],
+                        )
+                      }
+                      className="h-8 w-40"
+                    >
+                      {escoposVisibilidade.map((esc) => (
+                        <option key={esc.id} value={esc.id}>
+                          {esc.label}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </td>
                   <td className="px-4 py-2 text-right tabular">{contarUsuarios(papel.id)}</td>
                   <td className="px-2 py-2 text-right">
                     <button
@@ -1368,6 +1396,35 @@ export function SecaoEquipe() {
                 value={rascunho.limiteWip}
                 onChange={(e) => setRascunho({ ...rascunho, limiteWip: Number(e.target.value) || 1 })}
               />
+            </Field>
+            <Field
+              label="Visibilidade das solicitações"
+              hint={
+                rascunho.escopoVisibilidade === "herdado"
+                  ? `Herda do papel: ${
+                      escoposVisibilidade.find(
+                        (x) => x.id === papeis.find((p) => p.id === rascunho.papelId)?.escopoVisibilidade,
+                      )?.label ?? "Todas"
+                    }`
+                  : escoposVisibilidade.find((x) => x.id === rascunho.escopoVisibilidade)?.hint
+              }
+            >
+              <SelectInput
+                value={rascunho.escopoVisibilidade}
+                onChange={(e) =>
+                  setRascunho({
+                    ...rascunho,
+                    escopoVisibilidade: e.target.value as EscopoVisibilidade | "herdado",
+                  })
+                }
+              >
+                <option value="herdado">Herdar do papel</option>
+                {escoposVisibilidade.map((esc) => (
+                  <option key={esc.id} value={esc.id}>
+                    {esc.label}
+                  </option>
+                ))}
+              </SelectInput>
             </Field>
           </Grid>
 
