@@ -57,6 +57,25 @@ export interface PapelRule {
   usuarios: number;
 }
 
+export type StatusUsuario = "ativo" | "convidado" | "suspenso";
+
+export interface UsuarioRule {
+  id: string;
+  nome: string;
+  email: string;
+  iniciais: string;
+  papelId: string;
+  unidade: string;
+  telefone: string;
+  status: StatusUsuario;
+  mfa: boolean;
+  limiteWip: number;
+  criadoEm: string;
+  ultimoAcesso: string;
+  observacao: string;
+}
+
+
 export interface SessaoAtiva {
   id: string;
   dispositivo: string;
