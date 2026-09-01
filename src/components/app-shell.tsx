@@ -20,6 +20,9 @@ import {
   Menu,
   Settings,
   LogOut,
+  Moon,
+  Sun,
+  ShieldAlert,
   X,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -36,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { clients, requests } from "@/lib/mock-data";
 import { SettingsDialog } from "@/components/settings-workspace";
 import { useAuth } from "@/lib/auth-store";
+import { useTema } from "@/lib/theme";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -50,6 +54,7 @@ const nav = [
   { to: "/conformidade", label: "Conformidade", icon: ShieldCheck },
   { to: "/mobile", label: "App executivo", icon: Smartphone },
   { to: "/mobile-contador", label: "App do contador", icon: Smartphone },
+  { to: "/admin", label: "Admin Center", icon: ShieldAlert },
 ] as const;
 
 export function AppShell({
@@ -70,6 +75,7 @@ export function AppShell({
   const [configOpen, setConfigOpen] = useState(false);
   const navigate = useNavigate();
   const { sessao, sair } = useAuth();
+  const { efetivo, alternar } = useTema();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
@@ -174,6 +180,13 @@ export function AppShell({
               className="hidden size-9 place-items-center sm:grid rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {dense ? <Rows4 className="size-4" /> : <Rows3 className="size-4" />}
+            </button>
+            <button
+              onClick={alternar}
+              title={efetivo === "escuro" ? "Tema claro" : "Tema escuro"}
+              className="grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              {efetivo === "escuro" ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </button>
             <button className="relative grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
               <Bell className="size-4" />

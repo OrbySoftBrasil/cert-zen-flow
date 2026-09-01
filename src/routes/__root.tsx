@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AppStoreProvider } from "@/lib/store";
 import { SettingsProvider } from "@/lib/settings-store";
 import { AuthProvider } from "@/lib/auth-store";
+import { ThemeProvider } from "@/lib/theme";
 
 function NotFoundComponent() {
   return (
@@ -139,6 +140,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
       <AuthProvider>
       <AppStoreProvider>
         <SettingsProvider>
@@ -148,6 +150,7 @@ function RootComponent() {
         </SettingsProvider>
       </AppStoreProvider>
       </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
