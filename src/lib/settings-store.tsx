@@ -157,6 +157,8 @@ export interface Settings {
     pausarAguardandoCliente: boolean;
   };
   papeis: PapelRule[];
+  usuarios: UsuarioRule[];
+
   seguranca: {
     mfaObrigatorio: boolean;
     metodosMfa: string[];
