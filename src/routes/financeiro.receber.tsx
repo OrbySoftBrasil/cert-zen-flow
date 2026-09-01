@@ -4,11 +4,15 @@ import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { AppShell } from "@/components/app-shell";
+import { NovaCobrancaButton } from "@/components/finance-dialogs";
+import { ConfirmDialog } from "@/components/forms";
+import { useStore } from "@/lib/store";
+import { toast } from "sonner";
 import { ExportMenu } from "@/components/export-menu";
 import { FinanceTabs } from "@/components/finance-tabs";
 import { Chip, Metric, Panel } from "@/components/ui-kit";
 import type { Dataset } from "@/lib/export";
-import { aging, dataBR, diasAte, receber } from "@/lib/finance-data";
+import { aging, dataBR, diasAte } from "@/lib/finance-data";
 import { brl } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -45,9 +49,11 @@ const regua = [
 ];
 
 function Receber() {
+  const { receber, updateReceber } = useStore();
   const [status, setStatus] = useState("todos");
-  const [baixados, setBaixados] = useState<string[]>([]);
   const [cobrados, setCobrados] = useState<string[]>([]);
+  const [confirmar, setConfirmar] = useState<{ id: string; cliente: string; valor: number } | null>(null);
+  const baixados = receber.filter((r) => r.status === "recebido").map((r) => r.id);
 
   const lista = receber.filter((r) => status === "todos" || (baixados.includes(r.id) ? "recebido" : r.status) === status);
   const emAberto = receber.filter((r) => r.status !== "recebido" && !baixados.includes(r.id));
@@ -80,9 +86,7 @@ function Receber() {
       actions={
         <>
           <ExportMenu datasets={datasets} base="certus-a-receber" label="Relatórios" />
-          <button className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep">
-            Emitir cobrança
-          </button>
+          <NovaCobrancaButton />
         </>
       }
     >
@@ -210,13 +214,18 @@ function Receber() {
                           ) : (
                             <div className="flex gap-1.5">
                               <button
-                                onClick={() => setBaixados((v) => [...v, r.id])}
+                                onClick={() => setConfirmar({ id: r.id, cliente: r.cliente, valor: r.valor })}
                                 className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
                               >
                                 Baixar
                               </button>
                               <button
-                                onClick={() => setCobrados((v) => [...v, r.id])}
+                                onClick={() => {
+                                  setCobrados((v) => [...v, r.id]);
+                                  toast.success("Cobrança enviada", {
+                                    description: `${r.cliente} · link de pagamento por WhatsApp e e-mail`,
+                                  });
+                                }}
                                 className={cn(
                                   "rounded-md px-2.5 py-1 text-xs transition-colors",
                                   cobrados.includes(r.id)
@@ -237,6 +246,19 @@ function Receber() {
           </div>
         </Panel>
       </div>
+      <ConfirmDialog
+        open={!!confirmar}
+        title="Dar baixa no título"
+        {...(confirmar ? { descricao: `${confirmar.cliente} · ${brl(confirmar.valor)}` } : {})}
+        confirmLabel="Confirmar baixa"
+        onCancel={() => setConfirmar(null)}
+        onConfirm={() => {
+          if (!confirmar) return;
+          updateReceber(confirmar.id, { status: "recebido" });
+          toast.success("Título liquidado", { description: `${confirmar.cliente} · ${brl(confirmar.valor)}` });
+          setConfirmar(null);
+        }}
+      />
     </AppShell>
   );
 }

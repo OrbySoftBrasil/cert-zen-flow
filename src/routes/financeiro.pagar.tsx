@@ -3,11 +3,15 @@ import { AlertTriangle, CalendarClock, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { NovaDespesaButton } from "@/components/finance-dialogs";
+import { ConfirmDialog } from "@/components/forms";
+import { useStore } from "@/lib/store";
+import { toast } from "sonner";
 import { ExportMenu } from "@/components/export-menu";
 import { FinanceTabs } from "@/components/finance-tabs";
 import { Chip, Metric, Panel } from "@/components/ui-kit";
 import type { Dataset } from "@/lib/export";
-import { dataBR, diasAte, pagar } from "@/lib/finance-data";
+import { dataBR, diasAte,  } from "@/lib/finance-data";
 import { brl } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -36,9 +40,20 @@ const statusTone = {
 } as const;
 
 function Pagar() {
+  const { pagar, updatePagar } = useStore();
   const [status, setStatus] = useState("todos");
-  const [pagos, setPagos] = useState<string[]>([]);
   const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [confirmar, setConfirmar] = useState<{ ids: string[]; total: number } | null>(null);
+  const pagos = pagar.filter((p) => p.status === "pago").map((p) => p.id);
+
+  function liquidar(ids: string[]) {
+    ids.forEach((id) => updatePagar(id, { status: "pago", aprovacao: "aprovado" }));
+    toast.success(ids.length > 1 ? `${ids.length} títulos liquidados` : "Título liquidado", {
+      description: "Movimento lançado no caixa e na trilha de auditoria.",
+    });
+    setSelecionados([]);
+    setConfirmar(null);
+  }
 
   const lista = pagar.filter((p) => status === "todos" || (pagos.includes(p.id) ? "pago" : p.status) === status);
   const total = pagar.filter((p) => p.status !== "pago" && !pagos.includes(p.id)).reduce((s, p) => s + p.valor, 0);
@@ -74,9 +89,7 @@ function Pagar() {
       actions={
         <>
           <ExportMenu datasets={datasets} base="certus-a-pagar" label="Relatórios" />
-          <button className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep">
-            Nova despesa
-          </button>
+          <NovaDespesaButton />
         </>
       }
     >
@@ -97,10 +110,7 @@ function Pagar() {
               {selecionados.length} título(s) selecionado(s) · {brl(selecionadoTotal)}
             </span>
             <button
-              onClick={() => {
-                setPagos((v) => [...new Set([...v, ...selecionados])]);
-                setSelecionados([]);
-              }}
+              onClick={() => setConfirmar({ ids: selecionados, total: selecionadoTotal })}
               className="ml-auto rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary-deep"
             >
               Gerar lote de pagamento
@@ -202,7 +212,7 @@ function Pagar() {
                             <span className="text-xs text-muted-foreground">liquidado</span>
                           ) : (
                             <button
-                              onClick={() => setPagos((v) => [...v, p.id])}
+                              onClick={() => setConfirmar({ ids: [p.id], total: p.valor })}
                               className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
                             >
                               Pagar
@@ -245,6 +255,14 @@ function Pagar() {
           </div>
         </Panel>
       </div>
+      <ConfirmDialog
+        open={!!confirmar}
+        title={confirmar && confirmar.ids.length > 1 ? "Gerar lote de pagamento" : "Liquidar título"}
+        {...(confirmar ? { descricao: `${confirmar.ids.length} título(s) · ${brl(confirmar.total)}` } : {})}
+        confirmLabel="Confirmar pagamento"
+        onCancel={() => setConfirmar(null)}
+        onConfirm={() => confirmar && liquidar(confirmar.ids)}
+      />
     </AppShell>
   );
 }
