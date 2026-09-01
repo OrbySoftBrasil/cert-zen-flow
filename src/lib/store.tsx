@@ -107,6 +107,8 @@ export interface NovoChamadoInput {
   responsavelId: string;
   descricao: string;
   contato?: string;
+  clienteNome?: string;
+  tags?: string[];
 }
 
 export interface NovoAgendamentoInput {
@@ -117,6 +119,7 @@ export interface NovoAgendamentoInput {
   hora: string;
   duracaoMin: number;
   sala: string;
+  clienteNome?: string;
 }
 
 interface Actions {
@@ -367,7 +370,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         const novo: Appointment = {
           id: uid("ag"),
           clienteId: input.clienteId,
-          cliente: cliente?.nome ?? "Cliente",
+          cliente: input.clienteNome ?? cliente?.nome ?? "Cliente",
           tipo: input.tipo,
           agenteId: input.agenteId,
           dia: input.dia,
@@ -378,7 +381,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         };
         setState((s) => ({
           ...s,
-          appointments: [...s.appointments, { ...novo, cliente: s.clients.find((c) => c.id === input.clienteId)?.nome ?? novo.cliente }],
+          appointments: [...s.appointments, { ...novo, cliente: input.clienteNome ?? s.clients.find((c) => c.id === input.clienteId)?.nome ?? novo.cliente }],
         }));
         return novo;
       },
@@ -392,7 +395,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           id: uid("t"),
           numero: `CH-${Math.floor(4000 + Math.random() * 5999)}`,
           clienteId: input.clienteId,
-          cliente: cliente?.nome ?? "Cliente",
+          cliente: input.clienteNome ?? cliente?.nome ?? "Cliente",
           contato: input.contato ?? cliente?.email ?? "",
           assunto: input.assunto,
           categoria: input.categoria,
@@ -404,14 +407,14 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           abertoEm: agora(),
           atualizadoEm: agora(),
           slaRestanteHoras: input.prioridade === "critica" ? 4 : input.prioridade === "alta" ? 8 : 24,
-          tags: [],
+          tags: input.tags ?? [],
           mensagens: [
-            { id: uid("m"), autor: cliente?.nome ?? "Cliente", papel: "cliente", quando: agora(), texto: input.descricao },
+            { id: uid("m"), autor: input.clienteNome ?? cliente?.nome ?? "Cliente", papel: "cliente", quando: agora(), texto: input.descricao },
           ],
         };
         setState((s) => ({
           ...s,
-          tickets: [{ ...novo, cliente: s.clients.find((c) => c.id === input.clienteId)?.nome ?? novo.cliente }, ...s.tickets],
+          tickets: [{ ...novo, cliente: input.clienteNome ?? s.clients.find((c) => c.id === input.clienteId)?.nome ?? novo.cliente }, ...s.tickets],
         }));
         return novo;
       },
