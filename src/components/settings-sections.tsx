@@ -475,8 +475,39 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
 export function SecaoFluxo() {
   const { settings, update, updateEtapa, patchEtapas } = useSettings();
   const etapas = settings.fluxo.etapas;
-  const [sel, setSel] = useState(etapas[1]?.id ?? etapas[0]?.id);
+  const [sel, setSel] = useState<string | undefined>(etapas[1]?.id ?? etapas[0]?.id);
   const atual = etapas.find((e) => e.id === sel) ?? etapas[0];
+  const [criando, setCriando] = useState(false);
+  const [novaEtapaDraft, setNovaEtapaDraft] = useState({ nome: "", papel: "Agente de Registro", posicao: "fim" });
+
+  const criarEtapa = () => {
+    const nome = novaEtapaDraft.nome.trim();
+    if (!nome) {
+      toast.error("Dê um nome à etapa.");
+      return;
+    }
+    const etapa = novaEtapa(nome, novaEtapaDraft.papel);
+    patchEtapas((l) => {
+      const idx = l.findIndex((e) => e.id === novaEtapaDraft.posicao);
+      if (idx === -1) return [...l, etapa];
+      return [...l.slice(0, idx + 1), etapa, ...l.slice(idx + 1)];
+    });
+    setSel(etapa.id);
+    setCriando(false);
+    setNovaEtapaDraft({ nome: "", papel: "Agente de Registro", posicao: "fim" });
+    toast.success("Etapa adicionada à esteira", { description: "Configure checklist, gates e avisos abaixo." });
+  };
+
+  const moverEtapa = (etapaId: string, dir: -1 | 1) =>
+    patchEtapas((l) => {
+      const i = l.findIndex((e) => e.id === etapaId);
+      const alvo = i + dir;
+      if (i === -1 || alvo < 0 || alvo >= l.length) return l;
+      const copia = [...l];
+      const [it] = copia.splice(i, 1);
+      if (it) copia.splice(alvo, 0, it);
+      return copia;
+    });
 
   return (
     <div className="space-y-4">
@@ -526,8 +557,13 @@ export function SecaoFluxo() {
 
       <Panel
         title="Desenho do fluxo"
-        hint="Selecione uma etapa para personalizar checklist, requisitos de avanço e automações."
+        hint="Selecione uma etapa para personalizar checklist, requisitos de avanço, avisos e automações."
         bodyClassName="p-0"
+        actions={
+          <Btn variant="ghost" onClick={() => setCriando(true)}>
+            <Plus className="size-4" /> Nova etapa
+          </Btn>
+        }
       >
         <div className="flex flex-wrap gap-1.5 border-b border-border p-3">
           {etapas.map((e, i) => (
@@ -563,6 +599,40 @@ export function SecaoFluxo() {
                 </Chip>
               </div>
               <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label="Mover etapa para trás"
+                    disabled={etapas.findIndex((e) => e.id === atual.id) === 0}
+                    onClick={() => moverEtapa(atual.id, -1)}
+                    className="grid size-7 place-items-center rounded border border-border text-muted-foreground hover:text-foreground disabled:opacity-30"
+                  >
+                    <ArrowLeft className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Mover etapa para frente"
+                    disabled={etapas.findIndex((e) => e.id === atual.id) === etapas.length - 1}
+                    onClick={() => moverEtapa(atual.id, 1)}
+                    className="grid size-7 place-items-center rounded border border-border text-muted-foreground hover:text-foreground disabled:opacity-30"
+                  >
+                    <ArrowRight className="size-3.5" />
+                  </button>
+                  {atual.removivel && (
+                    <button
+                      type="button"
+                      aria-label="Remover etapa"
+                      onClick={() => {
+                        patchEtapas((l) => l.filter((e) => e.id !== atual.id));
+                        setSel(etapas[0]?.id);
+                        toast.success("Etapa removida da esteira");
+                      }}
+                      className="grid size-7 place-items-center rounded border border-border text-muted-foreground hover:border-alert hover:text-alert"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  )}
+                </div>
                 <Btn
                   variant="ghost"
                   onClick={() => updateEtapa(atual.id, { ativo: !atual.ativo })}
@@ -594,6 +664,55 @@ export function SecaoFluxo() {
           </>
         )}
       </Panel>
+
+      <Modal
+        open={criando}
+        onClose={() => setCriando(false)}
+        title="Nova etapa da esteira"
+        hint="A etapa entra no fluxo e pode receber checklist, gates e avisos próprios."
+        width="max-w-md"
+        footer={
+          <>
+            <Btn variant="ghost" onClick={() => setCriando(false)}>
+              Cancelar
+            </Btn>
+            <Btn onClick={criarEtapa}>Adicionar etapa</Btn>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <Field label="Nome da etapa">
+            <TextInput
+              value={novaEtapaDraft.nome}
+              onChange={(e) => setNovaEtapaDraft({ ...novaEtapaDraft, nome: e.target.value })}
+              placeholder="Ex.: Conferência jurídica"
+            />
+          </Field>
+          <Field label="Papel responsável">
+            <SelectInput
+              value={novaEtapaDraft.papel}
+              onChange={(e) => setNovaEtapaDraft({ ...novaEtapaDraft, papel: e.target.value })}
+            >
+              {settings.papeis.map((p) => (
+                <option key={p.id}>{p.nome}</option>
+              ))}
+            </SelectInput>
+          </Field>
+          <Field label="Posição no fluxo">
+            <SelectInput
+              value={novaEtapaDraft.posicao}
+              onChange={(e) => setNovaEtapaDraft({ ...novaEtapaDraft, posicao: e.target.value })}
+            >
+              <option value="fim">No final da esteira</option>
+              {etapas.map((e) => (
+                <option key={e.id} value={e.id}>
+                  Depois de “{e.nome}”
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+        </div>
+      </Modal>
     </div>
   );
 }
