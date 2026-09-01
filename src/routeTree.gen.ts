@@ -20,6 +20,7 @@ import { Route as MobileContadorRouteImport } from './routes/mobile-contador'
 import { Route as OperacaoRouteImport } from './routes/operacao'
 import { Route as ParceiroRouteImport } from './routes/parceiro'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as RenovacoesRouteImport } from './routes/renovacoes'
 import { Route as ChamadosIndexRouteImport } from './routes/chamados.index'
 import { Route as ChamadosIdRouteImport } from './routes/chamados.$id'
@@ -89,6 +90,11 @@ const ParceiroRoute = ParceiroRouteImport.update({
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RenovacoesRoute = RenovacoesRouteImport.update({
@@ -179,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -236,6 +244,7 @@ export interface FileRoutesById {
   '/operacao': typeof OperacaoRoute
   '/parceiro': typeof ParceiroRoute
   '/portal': typeof PortalRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -266,6 +275,7 @@ export interface FileRouteTypes {
     | '/operacao'
     | '/parceiro'
     | '/portal'
+    | '/recuperar-senha'
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -294,6 +304,7 @@ export interface FileRouteTypes {
     | '/operacao'
     | '/parceiro'
     | '/portal'
+    | '/recuperar-senha'
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -322,6 +333,7 @@ export interface FileRouteTypes {
     | '/operacao'
     | '/parceiro'
     | '/portal'
+    | '/recuperar-senha'
     | '/renovacoes'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -351,6 +363,7 @@ export interface RootRouteChildren {
   OperacaoRoute: typeof OperacaoRoute
   ParceiroRoute: typeof ParceiroRoute
   PortalRoute: typeof PortalRoute
+  RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   RenovacoesRoute: typeof RenovacoesRoute
   ChamadosIdRoute: typeof ChamadosIdRoute
   ClientesIdRoute: typeof ClientesIdRoute
@@ -445,6 +458,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar-senha': {
+      id: '/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof RecuperarSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/renovacoes': {
@@ -567,6 +587,7 @@ const rootRouteChildren: RootRouteChildren = {
   OperacaoRoute: OperacaoRoute,
   ParceiroRoute: ParceiroRoute,
   PortalRoute: PortalRoute,
+  RecuperarSenhaRoute: RecuperarSenhaRoute,
   RenovacoesRoute: RenovacoesRoute,
   ChamadosIdRoute: ChamadosIdRoute,
   ClientesIdRoute: ClientesIdRoute,
