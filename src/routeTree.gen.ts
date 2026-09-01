@@ -28,6 +28,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminFaturamentoRouteImport } from './routes/admin.faturamento'
 import { Route as AdminIncidentesRouteImport } from './routes/admin.incidentes'
 import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes'
+import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminObservabilidadeRouteImport } from './routes/admin.observabilidade'
 import { Route as AdminPlanosRouteImport } from './routes/admin.planos'
 import { Route as ChamadosIndexRouteImport } from './routes/chamados.index'
@@ -142,6 +143,11 @@ const AdminIntegracoesRoute = AdminIntegracoesRouteImport.update({
   path: '/integracoes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLogsRoute = AdminLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminObservabilidadeRoute = AdminObservabilidadeRouteImport.update({
   id: '/observabilidade',
   path: '/observabilidade',
@@ -252,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/admin/faturamento': typeof AdminFaturamentoRoute
   '/admin/incidentes': typeof AdminIncidentesRoute
   '/admin/integracoes': typeof AdminIntegracoesRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/admin/observabilidade': typeof AdminObservabilidadeRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
@@ -290,6 +297,7 @@ export interface FileRoutesByTo {
   '/admin/faturamento': typeof AdminFaturamentoRoute
   '/admin/incidentes': typeof AdminIncidentesRoute
   '/admin/integracoes': typeof AdminIntegracoesRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/admin/observabilidade': typeof AdminObservabilidadeRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
@@ -330,6 +338,7 @@ export interface FileRoutesById {
   '/admin/faturamento': typeof AdminFaturamentoRoute
   '/admin/incidentes': typeof AdminIncidentesRoute
   '/admin/integracoes': typeof AdminIntegracoesRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/admin/observabilidade': typeof AdminObservabilidadeRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
@@ -371,6 +380,7 @@ export interface FileRouteTypes {
     | '/admin/faturamento'
     | '/admin/incidentes'
     | '/admin/integracoes'
+    | '/admin/logs'
     | '/admin/observabilidade'
     | '/admin/planos'
     | '/chamados/$id'
@@ -409,6 +419,7 @@ export interface FileRouteTypes {
     | '/admin/faturamento'
     | '/admin/incidentes'
     | '/admin/integracoes'
+    | '/admin/logs'
     | '/admin/observabilidade'
     | '/admin/planos'
     | '/chamados/$id'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '/admin/faturamento'
     | '/admin/incidentes'
     | '/admin/integracoes'
+    | '/admin/logs'
     | '/admin/observabilidade'
     | '/admin/planos'
     | '/chamados/$id'
@@ -636,6 +648,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIntegracoesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/logs': {
+      id: '/admin/logs'
+      path: '/logs'
+      fullPath: '/admin/logs'
+      preLoaderRoute: typeof AdminLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/observabilidade': {
       id: '/admin/observabilidade'
       path: '/observabilidade'
@@ -769,6 +788,7 @@ interface AdminRouteChildren {
   AdminFaturamentoRoute: typeof AdminFaturamentoRoute
   AdminIncidentesRoute: typeof AdminIncidentesRoute
   AdminIntegracoesRoute: typeof AdminIntegracoesRoute
+  AdminLogsRoute: typeof AdminLogsRoute
   AdminObservabilidadeRoute: typeof AdminObservabilidadeRoute
   AdminPlanosRoute: typeof AdminPlanosRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -780,6 +800,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFaturamentoRoute: AdminFaturamentoRoute,
   AdminIncidentesRoute: AdminIncidentesRoute,
   AdminIntegracoesRoute: AdminIntegracoesRoute,
+  AdminLogsRoute: AdminLogsRoute,
   AdminObservabilidadeRoute: AdminObservabilidadeRoute,
   AdminPlanosRoute: AdminPlanosRoute,
   AdminIndexRoute: AdminIndexRoute,
