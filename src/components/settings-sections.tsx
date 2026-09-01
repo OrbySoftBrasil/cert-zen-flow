@@ -3,7 +3,10 @@
 import {
   AlertTriangle,
   ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   ArrowUp,
+  Bell,
   CheckCircle2,
   KeyRound,
   Laptop,
@@ -21,14 +24,20 @@ import { Grid, Rows, TagList, Toggle } from "@/components/settings-kit";
 import { Chip, Metric, Panel } from "@/components/ui-kit";
 import { agents } from "@/lib/mock-data";
 import {
+  escoposVisibilidade,
+  escopoEfetivo,
   iniciaisDe,
+  novaEtapa,
   novoChecklistItem,
   novoUsuario,
   permissoesDisponiveis,
   unidadesDisponiveis,
   useSettings,
+  type CanalNotificacao,
   type ChaveApi,
   type ChecklistRule,
+  type EscopoVisibilidade,
+  type PapelRule,
   type ProdutoRule,
   type StageRule,
   type StatusUsuario,
@@ -154,8 +163,15 @@ export function SecaoOrganizacao() {
 
 /* ---------------------------------------------------------------------- Fluxo */
 
+const canais: { id: CanalNotificacao; label: string }[] = [
+  { id: "email", label: "E-mail" },
+  { id: "push", label: "Push no app" },
+  { id: "whatsapp", label: "WhatsApp" },
+];
+
 function EditorEtapa({ etapa }: { etapa: StageRule }) {
-  const { updateEtapa } = useSettings();
+  const { settings, updateEtapa } = useSettings();
+  const papeis = settings.papeis;
   const [novo, setNovo] = useState("");
 
   const setChecklist = (checklist: ChecklistRule[]) => updateEtapa(etapa.id, { checklist });
@@ -364,6 +380,80 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
                 onChange={(v) => updateEtapa(etapa.id, { automacoes: { ...etapa.automacoes, escalarSlaEstourado: v } })}
               />
             </Rows>
+          </div>
+
+          <div className="rounded-lg border border-border p-3">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Bell className="size-3.5" /> Aviso de chegada na etapa
+            </p>
+            <Rows>
+              <Toggle
+                label={`Notificar o papel responsável (${etapa.papelResponsavel})`}
+                hint="Todas as pessoas desse papel recebem o aviso quando a solicitação entra nesta etapa."
+                checked={etapa.automacoes.notificarPapelResponsavel}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, { automacoes: { ...etapa.automacoes, notificarPapelResponsavel: v } })
+                }
+              />
+            </Rows>
+            <p className="mb-1.5 mt-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Papéis adicionais avisados
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {papeis.map((papel) => {
+                const on = etapa.papeisNotificados.includes(papel.id);
+                return (
+                  <button
+                    key={papel.id}
+                    type="button"
+                    onClick={() =>
+                      updateEtapa(etapa.id, {
+                        papeisNotificados: on
+                          ? etapa.papeisNotificados.filter((x) => x !== papel.id)
+                          : [...etapa.papeisNotificados, papel.id],
+                      })
+                    }
+                    className={cn(
+                      "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                      on
+                        ? "border-primary bg-primary-soft text-primary-deep"
+                        : "border-border text-muted-foreground hover:border-border-strong",
+                    )}
+                  >
+                    {papel.nome}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mb-1.5 mt-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Canais do aviso
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {canais.map((c) => {
+                const on = etapa.canaisNotificacao.includes(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() =>
+                      updateEtapa(etapa.id, {
+                        canaisNotificacao: on
+                          ? etapa.canaisNotificacao.filter((x) => x !== c.id)
+                          : [...etapa.canaisNotificacao, c.id],
+                      })
+                    }
+                    className={cn(
+                      "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                      on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground hover:border-border-strong",
+                    )}
+                  >
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="rounded-lg border border-border p-3">
