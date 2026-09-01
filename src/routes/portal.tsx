@@ -4,7 +4,9 @@ import { useState } from "react";
 
 import { Chip } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
-import { baseConhecimento, ticketCategorias, tickets, type TicketCategoria } from "@/lib/mock-data";
+import { baseConhecimento, ticketCategorias, type TicketCategoria } from "@/lib/mock-data";
+import { useStore } from "@/lib/store";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal")({
   head: () => ({
@@ -27,6 +29,7 @@ export const Route = createFileRoute("/portal")({
 const prioridades = ["baixa", "normal", "alta", "critica"] as const;
 
 function Portal() {
+  const { tickets, addTicket } = useStore();
   const meus = tickets.filter((t) => t.clienteId === "c1");
   const [categoria, setCategoria] = useState<TicketCategoria>("Instalação e uso");
   const [sub, setSub] = useState(ticketCategorias[0]!.sub[0]!);
@@ -40,7 +43,18 @@ function Portal() {
 
   function enviar() {
     if (!assunto.trim() || !descricao.trim()) return;
-    setProtocolo(`CH-${4822 + Math.floor(Math.random() * 40)}`);
+    const novo = addTicket({
+      clienteId: "c1",
+      assunto: assunto.trim(),
+      categoria,
+      subcategoria: sub,
+      canal: "Portal",
+      prioridade,
+      responsavelId: "a1",
+      descricao: descricao.trim(),
+    });
+    setProtocolo(novo.numero);
+    toast.success("Chamado aberto", { description: `Protocolo ${novo.numero} — acompanhe por aqui e por e-mail.` });
     setAssunto("");
     setDescricao("");
   }
