@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -23,6 +24,14 @@ import { Route as PortalRouteImport } from './routes/portal'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as RenovacoesRouteImport } from './routes/renovacoes'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminFaturamentoRouteImport } from './routes/admin.faturamento'
+import { Route as AdminFlagsRouteImport } from './routes/admin.flags'
+import { Route as AdminIncidentesRouteImport } from './routes/admin.incidentes'
+import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes'
+import { Route as AdminLogsRouteImport } from './routes/admin.logs'
+import { Route as AdminObservabilidadeRouteImport } from './routes/admin.observabilidade'
+import { Route as AdminPlanosRouteImport } from './routes/admin.planos'
 import { Route as ChamadosIndexRouteImport } from './routes/chamados.index'
 import { Route as ChamadosIdRouteImport } from './routes/chamados.$id'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
@@ -37,10 +46,17 @@ import { Route as FinanceiroPlanosRouteImport } from './routes/financeiro.planos
 import { Route as FinanceiroReceberRouteImport } from './routes/financeiro.receber'
 import { Route as SolicitacoesIndexRouteImport } from './routes/solicitacoes.index'
 import { Route as SolicitacoesIdRouteImport } from './routes/solicitacoes.$id'
+import { Route as AdminTenantsIndexRouteImport } from './routes/admin.tenants.index'
+import { Route as AdminTenantsIdRouteImport } from './routes/admin.tenants.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgendaRoute = AgendaRouteImport.update({
@@ -107,6 +123,46 @@ const RenovacoesRoute = RenovacoesRouteImport.update({
   id: '/renovacoes',
   path: '/renovacoes',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFaturamentoRoute = AdminFaturamentoRouteImport.update({
+  id: '/faturamento',
+  path: '/faturamento',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFlagsRoute = AdminFlagsRouteImport.update({
+  id: '/flags',
+  path: '/flags',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIncidentesRoute = AdminIncidentesRouteImport.update({
+  id: '/incidentes',
+  path: '/incidentes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIntegracoesRoute = AdminIntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLogsRoute = AdminLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminObservabilidadeRoute = AdminObservabilidadeRouteImport.update({
+  id: '/observabilidade',
+  path: '/observabilidade',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPlanosRoute = AdminPlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
+  getParentRoute: () => AdminRoute,
 } as any)
 const ChamadosIndexRoute = ChamadosIndexRouteImport.update({
   id: '/chamados/',
@@ -178,9 +234,20 @@ const SolicitacoesIdRoute = SolicitacoesIdRouteImport.update({
   path: '/solicitacoes/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminTenantsIndexRoute = AdminTenantsIndexRouteImport.update({
+  id: '/tenants/',
+  path: '/tenants/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTenantsIdRoute = AdminTenantsIdRouteImport.update({
+  id: '/tenants/$id',
+  path: '/tenants/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/agenda': typeof AgendaRoute
   '/chat': typeof ChatRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -194,6 +261,13 @@ export interface FileRoutesByFullPath {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/admin/faturamento': typeof AdminFaturamentoRoute
+  '/admin/flags': typeof AdminFlagsRoute
+  '/admin/incidentes': typeof AdminIncidentesRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/observabilidade': typeof AdminObservabilidadeRoute
+  '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/contadores/$id': typeof ContadoresIdRoute
@@ -203,11 +277,14 @@ export interface FileRoutesByFullPath {
   '/financeiro/planos': typeof FinanceiroPlanosRoute
   '/financeiro/receber': typeof FinanceiroReceberRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/chamados/': typeof ChamadosIndexRoute
   '/clientes/': typeof ClientesIndexRoute
   '/contadores/': typeof ContadoresIndexRoute
   '/financeiro/': typeof FinanceiroIndexRoute
   '/solicitacoes/': typeof SolicitacoesIndexRoute
+  '/admin/tenants/$id': typeof AdminTenantsIdRoute
+  '/admin/tenants/': typeof AdminTenantsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -224,6 +301,13 @@ export interface FileRoutesByTo {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/admin/faturamento': typeof AdminFaturamentoRoute
+  '/admin/flags': typeof AdminFlagsRoute
+  '/admin/incidentes': typeof AdminIncidentesRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/observabilidade': typeof AdminObservabilidadeRoute
+  '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/contadores/$id': typeof ContadoresIdRoute
@@ -233,15 +317,19 @@ export interface FileRoutesByTo {
   '/financeiro/planos': typeof FinanceiroPlanosRoute
   '/financeiro/receber': typeof FinanceiroReceberRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
+  '/admin': typeof AdminIndexRoute
   '/chamados': typeof ChamadosIndexRoute
   '/clientes': typeof ClientesIndexRoute
   '/contadores': typeof ContadoresIndexRoute
   '/financeiro': typeof FinanceiroIndexRoute
   '/solicitacoes': typeof SolicitacoesIndexRoute
+  '/admin/tenants/$id': typeof AdminTenantsIdRoute
+  '/admin/tenants': typeof AdminTenantsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/agenda': typeof AgendaRoute
   '/chat': typeof ChatRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -255,6 +343,13 @@ export interface FileRoutesById {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
+  '/admin/faturamento': typeof AdminFaturamentoRoute
+  '/admin/flags': typeof AdminFlagsRoute
+  '/admin/incidentes': typeof AdminIncidentesRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/observabilidade': typeof AdminObservabilidadeRoute
+  '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/contadores/$id': typeof ContadoresIdRoute
@@ -264,16 +359,20 @@ export interface FileRoutesById {
   '/financeiro/planos': typeof FinanceiroPlanosRoute
   '/financeiro/receber': typeof FinanceiroReceberRoute
   '/solicitacoes/$id': typeof SolicitacoesIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/chamados/': typeof ChamadosIndexRoute
   '/clientes/': typeof ClientesIndexRoute
   '/contadores/': typeof ContadoresIndexRoute
   '/financeiro/': typeof FinanceiroIndexRoute
   '/solicitacoes/': typeof SolicitacoesIndexRoute
+  '/admin/tenants/$id': typeof AdminTenantsIdRoute
+  '/admin/tenants/': typeof AdminTenantsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/agenda'
     | '/chat'
     | '/configuracoes'
@@ -287,6 +386,13 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/redefinir-senha'
     | '/renovacoes'
+    | '/admin/faturamento'
+    | '/admin/flags'
+    | '/admin/incidentes'
+    | '/admin/integracoes'
+    | '/admin/logs'
+    | '/admin/observabilidade'
+    | '/admin/planos'
     | '/chamados/$id'
     | '/clientes/$id'
     | '/contadores/$id'
@@ -296,11 +402,14 @@ export interface FileRouteTypes {
     | '/financeiro/planos'
     | '/financeiro/receber'
     | '/solicitacoes/$id'
+    | '/admin/'
     | '/chamados/'
     | '/clientes/'
     | '/contadores/'
     | '/financeiro/'
     | '/solicitacoes/'
+    | '/admin/tenants/$id'
+    | '/admin/tenants/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -317,6 +426,13 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/redefinir-senha'
     | '/renovacoes'
+    | '/admin/faturamento'
+    | '/admin/flags'
+    | '/admin/incidentes'
+    | '/admin/integracoes'
+    | '/admin/logs'
+    | '/admin/observabilidade'
+    | '/admin/planos'
     | '/chamados/$id'
     | '/clientes/$id'
     | '/contadores/$id'
@@ -326,14 +442,18 @@ export interface FileRouteTypes {
     | '/financeiro/planos'
     | '/financeiro/receber'
     | '/solicitacoes/$id'
+    | '/admin'
     | '/chamados'
     | '/clientes'
     | '/contadores'
     | '/financeiro'
     | '/solicitacoes'
+    | '/admin/tenants/$id'
+    | '/admin/tenants'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/agenda'
     | '/chat'
     | '/configuracoes'
@@ -347,6 +467,13 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/redefinir-senha'
     | '/renovacoes'
+    | '/admin/faturamento'
+    | '/admin/flags'
+    | '/admin/incidentes'
+    | '/admin/integracoes'
+    | '/admin/logs'
+    | '/admin/observabilidade'
+    | '/admin/planos'
     | '/chamados/$id'
     | '/clientes/$id'
     | '/contadores/$id'
@@ -356,15 +483,19 @@ export interface FileRouteTypes {
     | '/financeiro/planos'
     | '/financeiro/receber'
     | '/solicitacoes/$id'
+    | '/admin/'
     | '/chamados/'
     | '/clientes/'
     | '/contadores/'
     | '/financeiro/'
     | '/solicitacoes/'
+    | '/admin/tenants/$id'
+    | '/admin/tenants/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AgendaRoute: typeof AgendaRoute
   ChatRoute: typeof ChatRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
@@ -401,6 +532,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agenda': {
@@ -493,6 +631,62 @@ declare module '@tanstack/react-router' {
       fullPath: '/renovacoes'
       preLoaderRoute: typeof RenovacoesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/faturamento': {
+      id: '/admin/faturamento'
+      path: '/faturamento'
+      fullPath: '/admin/faturamento'
+      preLoaderRoute: typeof AdminFaturamentoRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/flags': {
+      id: '/admin/flags'
+      path: '/flags'
+      fullPath: '/admin/flags'
+      preLoaderRoute: typeof AdminFlagsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/incidentes': {
+      id: '/admin/incidentes'
+      path: '/incidentes'
+      fullPath: '/admin/incidentes'
+      preLoaderRoute: typeof AdminIncidentesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/integracoes': {
+      id: '/admin/integracoes'
+      path: '/integracoes'
+      fullPath: '/admin/integracoes'
+      preLoaderRoute: typeof AdminIntegracoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/logs': {
+      id: '/admin/logs'
+      path: '/logs'
+      fullPath: '/admin/logs'
+      preLoaderRoute: typeof AdminLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/observabilidade': {
+      id: '/admin/observabilidade'
+      path: '/observabilidade'
+      fullPath: '/admin/observabilidade'
+      preLoaderRoute: typeof AdminObservabilidadeRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/planos': {
+      id: '/admin/planos'
+      path: '/planos'
+      fullPath: '/admin/planos'
+      preLoaderRoute: typeof AdminPlanosRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/chamados/': {
       id: '/chamados/'
@@ -592,11 +786,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolicitacoesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/tenants/': {
+      id: '/admin/tenants/'
+      path: '/tenants'
+      fullPath: '/admin/tenants/'
+      preLoaderRoute: typeof AdminTenantsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/tenants/$id': {
+      id: '/admin/tenants/$id'
+      path: '/tenants/$id'
+      fullPath: '/admin/tenants/$id'
+      preLoaderRoute: typeof AdminTenantsIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminFaturamentoRoute: typeof AdminFaturamentoRoute
+  AdminFlagsRoute: typeof AdminFlagsRoute
+  AdminIncidentesRoute: typeof AdminIncidentesRoute
+  AdminIntegracoesRoute: typeof AdminIntegracoesRoute
+  AdminLogsRoute: typeof AdminLogsRoute
+  AdminObservabilidadeRoute: typeof AdminObservabilidadeRoute
+  AdminPlanosRoute: typeof AdminPlanosRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminTenantsIdRoute: typeof AdminTenantsIdRoute
+  AdminTenantsIndexRoute: typeof AdminTenantsIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminFaturamentoRoute: AdminFaturamentoRoute,
+  AdminFlagsRoute: AdminFlagsRoute,
+  AdminIncidentesRoute: AdminIncidentesRoute,
+  AdminIntegracoesRoute: AdminIntegracoesRoute,
+  AdminLogsRoute: AdminLogsRoute,
+  AdminObservabilidadeRoute: AdminObservabilidadeRoute,
+  AdminPlanosRoute: AdminPlanosRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminTenantsIdRoute: AdminTenantsIdRoute,
+  AdminTenantsIndexRoute: AdminTenantsIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   AgendaRoute: AgendaRoute,
   ChatRoute: ChatRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
