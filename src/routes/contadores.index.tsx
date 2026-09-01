@@ -45,6 +45,7 @@ const tierTone: Record<string, string> = {
 };
 
 function Contadores() {
+  const { contadores } = useStore();
   const [busca, setBusca] = useState("");
   const [status, setStatus] = useState<"todos" | ContadorStatus>("todos");
   const [tier, setTier] = useState("todos");
