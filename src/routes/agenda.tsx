@@ -78,6 +78,7 @@ function Agenda() {
   const [dia, setDia] = useState(proximos[0] ?? dias[0]!);
   const [vista, setVista] = useState<"dia" | "mes">("dia");
   const [densidadeMes, setDensidadeMes] = useState<"resumo" | "completo">("resumo");
+  const [somenteFuturos, setSomenteFuturos] = useState(true);
   const hoje = new Date();
   const [cursor, setCursor] = useState({ ano: hoje.getFullYear(), mes: hoje.getMonth() });
   const doDia = items.filter((a) => a.dia === dia);
@@ -312,6 +313,7 @@ function Agenda() {
 
       {vista === "mes" && (
         <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+          <div className="min-w-0 space-y-4">
           <Panel
             title={`${nomesMes[cursor.mes]} ${cursor.ano}`}
             hint={`${doMes.length} agendamentos no mês`}
@@ -400,6 +402,53 @@ function Agenda() {
               })}
             </div>
           </Panel>
+
+          <Panel
+            title="Agendamentos do mês"
+            hint="Lista completa, ordenada por data e hora — clique para abrir o dia."
+            bodyClassName="p-0"
+            actions={
+              <button
+                onClick={() => setSomenteFuturos((v) => !v)}
+                className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+              >
+                {somenteFuturos ? "Somente futuros" : "Mês inteiro"}
+              </button>
+            }
+          >
+            <ul className="divide-y divide-border">
+              {pagMes.visiveis.map((a) => (
+                <li key={a.id}>
+                  <button
+                    onClick={() => {
+                      setDia(a.dia);
+                      setVista("dia");
+                    }}
+                    className="flex w-full flex-wrap items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
+                  >
+                    <span className="tabular w-14 shrink-0 text-xs text-muted-foreground">
+                      {a.dia.slice(8, 10)}/{a.dia.slice(5, 7)}
+                    </span>
+                    <span className="tabular w-12 shrink-0 text-sm font-medium">{a.hora}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm">{a.cliente}</span>
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {a.tipo} · {a.canal}
+                      </span>
+                    </span>
+                    <Chip tone={statusTone[a.status]}>{a.status}</Chip>
+                  </button>
+                </li>
+              ))}
+              {listaMes.length === 0 && (
+                <li className="px-3 py-8 text-center text-sm text-muted-foreground">
+                  Nenhum agendamento neste período.
+                </li>
+              )}
+            </ul>
+            <Paginacao {...pagMes} rotulo="agendamentos" />
+          </Panel>
+          </div>
 
           <div className="space-y-4">
             <Panel title="Resumo do mês">
