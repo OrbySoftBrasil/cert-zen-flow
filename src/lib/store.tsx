@@ -29,8 +29,16 @@ import {
 import {
   pagar as seedPagar,
   receber as seedReceber,
+  planos as seedPlanos,
+  contratos as seedContratos,
+  comissoes as seedComissoes,
+  regrasComissao as seedRegras,
+  type Comissao,
+  type Contrato,
   type Pagar,
+  type Plano,
   type Receber,
+  type RegraComissao,
 } from "@/lib/finance-data";
 
 const STORAGE_KEY = "certus-ac-estado-v1";
@@ -45,6 +53,10 @@ export interface AppState {
   contadores: Contador[];
   pagar: Pagar[];
   receber: Receber[];
+  planos: Plano[];
+  contratos: Contrato[];
+  comissoes: Comissao[];
+  regrasComissao: RegraComissao[];
 }
 
 function seed(): AppState {
@@ -56,6 +68,10 @@ function seed(): AppState {
     contadores: seedContadores,
     pagar: seedPagar,
     receber: seedReceber,
+    planos: seedPlanos,
+    contratos: seedContratos,
+    comissoes: seedComissoes,
+    regrasComissao: seedRegras,
   };
 }
 
@@ -150,6 +166,16 @@ interface Actions {
   addReceber: (t: Omit<Receber, "id">) => void;
   updatePagar: (id: string, patch: Partial<Pagar>) => void;
   updateReceber: (id: string, patch: Partial<Receber>) => void;
+  addPlano: (p: Omit<Plano, "id">) => Plano;
+  updatePlano: (id: string, patch: Partial<Plano>) => void;
+  removePlano: (id: string) => void;
+  addContrato: (c: Omit<Contrato, "id">) => Contrato;
+  updateContrato: (id: string, patch: Partial<Contrato>) => void;
+  addComissao: (c: Omit<Comissao, "id">) => Comissao;
+  updateComissao: (id: string, patch: Partial<Comissao>) => void;
+  addRegraComissao: (r: Omit<RegraComissao, "id">) => RegraComissao;
+  updateRegraComissao: (id: string, patch: Partial<RegraComissao>) => void;
+  removeRegraComissao: (id: string) => void;
   // parceiros
   addContador: (c: Pick<Contador, "nome" | "razaoSocial" | "cnpj" | "crc" | "responsavel" | "email" | "telefone" | "cidade" | "gestor" | "comissaoPercentual" | "metaMes">) => Contador;
   updateContador: (id: string, patch: Partial<Contador>) => void;

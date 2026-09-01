@@ -257,7 +257,18 @@ export const comissoes: Comissao[] = [
   { id: "cm9", beneficiario: "Escritório Lumen", tipo: "Parceiro contábil", competencia: "08/2026", baseCalculo: 9_800, percentual: 18, valor: 1_764, emissoes: 31, status: "prevista", pagamento: dia(34) },
 ];
 
-export const regrasComissao = [
+export interface RegraComissao {
+  id: string;
+  nome: string;
+  regra: string;
+  gatilho: string;
+  carencia: string;
+  teto: string;
+  percentual?: number;
+  ativa?: boolean;
+}
+
+export const regrasComissao: RegraComissao[] = [
   { id: "rg1", nome: "Parceiro contábil", regra: "18% sobre a receita líquida da emissão", gatilho: "Pagamento confirmado", carencia: "30 dias", teto: "Sem teto" },
   { id: "rg2", nome: "Vendedor interno", regra: "4% sobre a venda + 1% em renovação assistida", gatilho: "Emissão concluída", carencia: "Fecha no dia 5", teto: "R$ 12.000/mês" },
   { id: "rg3", nome: "Revenda", regra: "12% escalonado (15% acima de 150 emissões)", gatilho: "Liquidação financeira", carencia: "30 dias", teto: "Sem teto" },
