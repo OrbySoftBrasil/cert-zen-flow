@@ -10,6 +10,8 @@ import {
   Plus,
   Search,
   ShieldCheck,
+  Trash2,
+  Upload,
   Users,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -26,6 +28,8 @@ import {
 import { ExportMenu } from "@/components/export-menu";
 import { Bar, Chip, Panel, SlaBadge } from "@/components/ui-kit";
 import { contadorById, type CarteiraItem, type PedidoContador } from "@/lib/contadores-data";
+import { useStore } from "@/lib/store";
+import type { DocumentFile } from "@/lib/mock-data";
 import {
   baseConhecimento,
   brl,
@@ -184,6 +188,41 @@ export function PortalParceiro() {
   const [chDescricao, setChDescricao] = useState("");
   const [chFiltro, setChFiltro] = useState<"todos" | "abertos" | "resolvidos">("todos");
 
+  // documentos por cliente (chave: documento do cliente)
+  const { clients, addDocument: addDocumentoGlobal } = useStore();
+  const [docs, setDocs] = useState<Record<string, DocumentFile[]>>({});
+  const [docsDe, setDocsDe] = useState<CarteiraItem | null>(null);
+  const [cDocsNovos, setCDocsNovos] = useState<{ nome: string; tipo: string }[]>([]);
+  const tiposDocumento = [
+    "Contrato social",
+    "Documento de identidade",
+    "CPF do responsável",
+    "Comprovante de endereço",
+    "Procuração",
+    "Cartão CNPJ",
+    "Selfie de validação",
+  ];
+
+  function anexarDocumento(cliente: CarteiraItem, nome: string, tipo: string) {
+    const doc: DocumentFile = {
+      id: `pd${Math.random().toString(36).slice(2, 8)}`,
+      nome,
+      tipo,
+      enviadoEm: new Date().toISOString().slice(0, 10),
+      status: "em análise",
+    };
+    setDocs((atual) => ({ ...atual, [cliente.documento]: [doc, ...(atual[cliente.documento] ?? [])] }));
+    const global = clients.find((c) => c.documento === cliente.documento);
+    if (global) addDocumentoGlobal(global.id, { nome, tipo, enviadoEm: doc.enviadoEm, status: "em análise" });
+  }
+
+  function removerDocumento(documentoCliente: string, docId: string) {
+    setDocs((atual) => ({
+      ...atual,
+      [documentoCliente]: (atual[documentoCliente] ?? []).filter((d) => d.id !== docId),
+    }));
+  }
+
   // form: novo cliente
   const [cNome, setCNome] = useState("");
   const [cDoc, setCDoc] = useState("");
@@ -234,7 +273,22 @@ export function PortalParceiro() {
       },
       ...atual,
     ]);
-    setAviso(`Cliente ${cNome.trim()} cadastrado na sua carteira.`);
+    if (cDocsNovos.length) {
+      setDocs((atual) => ({
+        ...atual,
+        [cDoc.trim()]: cDocsNovos.map((d, i) => ({
+          id: `pd${i}${Math.random().toString(36).slice(2, 6)}`,
+          nome: d.nome,
+          tipo: d.tipo,
+          enviadoEm: new Date().toISOString().slice(0, 10),
+          status: "em análise" as const,
+        })),
+      }));
+    }
+    setAviso(
+      `Cliente ${cNome.trim()} cadastrado na sua carteira${cDocsNovos.length ? ` com ${cDocsNovos.length} documento(s) anexado(s)` : ""}.`,
+    );
+    setCDocsNovos([]);
     setCNome("");
     setCDoc("");
     setCEmail("");
@@ -584,6 +638,7 @@ export function PortalParceiro() {
                     <th className="px-4 py-2.5 font-medium">Certificados</th>
                     <th className="px-4 py-2.5 font-medium">Próx. vencimento</th>
                     <th className="px-4 py-2.5 font-medium">Receita ano</th>
+                    <th className="px-4 py-2.5 font-medium">Documentos</th>
                     <th className="px-4 py-2.5 font-medium">Situação</th>
                     <th className="px-4 py-2.5 font-medium"></th>
                   </tr>
@@ -599,6 +654,15 @@ export function PortalParceiro() {
                       <td className="px-4 py-3 tabular">{c.certificadosAtivos}</td>
                       <td className="px-4 py-3 text-muted-foreground tabular">{c.proximoVencimento}</td>
                       <td className="px-4 py-3 tabular">{brl(c.receitaAno)}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => setDocsDe(c)}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs transition-colors hover:border-primary hover:text-primary-deep"
+                        >
+                          <Paperclip className="size-3" />
+                          {(docs[c.documento] ?? []).length} arquivo(s)
+                        </button>
+                      </td>
                       <td className="px-4 py-3">
                         <Chip tone={situacaoTone[c.situacao]}>{c.situacao}</Chip>
                       </td>
@@ -617,7 +681,7 @@ export function PortalParceiro() {
                   ))}
                   {carteiraFiltrada.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                      <td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">
                         Nenhum cliente encontrado.
                       </td>
                     </tr>
@@ -961,6 +1025,39 @@ export function PortalParceiro() {
               <Campo label="E-mail do responsável" value={cEmail} onChange={setCEmail} />
               <Campo label="Telefone" value={cTel} onChange={setCTel} />
             </div>
+            <div className="rounded-md border border-dashed border-border p-3">
+              <p className="text-xs font-medium">Documentos do cliente</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                Anexe aqui os documentos exigidos na validação — eles ficam visíveis no cockpit do cliente na Certus AC.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {tiposDocumento.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() =>
+                      setCDocsNovos((atual) =>
+                        atual.some((d) => d.tipo === t)
+                          ? atual.filter((d) => d.tipo !== t)
+                          : [...atual, { tipo: t, nome: `${t.toLowerCase().replace(/\s+/g, "-")}.pdf` }],
+                      )
+                    }
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] transition-colors",
+                      cDocsNovos.some((d) => d.tipo === t)
+                        ? "border-primary bg-primary-soft text-primary-deep"
+                        : "border-border text-muted-foreground hover:border-primary",
+                    )}
+                  >
+                    <Upload className="size-3" /> {t}
+                  </button>
+                ))}
+              </div>
+              {cDocsNovos.length > 0 && (
+                <p className="mt-2 text-[11px] text-primary-deep">
+                  {cDocsNovos.length} documento(s) prontos para envio · entram como “em análise”.
+                </p>
+              )}
+            </div>
             <p className="text-[11px] text-muted-foreground">
               O cliente entra na sua carteira e a comissão de todas as emissões dele é atribuída a você
               automaticamente.
@@ -977,6 +1074,60 @@ export function PortalParceiro() {
                 Cadastrar
               </button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {docsDe && (
+        <Modal titulo={`Documentos · ${docsDe.nome}`} onClose={() => setDocsDe(null)}>
+          <div className="space-y-3">
+            <div className="rounded-md border border-dashed border-border p-3">
+              <p className="text-xs font-medium">Anexar novo documento</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {tiposDocumento.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => anexarDocumento(docsDe, `${t.toLowerCase().replace(/\s+/g, "-")}.pdf`, t)}
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary-deep"
+                  >
+                    <Upload className="size-3" /> {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <ul className="divide-y divide-border rounded-md border border-border">
+              {(docs[docsDe.documento] ?? []).map((d) => (
+                <li key={d.id} className="flex items-center gap-2 px-3 py-2">
+                  <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm">{d.nome}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {d.tipo} · enviado em {d.enviadoEm}
+                    </p>
+                  </div>
+                  <Chip tone={d.status === "aprovado" ? "blue" : d.status === "reprovado" ? "alert" : "neutral"}>
+                    {d.status}
+                  </Chip>
+                  <button
+                    onClick={() => removerDocumento(docsDe.documento, d.id)}
+                    aria-label={`Remover ${d.nome}`}
+                    className="grid size-6 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-alert hover:text-alert"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </li>
+              ))}
+              {(docs[docsDe.documento] ?? []).length === 0 && (
+                <li className="px-3 py-6 text-center text-xs text-muted-foreground">
+                  Nenhum documento anexado para este cliente.
+                </li>
+              )}
+            </ul>
+            <p className="text-[11px] text-muted-foreground">
+              Documentos anexados aqui aparecem para a equipe de validação da Certus AC e podem ser aprovados ou
+              reprovados durante a esteira.
+            </p>
           </div>
         </Modal>
       )}
