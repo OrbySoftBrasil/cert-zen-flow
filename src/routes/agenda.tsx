@@ -77,6 +77,7 @@ function Agenda() {
   const proximos = dias.filter((d) => d >= hojeISO);
   const [dia, setDia] = useState(proximos[0] ?? dias[0]!);
   const [vista, setVista] = useState<"dia" | "mes">("dia");
+  const [densidadeMes, setDensidadeMes] = useState<"resumo" | "completo">("resumo");
   const hoje = new Date();
   const [cursor, setCursor] = useState({ ano: hoje.getFullYear(), mes: hoje.getMonth() });
   const doDia = items.filter((a) => a.dia === dia);
@@ -357,7 +358,8 @@ function Agenda() {
                       setVista("dia");
                     }}
                     className={cn(
-                      "flex min-h-24 flex-col rounded-md border p-1.5 text-left transition-colors hover:border-primary",
+                      "flex flex-col rounded-md border p-1.5 text-left transition-colors hover:border-primary",
+                      densidadeMes === "completo" ? "min-h-28" : "min-h-24",
                       foraDoMes ? "border-border/60 bg-muted/30 opacity-60" : "border-border bg-card",
                       chave === dia && "border-primary",
                     )}
@@ -371,7 +373,7 @@ function Agenda() {
                       {d.getDate()}
                     </span>
                     <span className="flex-1 space-y-0.5">
-                      {doDiaCel.slice(0, 2).map((a) => (
+                      {(densidadeMes === "completo" ? doDiaCel : doDiaCel.slice(0, 2)).map((a) => (
                         <span
                           key={a.id}
                           className={cn(
@@ -386,7 +388,7 @@ function Agenda() {
                           {a.hora} {a.cliente}
                         </span>
                       ))}
-                      {doDiaCel.length > 2 && (
+                      {densidadeMes === "resumo" && doDiaCel.length > 2 && (
                         <span className="block px-1 text-[10px] text-muted-foreground">
                           +{doDiaCel.length - 2} agendamentos
                         </span>
