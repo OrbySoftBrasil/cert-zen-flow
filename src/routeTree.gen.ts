@@ -26,6 +26,7 @@ import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as RenovacoesRouteImport } from './routes/renovacoes'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminFaturamentoRouteImport } from './routes/admin.faturamento'
+import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes'
 import { Route as AdminPlanosRouteImport } from './routes/admin.planos'
 import { Route as ChamadosIndexRouteImport } from './routes/chamados.index'
 import { Route as ChamadosIdRouteImport } from './routes/chamados.$id'
@@ -127,6 +128,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminFaturamentoRoute = AdminFaturamentoRouteImport.update({
   id: '/faturamento',
   path: '/faturamento',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIntegracoesRoute = AdminIntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPlanosRoute = AdminPlanosRouteImport.update({
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/admin/faturamento': typeof AdminFaturamentoRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -267,6 +274,7 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/admin/faturamento': typeof AdminFaturamentoRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -304,6 +312,7 @@ export interface FileRoutesById {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/renovacoes': typeof RenovacoesRoute
   '/admin/faturamento': typeof AdminFaturamentoRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/chamados/$id': typeof ChamadosIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -342,6 +351,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/renovacoes'
     | '/admin/faturamento'
+    | '/admin/integracoes'
     | '/admin/planos'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -377,6 +387,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/renovacoes'
     | '/admin/faturamento'
+    | '/admin/integracoes'
     | '/admin/planos'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -413,6 +424,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/renovacoes'
     | '/admin/faturamento'
+    | '/admin/integracoes'
     | '/admin/planos'
     | '/chamados/$id'
     | '/clientes/$id'
@@ -586,6 +598,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFaturamentoRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/integracoes': {
+      id: '/admin/integracoes'
+      path: '/integracoes'
+      fullPath: '/admin/integracoes'
+      preLoaderRoute: typeof AdminIntegracoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/planos': {
       id: '/admin/planos'
       path: '/planos'
@@ -710,6 +729,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminFaturamentoRoute: typeof AdminFaturamentoRoute
+  AdminIntegracoesRoute: typeof AdminIntegracoesRoute
   AdminPlanosRoute: typeof AdminPlanosRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminTenantsIdRoute: typeof AdminTenantsIdRoute
@@ -718,6 +738,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminFaturamentoRoute: AdminFaturamentoRoute,
+  AdminIntegracoesRoute: AdminIntegracoesRoute,
   AdminPlanosRoute: AdminPlanosRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminTenantsIdRoute: AdminTenantsIdRoute,
