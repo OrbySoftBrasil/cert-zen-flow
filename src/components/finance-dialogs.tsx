@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Btn, Field, Modal, SelectInput, TextInput } from "@/components/forms";
+import { Btn, Field, Modal, SelectInput, TextArea, TextInput } from "@/components/forms";
 import { useStore } from "@/lib/store";
 import { brl } from "@/lib/mock-data";
 
@@ -239,5 +239,327 @@ export function NovaCobrancaButton() {
       </Btn>
       <NovaCobrancaDialog open={open} onClose={() => setOpen(false)} />
     </>
+  );
+}
+
+// ------------------------- Planos, contratos e regras ------------------------
+
+export function NovoPlanoDialog({ open, onClose, planoId }: { open: boolean; onClose: () => void; planoId?: string }) {
+  const { planos, addPlano, updatePlano } = useStore();
+  const atual = planos.find((p) => p.id === planoId);
+  const [nome, setNome] = useState(atual?.nome ?? "");
+  const [publico, setPublico] = useState(atual?.publico ?? "");
+  const [preco, setPreco] = useState(String(atual?.preco ?? ""));
+  const [ciclo, setCiclo] = useState<"mensal" | "anual" | "pacote">(atual?.ciclo ?? "anual");
+  const [inclui, setInclui] = useState((atual?.inclui ?? []).join("\n"));
+  const [margem, setMargem] = useState(String(atual?.margem ?? 45));
+  const [destaque, setDestaque] = useState(!!atual?.destaque);
+
+  const valido = nome.trim().length > 1 && publico.trim().length > 1 && Number(preco) >= 0;
+
+  function salvar() {
+    if (!valido) return;
+    const dados = {
+      nome: nome.trim(),
+      publico: publico.trim(),
+      preco: Number(preco),
+      ciclo,
+      inclui: inclui.split("\n").map((l) => l.trim()).filter(Boolean),
+      margem: Number(margem) || 0,
+      destaque,
+    };
+    if (atual) {
+      updatePlano(atual.id, dados);
+      toast.success("Plano atualizado", { description: nome });
+    } else {
+      addPlano({ ...dados, assinantes: 0, mrr: 0, churn: 0 });
+      toast.success("Plano criado", { description: `${nome} · ${brl(Number(preco))} por ${ciclo}` });
+    }
+    onClose();
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={atual ? "Editar plano" : "Novo plano"}
+      hint="Catálogo de assinaturas e pacotes comercializados"
+      footer={
+        <>
+          <Btn variant="ghost" onClick={onClose}>
+            Cancelar
+          </Btn>
+          <Btn onClick={salvar} disabled={!valido}>
+            {atual ? "Salvar plano" : "Criar plano"}
+          </Btn>
+        </>
+      }
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Nome do plano">
+          <TextInput value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Business" />
+        </Field>
+        <Field label="Público-alvo">
+          <TextInput value={publico} onChange={(e) => setPublico(e.target.value)} placeholder="PME com até 20 certificados" />
+        </Field>
+        <Field label="Preço (R$)" hint="Use 0 para planos sem mensalidade">
+          <TextInput type="number" min={0} value={preco} onChange={(e) => setPreco(e.target.value)} />
+        </Field>
+        <Field label="Ciclo">
+          <SelectInput value={ciclo} onChange={(e) => setCiclo(e.target.value as typeof ciclo)}>
+            {["mensal", "anual", "pacote"].map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </SelectInput>
+        </Field>
+        <Field label="Margem de contribuição (%)">
+          <TextInput type="number" min={0} max={100} value={margem} onChange={(e) => setMargem(e.target.value)} />
+        </Field>
+        <label className="flex items-end gap-2 pb-2 text-xs text-muted-foreground">
+          <input type="checkbox" checked={destaque} onChange={(e) => setDestaque(e.target.checked)} />
+          Destacar como mais vendido
+        </label>
+        <Field label="Itens inclusos" hint="Um item por linha" className="sm:col-span-2">
+          <TextArea value={inclui} onChange={(e) => setInclui(e.target.value)} placeholder={"Até 10 emissões/ano\nAR móvel 2x"} />
+        </Field>
+      </div>
+    </Modal>
+  );
+}
+
+export function NovoPlanoButton() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Btn onClick={() => setOpen(true)}>
+        <Plus className="size-4" /> Novo plano
+      </Btn>
+      {open && <NovoPlanoDialog open={open} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+export function NovoContratoDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { clients, planos, addContrato, addReceber } = useStore();
+  const [clienteId, setClienteId] = useState(clients[0]?.id ?? "");
+  const [plano, setPlano] = useState(planos[0]?.nome ?? "");
+  const [inicio, setInicio] = useState(hoje());
+  const [fim, setFim] = useState(emDias(365));
+  const [valorMensal, setValorMensal] = useState("");
+  const [reajuste, setReajuste] = useState("IPCA anual");
+  const [faturamento, setFaturamento] = useState<"mensal" | "anual" | "por evento">("mensal");
+  const [responsavel, setResponsavel] = useState("Marina Duarte");
+  const [gerarCobranca, setGerarCobranca] = useState(true);
+
+  const cliente = clients.find((c) => c.id === clienteId);
+  const valido = !!cliente && !!plano && Number(valorMensal) > 0;
+
+  function salvar() {
+    if (!valido || !cliente) return;
+    addContrato({
+      cliente: cliente.nome,
+      plano,
+      inicio,
+      fim,
+      valorMensal: Number(valorMensal),
+      reajuste,
+      faturamento,
+      status: "ativo",
+      responsavel,
+      consumo: 0,
+    });
+    if (gerarCobranca) {
+      addReceber({
+        cliente: cliente.nome,
+        documento: cliente.documento,
+        descricao: `Contrato ${plano} — 1ª competência`,
+        origem: "Plano",
+        emissao: hoje(),
+        vencimento: emDias(10),
+        valor: Number(valorMensal),
+        status: "em aberto",
+        metodo: "Boleto",
+        parcela: "1/1",
+        nf: `NF-${20500 + Math.floor(Math.random() * 400)}`,
+      });
+    }
+    toast.success("Contrato criado", {
+      description: `${cliente.nome} · ${plano} — ${brl(Number(valorMensal))}/mês${gerarCobranca ? " + cobrança gerada" : ""}`,
+    });
+    onClose();
+    setValorMensal("");
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Novo contrato"
+      hint="Vincula o cliente a um plano recorrente e pode gerar a primeira cobrança"
+      footer={
+        <>
+          <Btn variant="ghost" onClick={onClose}>
+            Cancelar
+          </Btn>
+          <Btn onClick={salvar} disabled={!valido}>
+            Criar contrato
+          </Btn>
+        </>
+      }
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Cliente" className="sm:col-span-2">
+          <SelectInput value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome} — {c.documento}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
+        <Field label="Plano">
+          <SelectInput
+            value={plano}
+            onChange={(e) => {
+              setPlano(e.target.value);
+              const p = planos.find((x) => x.nome === e.target.value);
+              if (p) setValorMensal(String(p.ciclo === "anual" ? Math.round((p.preco / 12) * 100) / 100 : p.preco));
+            }}
+          >
+            {planos.map((p) => (
+              <option key={p.id}>{p.nome}</option>
+            ))}
+          </SelectInput>
+        </Field>
+        <Field label="Valor mensal (R$)">
+          <TextInput type="number" min={0} value={valorMensal} onChange={(e) => setValorMensal(e.target.value)} />
+        </Field>
+        <Field label="Início">
+          <TextInput type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />
+        </Field>
+        <Field label="Fim da vigência">
+          <TextInput type="date" value={fim} onChange={(e) => setFim(e.target.value)} />
+        </Field>
+        <Field label="Faturamento">
+          <SelectInput value={faturamento} onChange={(e) => setFaturamento(e.target.value as typeof faturamento)}>
+            {["mensal", "anual", "por evento"].map((f) => (
+              <option key={f}>{f}</option>
+            ))}
+          </SelectInput>
+        </Field>
+        <Field label="Reajuste">
+          <SelectInput value={reajuste} onChange={(e) => setReajuste(e.target.value)}>
+            {["IPCA anual", "IGP-M anual", "Sem reajuste (ata)", "Comissionado"].map((r) => (
+              <option key={r}>{r}</option>
+            ))}
+          </SelectInput>
+        </Field>
+        <Field label="Responsável comercial" className="sm:col-span-2">
+          <SelectInput value={responsavel} onChange={(e) => setResponsavel(e.target.value)}>
+            {["Marina Duarte", "Diego Nunes", "Rafael Bastos"].map((r) => (
+              <option key={r}>{r}</option>
+            ))}
+          </SelectInput>
+        </Field>
+        <label className="flex items-center gap-2 text-xs text-muted-foreground sm:col-span-2">
+          <input type="checkbox" checked={gerarCobranca} onChange={(e) => setGerarCobranca(e.target.checked)} />
+          Gerar automaticamente o primeiro título a receber
+        </label>
+      </div>
+    </Modal>
+  );
+}
+
+export function NovoContratoButton() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Btn variant="ghost" onClick={() => setOpen(true)}>
+        <Plus className="size-4" /> Novo contrato
+      </Btn>
+      {open && <NovoContratoDialog open={open} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+export function RegraComissaoDialog({ open, onClose, regraId }: { open: boolean; onClose: () => void; regraId?: string }) {
+  const { regrasComissao, addRegraComissao, updateRegraComissao } = useStore();
+  const atual = regrasComissao.find((r) => r.id === regraId);
+  const [nome, setNome] = useState(atual?.nome ?? "");
+  const [percentual, setPercentual] = useState(String(atual?.percentual ?? 10));
+  const [regra, setRegra] = useState(atual?.regra ?? "");
+  const [gatilho, setGatilho] = useState(atual?.gatilho ?? "Pagamento confirmado");
+  const [carencia, setCarencia] = useState(atual?.carencia ?? "30 dias");
+  const [teto, setTeto] = useState(atual?.teto ?? "Sem teto");
+
+  const valido = nome.trim().length > 1;
+
+  function salvar() {
+    if (!valido) return;
+    const dados = {
+      nome: nome.trim(),
+      percentual: Number(percentual) || 0,
+      regra: regra.trim() || `${percentual}% sobre a receita líquida`,
+      gatilho,
+      carencia,
+      teto,
+      ativa: true,
+    };
+    if (atual) {
+      updateRegraComissao(atual.id, dados);
+      toast.success("Regra atualizada", { description: nome });
+    } else {
+      addRegraComissao(dados);
+      toast.success("Regra de comissão criada", { description: `${nome} · ${percentual}%` });
+    }
+    onClose();
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={atual ? "Editar regra de comissão" : "Nova regra de comissão"}
+      hint="Define percentual, gatilho de apuração, carência e teto"
+      footer={
+        <>
+          <Btn variant="ghost" onClick={onClose}>
+            Cancelar
+          </Btn>
+          <Btn onClick={salvar} disabled={!valido}>
+            Salvar regra
+          </Btn>
+        </>
+      }
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Nome da regra">
+          <TextInput value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Parceiro contábil" />
+        </Field>
+        <Field label="Percentual (%)">
+          <TextInput type="number" min={0} max={100} value={percentual} onChange={(e) => setPercentual(e.target.value)} />
+        </Field>
+        <Field label="Descrição do cálculo" className="sm:col-span-2">
+          <TextInput value={regra} onChange={(e) => setRegra(e.target.value)} placeholder="18% sobre a receita líquida da emissão" />
+        </Field>
+        <Field label="Gatilho de apuração">
+          <SelectInput value={gatilho} onChange={(e) => setGatilho(e.target.value)}>
+            {["Pagamento confirmado", "Emissão concluída", "Liquidação financeira", "1ª emissão do indicado", "Evento de estorno"].map((g) => (
+              <option key={g}>{g}</option>
+            ))}
+          </SelectInput>
+        </Field>
+        <Field label="Carência">
+          <SelectInput value={carencia} onChange={(e) => setCarencia(e.target.value)}>
+            {["Imediato", "15 dias", "30 dias", "Fecha no dia 5", "—"].map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </SelectInput>
+        </Field>
+        <Field label="Teto" className="sm:col-span-2">
+          <TextInput value={teto} onChange={(e) => setTeto(e.target.value)} placeholder="Sem teto" />
+        </Field>
+      </div>
+    </Modal>
   );
 }

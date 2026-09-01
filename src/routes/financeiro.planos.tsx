@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Repeat, Sparkles } from "lucide-react";
+import { Check, Pencil, Repeat, Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -8,9 +8,14 @@ import { ExportMenu } from "@/components/export-menu";
 import { FinanceTabs } from "@/components/finance-tabs";
 import { Bar as MiniBar, Chip, Metric, Panel } from "@/components/ui-kit";
 import type { Dataset } from "@/lib/export";
-import { brlFull, contratos, dataBR, diasAte, planos } from "@/lib/finance-data";
+import { brlFull, dataBR, diasAte } from "@/lib/finance-data";
 import { brl } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { NovoContratoButton, NovoPlanoDialog } from "@/components/finance-dialogs";
+import { ConfirmDialog } from "@/components/forms";
+import { Paginacao, usePaginacao } from "@/components/pagination";
+import { useStore } from "@/lib/store";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/financeiro/planos")({
   head: () => ({
@@ -37,7 +42,14 @@ const statusTone = {
 } as const;
 
 function Planos() {
+  const { planos, contratos, removePlano, updateContrato } = useStore();
   const [aba, setAba] = useState<"planos" | "contratos">("planos");
+  const [editar, setEditar] = useState<string | null>(null);
+  const [novo, setNovo] = useState(false);
+  const [excluir, setExcluir] = useState<string | null>(null);
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | "ativo" | "em renovação" | "inadimplente" | "encerrado">("todos");
+  const contratosFiltrados = contratos.filter((c) => filtroStatus === "todos" || c.status === filtroStatus);
+  const pag = usePaginacao(contratosFiltrados, 10);
   const mrrTotal = planos.reduce((s, p) => s + p.mrr, 0);
   const assinantes = planos.reduce((s, p) => s + p.assinantes, 0);
   const churnMedio = planos.reduce((s, p) => s + p.churn * p.assinantes, 0) / assinantes;
@@ -81,7 +93,11 @@ function Planos() {
       actions={
         <>
           <ExportMenu datasets={datasets} base="certus-planos" label="Relatórios" />
-          <button className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep">
+          <NovoContratoButton />
+          <button
+            onClick={() => setNovo(true)}
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep"
+          >
             Novo plano
           </button>
         </>
@@ -169,6 +185,21 @@ function Planos() {
                     <p className="mb-1 text-[11px] text-muted-foreground">Margem de contribuição · {p.margem}%</p>
                     <MiniBar value={p.margem} />
                   </div>
+                  <div className="mt-3 flex gap-2 print:hidden">
+                    <button
+                      onClick={() => setEditar(p.id)}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
+                    >
+                      <Pencil className="size-3" /> Editar
+                    </button>
+                    <button
+                      onClick={() => setExcluir(p.id)}
+                      aria-label={`Excluir ${p.nome}`}
+                      className="grid size-7 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-alert hover:text-alert"
+                    >
+                      <Trash2 className="size-3" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -198,7 +229,28 @@ function Planos() {
             </Panel>
           </>
         ) : (
-          <Panel title="Contratos" hint="Vigência, faturamento e consumo do escopo" bodyClassName="p-0">
+          <Panel
+            title="Contratos"
+            hint="Vigência, faturamento e consumo do escopo"
+            bodyClassName="p-0"
+            actions={
+              <select
+                value={filtroStatus}
+                onChange={(e) => {
+                  setFiltroStatus(e.target.value as typeof filtroStatus);
+                  pag.setPagina(1);
+                }}
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs print:hidden"
+              >
+                <option value="todos">Todos os status</option>
+                {["ativo", "em renovação", "inadimplente", "encerrado"].map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            }
+          >
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -210,10 +262,11 @@ function Planos() {
                     <th className="px-4 py-2 font-medium">Faturamento</th>
                     <th className="px-4 py-2 font-medium">Status</th>
                     <th className="px-4 py-2 font-medium">Consumo</th>
+                    <th className="px-4 py-2 font-medium print:hidden">Ação</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {contratos.map((c) => {
+                  {pag.visiveis.map((c) => {
                     const dias = diasAte(c.fim);
                     return (
                       <tr key={c.id} className="transition-colors hover:bg-muted/50">
@@ -243,15 +296,48 @@ function Planos() {
                           <MiniBar value={c.consumo} />
                           <span className="mt-1 block text-[11px] text-muted-foreground tabular">{c.consumo}% do escopo</span>
                         </td>
+                        <td className="px-4 py-2.5 print:hidden">
+                          <select
+                            value={c.status}
+                            onChange={(e) => {
+                              updateContrato(c.id, { status: e.target.value as typeof c.status });
+                              toast.success("Contrato atualizado", { description: `${c.cliente} · ${e.target.value}` });
+                            }}
+                            className="rounded-md border border-border bg-card px-2 py-1 text-xs"
+                          >
+                            {["ativo", "em renovação", "inadimplente", "encerrado"].map((s) => (
+                              <option key={s} value={s}>
+                                {s}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             </div>
+            <Paginacao {...pag} rotulo="contratos" className="border-t border-border px-4 py-2" />
           </Panel>
         )}
       </div>
+
+      {novo && <NovoPlanoDialog open onClose={() => setNovo(false)} />}
+      {editar && <NovoPlanoDialog open onClose={() => setEditar(null)} planoId={editar} />}
+      <ConfirmDialog
+        open={!!excluir}
+        title="Excluir plano"
+        descricao="O plano sai do catálogo. Contratos existentes não são alterados."
+        confirmLabel="Excluir"
+        destructive
+        onCancel={() => setExcluir(null)}
+        onConfirm={() => {
+          if (excluir) removePlano(excluir);
+          setExcluir(null);
+          toast.success("Plano excluído do catálogo");
+        }}
+      />
     </AppShell>
   );
 }
