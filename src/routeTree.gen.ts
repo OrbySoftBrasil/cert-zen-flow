@@ -14,6 +14,7 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ConformidadeRouteImport } from './routes/conformidade'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as MobileRouteImport } from './routes/mobile'
 import { Route as MobileContadorRouteImport } from './routes/mobile-contador'
 import { Route as OperacaoRouteImport } from './routes/operacao'
@@ -58,6 +59,11 @@ const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
 const ConformidadeRoute = ConformidadeRouteImport.update({
   id: '/conformidade',
   path: '/conformidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MobileRoute = MobileRouteImport.update({
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/conformidade': typeof ConformidadeRoute
+  '/login': typeof LoginRoute
   '/mobile': typeof MobileRoute
   '/mobile-contador': typeof MobileContadorRoute
   '/operacao': typeof OperacaoRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/conformidade': typeof ConformidadeRoute
+  '/login': typeof LoginRoute
   '/mobile': typeof MobileRoute
   '/mobile-contador': typeof MobileContadorRoute
   '/operacao': typeof OperacaoRoute
@@ -222,6 +230,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/conformidade': typeof ConformidadeRoute
+  '/login': typeof LoginRoute
   '/mobile': typeof MobileRoute
   '/mobile-contador': typeof MobileContadorRoute
   '/operacao': typeof OperacaoRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/configuracoes'
     | '/conformidade'
+    | '/login'
     | '/mobile'
     | '/mobile-contador'
     | '/operacao'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/configuracoes'
     | '/conformidade'
+    | '/login'
     | '/mobile'
     | '/mobile-contador'
     | '/operacao'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/configuracoes'
     | '/conformidade'
+    | '/login'
     | '/mobile'
     | '/mobile-contador'
     | '/operacao'
@@ -333,6 +345,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ConformidadeRoute: typeof ConformidadeRoute
+  LoginRoute: typeof LoginRoute
   MobileRoute: typeof MobileRoute
   MobileContadorRoute: typeof MobileContadorRoute
   OperacaoRoute: typeof OperacaoRoute
@@ -390,6 +403,13 @@ declare module '@tanstack/react-router' {
       path: '/conformidade'
       fullPath: '/conformidade'
       preLoaderRoute: typeof ConformidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mobile': {
@@ -541,6 +561,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   ConformidadeRoute: ConformidadeRoute,
+  LoginRoute: LoginRoute,
   MobileRoute: MobileRoute,
   MobileContadorRoute: MobileContadorRoute,
   OperacaoRoute: OperacaoRoute,
