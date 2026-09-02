@@ -107,8 +107,8 @@ export function AppShell({
           </div>
           {!collapsed && (
             <div className="leading-tight">
-              <p className="font-display text-sm font-semibold">Certus AC</p>
-              <p className="text-[11px] text-muted-foreground">Autoridade Certificadora</p>
+              <p className="font-display text-sm font-semibold">Certus AR</p>
+              <p className="text-[11px] text-muted-foreground">Autoridade de Registro</p>
             </div>
           )}
         </div>
@@ -238,8 +238,8 @@ export function AppShell({
                 <ShieldCheck className="size-4" />
               </div>
               <div className="leading-tight">
-                <p className="font-display text-sm font-semibold">Certus AC</p>
-                <p className="text-[11px] text-muted-foreground">Autoridade Certificadora</p>
+                <p className="font-display text-sm font-semibold">Certus AR</p>
+                <p className="text-[11px] text-muted-foreground">Autoridade de Registro</p>
               </div>
               <button
                 onClick={() => setNavMobile(false)}
