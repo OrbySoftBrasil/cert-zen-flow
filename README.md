@@ -1,14 +1,31 @@
-# Welcome to your Lovable project
+# Certify Flow
+
+estou bolando um sistema completo para autoridade certificadora. Preciso que crie o mock do sistema. Pensei inicialmente nas funcionalidades abaixo, mas pode melhorar, pode inovar e adicionar itens que ache pertinente.
+Dashboard executivo — receita, emissões, pendências críticas e renovações.
+
+Central operacional Kanban — semelhante ao Trello, mas com SLA, responsável, checklist e filtros.
+
+Dossiê do cliente — visão 360º com certificados, documentos, conversas e financeiro.
+
+Detalhe da solicitação — timeline completa, checklist e ações de etapa.
+
+Central de atendimento com IA — conversa, resumo automático, intenção e botão de assumir.
+
+Agenda operacional — disponibilidade, agendamentos, confirmações e no-show.
+
+Preciso de um design minimalista e profissional, Bonito mas sem perder a caracteristica de operação seria. Cores apenas branco e azul, mas pode inovar no design e usar a criatividade
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://cert-zen-flow.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/67fa6c8d-bbb9-4008-9e33-eb1e9275b1cc).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +37,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
