@@ -42,13 +42,14 @@ import { cn } from "@/lib/utils";
 
 
 const abas = [
-  { id: "marcos", label: "Marcos & etapas" },
-  { id: "subfluxos", label: "Subfluxos" },
-  { id: "escopo", label: "Escopo & precedência" },
-  { id: "versoes", label: "Versões" },
-  { id: "simulador", label: "Simulador" },
-  { id: "validacoes", label: "Validações" },
+  { id: "marcos", label: "1. Esteira & etapas" },
+  { id: "subfluxos", label: "2. Subfluxos" },
+  { id: "escopo", label: "3. Escopo & precedência" },
+  { id: "simulador", label: "4. Simulador" },
+  { id: "validacoes", label: "5. Validações" },
+  { id: "versoes", label: "6. Versões" },
 ] as const;
+
 
 type AbaId = (typeof abas)[number]["id"];
 
