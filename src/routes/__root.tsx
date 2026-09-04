@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AppStoreProvider } from "@/lib/store";
 import { SettingsProvider } from "@/lib/settings-store";
+import { OpConfigProvider } from "@/lib/opconfig-store";
 import { AuthProvider } from "@/lib/auth-store";
 import { ThemeProvider } from "@/lib/theme";
 
@@ -144,9 +145,11 @@ function RootComponent() {
       <AuthProvider>
       <AppStoreProvider>
         <SettingsProvider>
+        <OpConfigProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <Toaster position="bottom-right" richColors closeButton />
+        </OpConfigProvider>
         </SettingsProvider>
       </AppStoreProvider>
       </AuthProvider>

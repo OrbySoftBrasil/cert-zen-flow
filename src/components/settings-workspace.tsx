@@ -26,7 +26,6 @@ import {
   SecaoDados,
   SecaoEquipe,
   SecaoFinanceiro,
-  SecaoFluxo,
   SecaoIntegracoes,
   SecaoNotificacoes,
   SecaoOrganizacao,
@@ -34,13 +33,14 @@ import {
   SecaoSla,
 } from "@/components/settings-sections";
 import { SecaoClassificacoes, SecaoConhecimento } from "@/components/settings-chamados";
+import { SecaoOperacaoPerfis } from "@/components/settings-operacao";
 import { Chip } from "@/components/ui-kit";
 import { useSettings } from "@/lib/settings-store";
 import { cn } from "@/lib/utils";
 
 export const secoes = [
   { id: "organizacao", label: "Organização", icon: Building2, grupo: "Geral" },
-  { id: "fluxo", label: "Fluxo & etapas", icon: Workflow, grupo: "Operação" },
+  { id: "operacao", label: "Operação & perfis", icon: Workflow, grupo: "Operação" },
   { id: "catalogo", label: "Catálogo", icon: Tags, grupo: "Operação" },
   { id: "sla", label: "SLA & prioridades", icon: Timer, grupo: "Operação" },
   { id: "classificacoes", label: "Classificações", icon: Ticket, grupo: "Atendimento" },
@@ -113,7 +113,7 @@ export function SettingsWorkspace({
 
       <div className="min-w-0">
         {ativa === "organizacao" && <SecaoOrganizacao />}
-        {ativa === "fluxo" && <SecaoFluxo />}
+        {ativa === "operacao" && <SecaoOperacaoPerfis />}
         {ativa === "catalogo" && <SecaoCatalogo />}
         {ativa === "sla" && <SecaoSla />}
         {ativa === "classificacoes" && <SecaoClassificacoes />}
@@ -156,7 +156,8 @@ export function SettingsActions(): ReactNode {
         onClick={() => {
           marcarSalvo();
           toast.success("Configurações publicadas", {
-            description: "As novas regras já valem para solicitações em andamento.",
+            description:
+              "Esta versão será aplicada aos novos casos. Casos em andamento continuam usando a versão com que foram criados.",
           });
         }}
       >
@@ -167,14 +168,14 @@ export function SettingsActions(): ReactNode {
 }
 
 export function SettingsDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [ativa, setAtiva] = useState<SecaoId>("fluxo");
+  const [ativa, setAtiva] = useState<SecaoId>("operacao");
 
   return (
     <Modal
       open={open}
       onClose={onClose}
       title="Configurações"
-      hint="Parametrize a esteira, as regras de negócio e as políticas de segurança desta AC."
+      hint="Parametrize a esteira, as regras de negócio e as políticas de segurança desta AR."
       width="max-w-6xl"
       footer={<SettingsActions />}
     >
