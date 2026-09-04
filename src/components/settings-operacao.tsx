@@ -60,13 +60,13 @@ const abas = [
 
 type AbaId = (typeof abas)[number]["id"];
 
-/** Papéis disponíveis: perfis do produto + papéis criados em "Equipe & usuários". */
+/** Papéis operacionais cadastrados em "Equipe & usuários". */
 function usePapeisDisponiveis(): string[] {
   const { settings } = useSettings();
-  return useMemo(() => {
-    const daEquipe = settings.papeis.map((p) => p.perfilOperacional).filter((p) => p && p !== "—");
-    return [...new Set<string>([...PAPEIS_OPERACAO, ...daEquipe])];
-  }, [settings.papeis]);
+  return useMemo(
+    () => settings.papeis.filter((p) => p.operacional).map((p) => p.nome),
+    [settings.papeis],
+  );
 }
 
 /** Seletor de papel com atalho para criar/editar papéis em Equipe & usuários. */
@@ -83,7 +83,9 @@ function PapelSelect({
   placeholder?: string;
   hint?: boolean;
 }) {
-  const papeis = usePapeisDisponiveis();
+  const disponiveis = usePapeisDisponiveis();
+  // Mantém o valor atual na lista mesmo se o papel foi renomeado/removido depois.
+  const papeis = value && !disponiveis.includes(value) ? [value, ...disponiveis] : disponiveis;
   const irPara = useIrParaSecao();
   return (
     <div className="space-y-1">
