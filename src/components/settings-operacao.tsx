@@ -155,43 +155,32 @@ function AbaMarcos() {
 
   return (
     <div className="space-y-4">
-      <Panel
-        title="Marcos canônicos"
-        hint="Os seis marcos são fixos: não podem ser removidos nem reordenados. Você configura o que acontece dentro de cada um."
-        bodyClassName="p-0"
-      >
-        <div className="divide-y divide-border">
-          {MARCOS.map((m, idx) => {
-            const etapas = rascunho.etapas.filter((e) => e.marco === m.id);
-            return (
-              <div key={m.id} className="p-3">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="grid size-6 shrink-0 place-items-center rounded bg-primary-soft text-[11px] font-semibold text-primary-deep tabular">
-                        {idx + 1}
-                      </span>
-                      <h3 className="font-display text-sm font-semibold">{m.nome}</h3>
-                      <Chip tone="outline" className="gap-1">
-                        <Lock className="size-3" /> Marco fixo
-                      </Chip>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)] xl:items-start">
+        <Panel
+          title="Esteira: 6 marcos"
+          hint="Os marcos são fixos. Escolha um marco, adicione etapas internas e clique na etapa para configurar checklist, prazos e avisos."
+          bodyClassName="p-0"
+          className="xl:sticky xl:top-4"
+        >
+          <div className="divide-y divide-border">
+            {MARCOS.map((m, idx) => {
+              const etapas = rascunho.etapas.filter((e) => e.marco === m.id);
+              return (
+                <div key={m.id} className="p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="grid size-6 shrink-0 place-items-center rounded bg-primary-soft text-[11px] font-semibold text-primary-deep tabular">
+                          {idx + 1}
+                        </span>
+                        <h3 className="font-display text-sm font-semibold">{m.nome}</h3>
+                        <Chip tone="outline" className="gap-1">
+                          <Lock className="size-3" /> Fixo
+                        </Chip>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">{m.proposito}</p>
+                      <p className="text-[11px] text-muted-foreground/80">{m.invariante}</p>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{m.proposito}</p>
-                    <p className="text-[11px] text-muted-foreground/80">{m.invariante}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      aria-label={`Remover marco ${m.nome}`}
-                      onClick={() =>
-                        toast.error("Marco fixo não pode ser removido", {
-                          description: m.invariante,
-                        })
-                      }
-                      className="grid size-7 place-items-center rounded border border-dashed border-border text-muted-foreground/60"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
                     <Btn
                       variant="ghost"
                       disabled={somenteLeitura}
@@ -200,42 +189,65 @@ function AbaMarcos() {
                         setDraft({ nome: "", papel: PAPEIS_OPERACAO[0] });
                       }}
                     >
-                      <Plus className="size-4" /> Etapa interna
+                      <Plus className="size-4" /> Etapa
                     </Btn>
                   </div>
-                </div>
 
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {etapas.length === 0 && (
-                    <span className="text-xs text-alert">Nenhuma etapa ativa — o marco não pode ficar vazio.</span>
-                  )}
-                  {etapas.map((e) => (
-                    <button
-                      key={e.id}
-                      type="button"
-                      onClick={() => setSel(e.id)}
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs transition-colors",
-                        e.id === sel
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : e.ativa
-                            ? "border-border text-muted-foreground hover:border-border-strong hover:text-foreground"
-                            : "border-dashed border-border text-muted-foreground/60",
-                      )}
-                    >
-                      {!ORIGENS[e.origem].editavel && <Lock className="size-3" />}
-                      {e.nome}
-                      <span className="tabular opacity-70">{e.slaHoras}h</span>
-                    </button>
-                  ))}
+                  <div className="mt-2 space-y-1">
+                    {etapas.length === 0 && (
+                      <span className="text-xs text-alert">Nenhuma etapa — o marco não pode ficar vazio.</span>
+                    )}
+                    {etapas.map((e, i) => {
+                      const obrigatorios = e.checklist.filter((c) => c.obrigatorio).length;
+                      return (
+                        <button
+                          key={e.id}
+                          type="button"
+                          onClick={() => setSel(e.id)}
+                          aria-current={e.id === sel}
+                          className={cn(
+                            "flex w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-left text-xs transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+                            e.id === sel
+                              ? "border-primary bg-primary-soft text-primary-deep"
+                              : e.ativa
+                                ? "border-border text-muted-foreground hover:border-border-strong hover:text-foreground"
+                                : "border-dashed border-border text-muted-foreground/60",
+                          )}
+                        >
+                          <span className="tabular w-4 shrink-0 opacity-60">{idx + 1}.{i + 1}</span>
+                          {!ORIGENS[e.origem].editavel && <Lock className="size-3 shrink-0" />}
+                          <span className="min-w-0 flex-1 truncate font-medium">{e.nome}</span>
+                          <span className="tabular shrink-0 opacity-70">{e.slaHoras}h</span>
+                          <span className="tabular shrink-0 rounded border border-border px-1 text-[10px] opacity-80">
+                            {e.checklist.length}/{obrigatorios}
+                          </span>
+                          {!e.ativa && <span className="shrink-0 text-[10px]">off</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          <p className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+            Cada etapa mostra <span className="tabular">itens/obrigatórios</span> do checklist e o SLA em horas.
+          </p>
+        </Panel>
+
+        <div className="min-w-0">
+          {atual ? (
+            <EditorEtapaOperacao etapa={atual} onMover={mover} somenteLeitura={somenteLeitura} />
+          ) : (
+            <Panel title="Nenhuma etapa selecionada" hint="Escolha uma etapa à esquerda para configurá-la.">
+              <p className="text-xs text-muted-foreground">
+                Você também pode criar uma nova etapa dentro de qualquer marco pelo botão “Etapa”.
+              </p>
+            </Panel>
+          )}
         </div>
-      </Panel>
+      </div>
 
-      {atual && <EditorEtapaOperacao etapa={atual} onMover={mover} somenteLeitura={somenteLeitura} />}
 
       <Modal
         open={criando !== null}
