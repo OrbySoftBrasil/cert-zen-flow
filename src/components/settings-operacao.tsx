@@ -580,120 +580,155 @@ function EditorEtapaOperacao({
 function AbaSubfluxos() {
   const { rascunho, updateSubfluxo, permissoes } = useOpConfig();
   const somenteLeitura = !permissoes.editarRascunho;
+  const [abrindo, setAbrindo] = useState<string | null>(null);
+  const [busca, setBusca] = useState("");
+
+  const lista = rascunho.subfluxos.filter((s) =>
+    `${s.nome} ${s.descricao} ${s.gatilho} ${s.responsavel}`.toLowerCase().includes(busca.trim().toLowerCase()),
+  );
+  const aberto = rascunho.subfluxos.find((s) => s.id === abrindo);
+  const ativos = rascunho.subfluxos.filter((s) => s.ativo).length;
 
   return (
-    <Panel
-      title="Catálogo de subfluxos"
-      hint="Subfluxos são pré-definidos pelo produto. Você ativa, atribui responsável, SLA, checklist e avisos — sem criar loops, scripts ou ligações arbitrárias."
-      bodyClassName="p-0"
-    >
-      <div className="divide-y divide-border">
-        {rascunho.subfluxos.map((s) => {
-          const dependente = s.dependeHomologacao && !s.homologado;
-          return (
-            <div key={s.id} className="p-3">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
+    <div className="space-y-4">
+      <Panel
+        title="Catálogo de subfluxos"
+        hint="Subfluxos são exceções pré-definidas pelo produto. Você liga, escolhe quem responde, o prazo, os avisos e monta o checklist — sem criar loops ou ligações arbitrárias."
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip tone="outline">
+              {ativos} de {rascunho.subfluxos.length} ativos
+            </Chip>
+            <div className="w-44">
+              <TextInput
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                aria-label="Buscar subfluxo"
+                placeholder="Buscar subfluxo…"
+              />
+            </div>
+          </div>
+        }
+        bodyClassName="p-0"
+      >
+        <ul className="divide-y divide-border">
+          {lista.length === 0 && (
+            <li className="px-4 py-6 text-center text-xs text-muted-foreground">Nenhum subfluxo com esse termo.</li>
+          )}
+          {lista.map((s) => {
+            const dependente = s.dependeHomologacao && !s.homologado;
+            const obrigatorios = s.checklist.filter((c) => c.obrigatorio).length;
+            return (
+              <li key={s.id} className="flex flex-wrap items-start justify-between gap-3 p-3">
+                <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-display text-sm font-semibold">{s.nome}</h3>
                     <OrigemChip origem={s.origem} />
-                    {dependente && <Chip tone="alert">Dependente de homologação da AC</Chip>}
+                    {dependente && <Chip tone="alert">Aguarda homologação da AC</Chip>}
                     {s.ativo && !dependente && <Chip tone="blue">Ativo</Chip>}
+                    {!s.ativo && <Chip tone="outline">Desligado</Chip>}
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">{s.descricao}</p>
-                  <p className="text-[11px] text-muted-foreground/80">Gatilho: {s.gatilho}</p>
+                  <p className="text-[11px] text-muted-foreground/80">Dispara quando: {s.gatilho}</p>
+                  {s.ativo && (
+                    <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                      <span>Responsável: {s.responsavel || "— não definido"}</span>
+                      <span className="tabular">SLA {s.slaHoras}h</span>
+                      <span className="tabular">
+                        {s.checklist.length} itens no checklist ({obrigatorios} obrigatórios)
+                      </span>
+                      <span>Avisos: {s.canais.length ? s.canais.map((c) => CANAIS.find((x) => x.id === c)?.label).join(", ") : "nenhum"}</span>
+                    </p>
+                  )}
                 </div>
-                <div className="w-40 shrink-0">
-                  <Toggle
-                    label={s.ativo ? "Ativado" : "Desativado"}
-                    checked={s.ativo}
-                    disabled={somenteLeitura}
-                    onChange={(v) => {
-                      if (v && dependente) {
-                        toast.error("Capability não confirmada pela AC", {
-                          description: "Este subfluxo só pode ser ativado após homologação. A ativação fica registrada como pendência de publicação.",
-                        });
-                      }
-                      updateSubfluxo(s.id, { ativo: v });
-                    }}
-                  />
-                </div>
-              </div>
-
-              {s.ativo && (
-                <div className="mt-2 grid gap-3 sm:grid-cols-3">
-                  <Field label="Responsável">
-                    <SelectInput value={s.responsavel} disabled={somenteLeitura} onChange={(e) => updateSubfluxo(s.id, { responsavel: e.target.value })}>
-                      <option value="">Selecionar…</option>
-                      {PAPEIS_OPERACAO.map((p) => (
-                        <option key={p}>{p}</option>
-                      ))}
-                    </SelectInput>
-                  </Field>
-                  <Field label="SLA (horas)">
-                    <TextInput
-                      type="number"
-                      min={0}
-                      value={s.slaHoras}
+                <div className="flex shrink-0 items-center gap-2">
+                  <Btn variant="ghost" onClick={() => setAbrindo(s.id)}>
+                    <Pencil className="size-4" /> {somenteLeitura ? "Ver" : "Configurar"}
+                  </Btn>
+                  <div className="w-28">
+                    <Toggle
+                      label={s.ativo ? "Ligado" : "Desligado"}
+                      checked={s.ativo}
                       disabled={somenteLeitura}
-                      onChange={(e) => updateSubfluxo(s.id, { slaHoras: Number(e.target.value) })}
+                      onChange={(v) => {
+                        if (v && dependente) {
+                          toast.error("Capability não confirmada pela AC", {
+                            description: "Este subfluxo só pode valer após homologação. A ativação fica registrada como pendência de publicação.",
+                          });
+                        }
+                        updateSubfluxo(s.id, { ativo: v });
+                      }}
                     />
-                  </Field>
-                  <Field label="Canais de aviso">
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {CANAIS.map((c) => {
-                        const on = s.canais.includes(c.id);
-                        return (
-                          <button
-                            key={c.id}
-                            type="button"
-                            disabled={somenteLeitura}
-                            onClick={() =>
-                              updateSubfluxo(s.id, { canais: on ? s.canais.filter((x) => x !== c.id) : [...s.canais, c.id] })
-                            }
-                            className={cn(
-                              "rounded border px-2 py-1 text-[11px]",
-                              on ? "border-primary bg-primary-soft text-primary-deep" : "border-border text-muted-foreground",
-                            )}
-                          >
-                            {c.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </Field>
-                  <div className="sm:col-span-3">
-                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Checklist do subfluxo</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {s.checklist.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          disabled={somenteLeitura}
-                          onClick={() =>
-                            updateSubfluxo(s.id, {
-                              checklist: s.checklist.map((x) => (x.id === c.id ? { ...x, obrigatorio: !x.obrigatorio } : x)),
-                            })
-                          }
-                          className={cn(
-                            "rounded border px-2 py-1 text-[11px]",
-                            c.obrigatorio ? "border-primary bg-primary-soft text-primary-deep" : "border-border text-muted-foreground",
-                          )}
-                        >
-                          {c.label} · {c.obrigatorio ? "obrigatório" : "opcional"}
-                        </button>
-                      ))}
-                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </Panel>
+              </li>
+            );
+          })}
+        </ul>
+      </Panel>
+
+      <Modal
+        open={aberto !== undefined}
+        onClose={() => setAbrindo(null)}
+        title={aberto ? `Subfluxo: ${aberto.nome}` : ""}
+        hint={aberto?.descricao}
+        width="max-w-2xl"
+        footer={
+          <Btn onClick={() => setAbrindo(null)}>Concluir</Btn>
+        }
+      >
+        {aberto && (
+          <div className="space-y-4">
+            <p className="rounded-md border border-border bg-muted/40 p-2.5 text-xs text-muted-foreground">
+              Dispara quando: <span className="text-foreground">{aberto.gatilho}</span>. Origem da regra: {ORIGENS[aberto.origem].label} — {ORIGENS[aberto.origem].hint}
+            </p>
+            <Grid cols={3}>
+              <Field label="Responsável">
+                <SelectInput
+                  value={aberto.responsavel}
+                  disabled={somenteLeitura}
+                  onChange={(e) => updateSubfluxo(aberto.id, { responsavel: e.target.value })}
+                >
+                  <option value="">Selecionar…</option>
+                  {PAPEIS_OPERACAO.map((p) => (
+                    <option key={p}>{p}</option>
+                  ))}
+                </SelectInput>
+              </Field>
+              <Field label="SLA (horas)">
+                <TextInput
+                  type="number"
+                  min={0}
+                  value={aberto.slaHoras}
+                  disabled={somenteLeitura}
+                  onChange={(e) => updateSubfluxo(aberto.id, { slaHoras: Number(e.target.value) })}
+                />
+              </Field>
+              <Field label="Canais de aviso">
+                <div className="pt-1">
+                  <CanaisPicker
+                    value={aberto.canais}
+                    disabled={somenteLeitura}
+                    onChange={(canais) => updateSubfluxo(aberto.id, { canais })}
+                  />
+                </div>
+              </Field>
+            </Grid>
+            <ChecklistEditor
+              titulo="Checklist do subfluxo"
+              hint="Estes são os itens que o responsável precisa cumprir para encerrar o subfluxo."
+              itens={aberto.checklist}
+              disabled={somenteLeitura}
+              onChange={(checklist) => updateSubfluxo(aberto.id, { checklist })}
+              placeholder="Ex.: Novo horário confirmado com o titular"
+            />
+          </div>
+        )}
+      </Modal>
+    </div>
   );
 }
+
 
 /* ----------------------------------------------------- Escopo & precedência */
 
