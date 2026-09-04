@@ -11,7 +11,7 @@ export const Route = createFileRoute("/configuracoes")({
       {
         name: "description",
         content:
-          "Personalize a esteira de emissão, checklists por etapa, requisitos de avanço, SLA, catálogo, papéis, MFA, sessões, integrações e políticas de dados da autoridade certificadora.",
+          "Personalize a esteira de emissão, checklists por etapa, requisitos de avanço, SLA, catálogo, papéis, MFA, sessões, integrações e políticas de dados da Autoridade de Registro.",
       },
       { property: "og:title", content: "Configurações da operação — Certus AR" },
       {
