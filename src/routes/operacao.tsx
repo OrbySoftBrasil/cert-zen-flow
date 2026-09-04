@@ -125,7 +125,7 @@ const pesoPrioridade = { critica: 0, alta: 1, normal: 2, baixa: 3 } as const;
 const abasValidas: Aba[] = ["visao", "fila", "casos", "demo"];
 
 function Operacao() {
-  const { requests, moveRequest, updateRequest } = useStore();
+  const { requests, moveRequest, updateRequest, toggleChecklist, logRequest } = useStore();
   const navigate = useNavigate();
   const { aba: abaUrl } = Route.useSearch();
 
@@ -143,8 +143,12 @@ function Operacao() {
   }
   const [caso, setCaso] = useState<string | null>(null);
   const [pendente, setPendente] = useState<{ acao: AcaoCaso; requestId: string } | null>(null);
+  const [selecao, setSelecao] = useState<string[]>([]);
+  const [lote, setLote] = useState<null | "avancar" | "assumir" | "priorizar" | "bloquear" | "reatribuir">(null);
+  const [ordemVisivel, setOrdemVisivel] = useState<string[]>([]);
 
   const casoAberto = requests.find((r) => r.id === caso) ?? null;
+  const selecionados = requests.filter((r) => selecao.includes(r.id));
 
   const emissoesPorCliente = useMemo(() => {
     const mapa: Record<string, number> = {};
@@ -152,15 +156,21 @@ function Operacao() {
     return mapa;
   }, [requests]);
 
+  function alternarSelecao(id: string, marcado: boolean) {
+    setSelecao((s) => (marcado ? [...new Set([...s, id])] : s.filter((x) => x !== id)));
+  }
+
   function executar(acao: AcaoCaso, requestId: string) {
     const r = requests.find((x) => x.id === requestId);
     if (!r) return;
     if (acao.id === "assumir") {
       updateRequest(requestId, { responsavelId: perfilById(papelEsperado(r)).agenteId });
+      logRequest(requestId, "Caso assumido", `${USUARIO_ATUAL.nome} passou a responder pelo caso.`);
       toast.success(`${r.protocolo} atribuído a você`, { description: "Registrado na trilha de auditoria." });
     } else if (acao.id === "priorizar") {
       const nova = r.prioridade === "critica" ? "alta" : r.prioridade === "alta" ? "critica" : "alta";
       updateRequest(requestId, { prioridade: nova });
+      logRequest(requestId, `Prioridade alterada para ${nova}`, `Anterior: ${r.prioridade}.`);
       toast.success(`Prioridade de ${r.protocolo} agora é ${nova}`);
     } else if (acao.destino) {
       moveRequest(requestId, acao.destino, acao.label);
@@ -178,6 +188,68 @@ function Operacao() {
       return;
     }
     setPendente({ acao, requestId });
+  }
+
+  // ---- ações em lote: sempre reportam o que passou e o que foi barrado.
+  const previaLote = useMemo(() => {
+    if (lote !== "avancar") return { liberados: [] as Request[], barrados: [] as { r: Request; motivo: string }[] };
+    const liberados: Request[] = [];
+    const barrados: { r: Request; motivo: string }[] = [];
+    for (const r of selecionados) {
+      const acao = acoesDe(r).find((a) => a.destino && a.id === "avancar");
+      if (!acao) {
+        barrados.push({ r, motivo: "Não há avanço previsto para a etapa atual." });
+        continue;
+      }
+      const imp = impedimentoDe(r, acao);
+      if (imp) barrados.push({ r, motivo: imp });
+      else liberados.push(r);
+    }
+    return { liberados, barrados };
+  }, [lote, selecionados]);
+
+  function aplicarLote(agenteId?: string, motivo?: string) {
+    if (lote === "avancar") {
+      for (const r of previaLote.liberados) {
+        const acao = acoesDe(r).find((a) => a.destino && a.id === "avancar");
+        if (acao?.destino) moveRequest(r.id, acao.destino, `${acao.label} (ação em lote)`);
+      }
+      toast.success(`${previaLote.liberados.length} caso(s) avançaram`, {
+        description: previaLote.barrados.length
+          ? `${previaLote.barrados.length} permaneceram na etapa por requisito pendente.`
+          : "Nenhum caso ficou para trás.",
+      });
+    } else if (lote === "assumir") {
+      for (const r of selecionados) {
+        updateRequest(r.id, { responsavelId: USUARIO_ATUAL.id });
+        logRequest(r.id, "Caso assumido em lote", `${USUARIO_ATUAL.nome} assumiu a responsabilidade.`);
+      }
+      toast.success(`${selecionados.length} caso(s) agora são seus`);
+    } else if (lote === "priorizar") {
+      for (const r of selecionados) {
+        updateRequest(r.id, { prioridade: "critica" });
+        logRequest(r.id, "Prioridade elevada para crítica", "Ação em lote da coordenação.");
+      }
+      toast.success(`${selecionados.length} caso(s) marcados como críticos`);
+    } else if (lote === "bloquear") {
+      for (const r of selecionados) moveRequest(r.id, "bloqueado", "Bloqueio registrado em lote");
+      toast.success(`${selecionados.length} caso(s) sinalizados como bloqueados`);
+    } else if (lote === "reatribuir" && agenteId) {
+      for (const r of selecionados) {
+        updateRequest(r.id, { responsavelId: agenteId });
+        logRequest(r.id, `Responsável alterado para ${agentById(agenteId).nome}`, motivo);
+      }
+      toast.success(`${selecionados.length} caso(s) transferidos para ${agentById(agenteId).nome}`);
+    }
+    setLote(null);
+    setSelecao([]);
+  }
+
+  const idxAberto = casoAberto ? ordemVisivel.indexOf(casoAberto.id) : -1;
+  function navegarCaso(passo: 1 | -1) {
+    if (idxAberto < 0) return;
+    const proximo = ordemVisivel[idxAberto + passo];
+    if (proximo) setCaso(proximo);
   }
 
   return (
@@ -231,6 +303,17 @@ function Operacao() {
           requests={requests}
           emissoes={emissoesPorCliente}
           onOpen={setCaso}
+          selecao={selecao}
+          onSelecionar={alternarSelecao}
+          onSelecionarVarios={(ids, marcado) =>
+            setSelecao((s) => (marcado ? [...new Set([...s, ...ids])] : s.filter((x) => !ids.includes(x))))
+          }
+          onOrdemVisivel={setOrdemVisivel}
+          onAcaoRapida={(id, acaoId) => {
+            const r = requests.find((x) => x.id === id);
+            const acao = r && acoesDe(r).find((a) => a.id === acaoId);
+            if (r && acao) pedirConfirmacao(acao, id);
+          }}
           onSolicitarTransicao={(id, marco) => {
             const r = requests.find((x) => x.id === id);
             if (!r) return;
@@ -246,21 +329,128 @@ function Operacao() {
         />
       )}
 
-      {aba === "fila" && <MinhaFila requests={requests} onOpen={setCaso} />}
+      {aba === "fila" && (
+        <MinhaFila
+          requests={requests}
+          onOpen={setCaso}
+          selecao={selecao}
+          onSelecionar={alternarSelecao}
+          onOrdemVisivel={setOrdemVisivel}
+          onAssumir={(id) => {
+            updateRequest(id, { responsavelId: USUARIO_ATUAL.id });
+            logRequest(id, "Caso assumido pela fila", `${USUARIO_ATUAL.nome} puxou a tarefa.`);
+            toast.success("Tarefa assumida", { description: "O caso passou para a sua fila." });
+          }}
+        />
+      )}
 
-      {aba === "casos" && <TodosOsCasos requests={requests} onOpen={setCaso} />}
+      {aba === "casos" && (
+        <TodosOsCasos
+          requests={requests}
+          onOpen={setCaso}
+          selecao={selecao}
+          onSelecionar={alternarSelecao}
+          onSelecionarVarios={(ids, marcado) =>
+            setSelecao((s) => (marcado ? [...new Set([...s, ...ids])] : s.filter((x) => !ids.includes(x))))
+          }
+          onOrdemVisivel={setOrdemVisivel}
+        />
+      )}
 
       {aba === "demo" && <CasosDemonstrativos />}
 
+      <BarraLote quantidade={selecao.length} onLimpar={() => setSelecao([])}>
+        <Btn variant="ghost" onClick={() => setLote("assumir")}>
+          <Hand className="size-3.5" /> Assumir
+        </Btn>
+        <Btn variant="ghost" onClick={() => setLote("reatribuir")}>
+          <UserCog className="size-3.5" /> Reatribuir
+        </Btn>
+        <Btn variant="ghost" onClick={() => setLote("priorizar")}>
+          <AlertTriangle className="size-3.5" /> Elevar prioridade
+        </Btn>
+        <Btn onClick={() => setLote("avancar")}>
+          <ArrowRight className="size-3.5" /> Avançar etapa
+        </Btn>
+        <Btn variant="danger" onClick={() => setLote("bloquear")}>
+          <Lock className="size-3.5" /> Registrar bloqueio
+        </Btn>
+      </BarraLote>
 
       <CasoDrawer
         r={casoAberto}
         onClose={() => setCaso(null)}
         onAcao={(acao) => casoAberto && pedirConfirmacao(acao, casoAberto.id)}
+        onToggleChecklist={(itemId) => casoAberto && toggleChecklist(casoAberto.id, itemId)}
+        onResponsavel={(agenteId) => {
+          if (!casoAberto) return;
+          updateRequest(casoAberto.id, { responsavelId: agenteId });
+          logRequest(casoAberto.id, `Responsável alterado para ${agentById(agenteId).nome}`);
+          toast.success(`Responsável agora é ${agentById(agenteId).nome}`);
+        }}
+        onNota={(texto) => {
+          if (!casoAberto) return;
+          logRequest(casoAberto.id, "Nota da operação", texto);
+          toast.success("Nota registrada no histórico do caso");
+        }}
+        {...(idxAberto > 0 ? { onAnterior: () => navegarCaso(-1) } : {})}
+        {...(idxAberto >= 0 && idxAberto < ordemVisivel.length - 1 ? { onProximo: () => navegarCaso(1) } : {})}
+        {...(idxAberto >= 0 ? { posicao: `${idxAberto + 1} de ${ordemVisivel.length}` } : {})}
         onAbrirFicha={() => {
           if (casoAberto) navigate({ to: "/solicitacoes/$id", params: { id: casoAberto.id } });
         }}
       />
+
+      <ReatribuirDialog
+        open={lote === "reatribuir"}
+        quantidade={selecao.length}
+        sugerido={USUARIO_ATUAL.id}
+        onCancel={() => setLote(null)}
+        onConfirm={(agenteId, motivo) => aplicarLote(agenteId, motivo)}
+      />
+
+      <ConfirmDialog
+        open={!!lote && lote !== "reatribuir"}
+        title={
+          lote === "avancar"
+            ? "Avançar etapa em lote"
+            : lote === "assumir"
+              ? "Assumir casos selecionados"
+              : lote === "priorizar"
+                ? "Elevar prioridade para crítica"
+                : "Registrar bloqueio em lote"
+        }
+        descricao={`${selecao.length} caso(s) selecionado(s).`}
+        confirmLabel="Confirmar"
+        {...(lote === "bloquear" ? { destructive: true } : {})}
+        onCancel={() => setLote(null)}
+        onConfirm={() => aplicarLote()}
+      >
+        <div className="space-y-2 text-sm">
+          {lote === "avancar" ? (
+            <>
+              <p className="text-muted-foreground">
+                <span className="font-medium text-foreground">{previaLote.liberados.length}</span> caso(s) atendem aos
+                requisitos e vão avançar.{" "}
+                <span className="font-medium text-foreground">{previaLote.barrados.length}</span> ficarão parados.
+              </p>
+              {previaLote.barrados.length > 0 && (
+                <ul className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-border p-2">
+                  {previaLote.barrados.map(({ r, motivo }) => (
+                    <li key={r.id} className="text-[11px] text-muted-foreground">
+                      <span className="tabular font-medium text-alert">{r.protocolo}</span> — {motivo}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : (
+            <p className="text-muted-foreground">
+              A ação será aplicada a todos os casos selecionados e registrada individualmente na trilha de auditoria.
+            </p>
+          )}
+        </div>
+      </ConfirmDialog>
 
       <ConfirmDialog
         open={!!pendente}
