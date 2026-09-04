@@ -155,6 +155,7 @@ function RootComponent() {
         </SettingsProvider>
       </AppStoreProvider>
       </AuthProvider>
+      </DensidadeProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
