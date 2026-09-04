@@ -11,7 +11,6 @@ import {
 import { contadorDoCliente } from "@/lib/contadores-data";
 import { cenarioDe } from "@/lib/cenarios";
 
-
 export type MarcoId = "captacao" | "preparacao" | "validacao" | "emissao" | "entrega" | "emuso";
 
 export const marcos: { id: MarcoId; nome: string; descricao: string }[] = [
@@ -27,7 +26,9 @@ const ordemStage = (s: StageId) => stages.findIndex((x) => x.id === s);
 
 export function marcoDe(r: Request): MarcoId {
   if (r.stage === "bloqueado") {
-    const ratio = r.checklist.length ? r.checklist.filter((c) => c.done).length / r.checklist.length : 0;
+    const ratio = r.checklist.length
+      ? r.checklist.filter((c) => c.done).length / r.checklist.length
+      : 0;
     return ratio < 0.34 ? "preparacao" : ratio < 0.67 ? "validacao" : "emissao";
   }
   switch (r.stage) {
@@ -169,19 +170,67 @@ export function proximaAcaoLabel(r: Request): string {
   return acoes[0]?.label ?? "Acompanhar";
 }
 
-
 // ------------------------------------------------------------------- perfis
 
-export type PerfilId = "vd" | "vi" | "agr" | "montadora" | "verificadora" | "financeiro" | "entrega";
+export type PerfilId =
+  "vd" | "vi" | "agr" | "montadora" | "verificadora" | "financeiro" | "entrega";
 
-export const perfis: { id: PerfilId; sigla: string; nome: string; descricao: string; agenteId: string }[] = [
-  { id: "vd", sigla: "VD", nome: "Vendas Diretas", descricao: "Captação própria e balcão", agenteId: "a4" },
-  { id: "vi", sigla: "VI", nome: "Vendas Indiretas", descricao: "Casos vindos de contabilidades", agenteId: "a4" },
-  { id: "agr", sigla: "AGR", nome: "Agente de Registro", descricao: "Identificação e emissão", agenteId: "a1" },
-  { id: "montadora", sigla: "MD", nome: "Montadora de dossiê", descricao: "Coleta e organização documental", agenteId: "a3" },
-  { id: "verificadora", sigla: "VF", nome: "Verificadora", descricao: "Conferência documental", agenteId: "a3" },
-  { id: "financeiro", sigla: "FIN", nome: "Financeiro", descricao: "Pagamento e liberação", agenteId: "a5" },
-  { id: "entrega", sigla: "SE", nome: "Suporte de entrega", descricao: "Instalação e pós-emissão", agenteId: "a2" },
+export const perfis: {
+  id: PerfilId;
+  sigla: string;
+  nome: string;
+  descricao: string;
+  agenteId: string;
+}[] = [
+  {
+    id: "vd",
+    sigla: "VD",
+    nome: "Vendas Diretas",
+    descricao: "Captação própria e balcão",
+    agenteId: "a4",
+  },
+  {
+    id: "vi",
+    sigla: "VI",
+    nome: "Vendas Indiretas",
+    descricao: "Casos vindos de contabilidades",
+    agenteId: "a4",
+  },
+  {
+    id: "agr",
+    sigla: "AGR",
+    nome: "Agente de Registro",
+    descricao: "Identificação e emissão",
+    agenteId: "a1",
+  },
+  {
+    id: "montadora",
+    sigla: "MD",
+    nome: "Montadora de dossiê",
+    descricao: "Coleta e organização documental",
+    agenteId: "a3",
+  },
+  {
+    id: "verificadora",
+    sigla: "VF",
+    nome: "Verificadora",
+    descricao: "Conferência documental",
+    agenteId: "a3",
+  },
+  {
+    id: "financeiro",
+    sigla: "FIN",
+    nome: "Financeiro",
+    descricao: "Pagamento e liberação",
+    agenteId: "a5",
+  },
+  {
+    id: "entrega",
+    sigla: "SE",
+    nome: "Suporte de entrega",
+    descricao: "Instalação e pós-emissão",
+    agenteId: "a2",
+  },
 ];
 
 export function perfilById(id: PerfilId) {
@@ -209,7 +258,8 @@ export function papelEsperado(r: Request): PerfilId {
 
 // -------------------------------------------------------------------- fila
 
-export type TipoPendencia = "documento" | "conferencia" | "identificacao" | "pagamento" | "entrega" | "contato";
+export type TipoPendencia =
+  "documento" | "conferencia" | "identificacao" | "pagamento" | "entrega" | "contato";
 
 export interface Tarefa {
   id: string;
@@ -274,8 +324,12 @@ export function tarefasDe(requests: Request[]): Tarefa[] {
   return requests.filter((r) => r.stage !== "concluido" || !!cenarioDe(r.id)?.tarefa).map(tarefaDe);
 }
 
-
-export const unidades = ["Matriz São Paulo", "Filial Campinas", "Filial Belo Horizonte", "Remoto"] as const;
+export const unidades = [
+  "Matriz São Paulo",
+  "Filial Campinas",
+  "Filial Belo Horizonte",
+  "Remoto",
+] as const;
 
 /** Unidade determinística por caso (protótipo). */
 export function unidadeDe(r: Request) {

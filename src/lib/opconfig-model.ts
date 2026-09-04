@@ -24,7 +24,8 @@ export const MARCOS: MarcoCanonico[] = [
   {
     id: "preparacao",
     nome: "Preparação",
-    proposito: "Dossiê, agendamento e pré-requisitos. Subfluxo condicional: pode correr em paralelo à validação quando o perfil homologado permitir.",
+    proposito:
+      "Dossiê, agendamento e pré-requisitos. Subfluxo condicional: pode correr em paralelo à validação quando o perfil homologado permitir.",
     invariante: "Precede obrigatoriamente a Validação.",
   },
   {
@@ -73,7 +74,12 @@ export const ORIGENS: Record<
     editavel: false,
     peso: 5,
   },
-  tenant: { label: "Tenant", hint: "Padrão desta Autoridade de Registro.", editavel: true, peso: 4 },
+  tenant: {
+    label: "Tenant",
+    hint: "Padrão desta Autoridade de Registro.",
+    editavel: true,
+    peso: 4,
+  },
   unidade: { label: "Unidade", hint: "Ajuste de uma filial específica.", editavel: true, peso: 3 },
   indicador: {
     label: "Indicador",
@@ -81,7 +87,12 @@ export const ORIGENS: Record<
     editavel: true,
     peso: 2,
   },
-  excecao: { label: "Exceção do caso", hint: "Autorizada pontualmente, com registro.", editavel: true, peso: 1 },
+  excecao: {
+    label: "Exceção do caso",
+    hint: "Autorizada pontualmente, com registro.",
+    editavel: true,
+    peso: 1,
+  },
 };
 
 export type EscopoTipo = "tenant" | "produto" | "unidade" | "indicador";
@@ -92,10 +103,30 @@ export interface EscopoConfig {
 }
 
 export const ESCOPOS: { tipo: EscopoTipo; label: string; hint: string; alvos: string[] }[] = [
-  { tipo: "tenant", label: "Padrão do tenant", hint: "Vale para toda a AR quando não houver override.", alvos: ["Certus AR"] },
-  { tipo: "produto", label: "Produto", hint: "Override por produto certificado.", alvos: ["e-CPF A1", "e-CPF A3", "e-CNPJ A1", "e-CNPJ A3", "BIRD ID"] },
-  { tipo: "unidade", label: "Unidade", hint: "Override por filial/posto de atendimento.", alvos: ["Matriz — São Paulo", "Filial — Campinas", "Filial — Curitiba"] },
-  { tipo: "indicador", label: "Indicador / contabilidade", hint: "Override comercial por parceiro.", alvos: ["Contabilidade Prisma", "Escritório Nova Era", "Contax Assessoria"] },
+  {
+    tipo: "tenant",
+    label: "Padrão do tenant",
+    hint: "Vale para toda a AR quando não houver override.",
+    alvos: ["Certus AR"],
+  },
+  {
+    tipo: "produto",
+    label: "Produto",
+    hint: "Override por produto certificado.",
+    alvos: ["e-CPF A1", "e-CPF A3", "e-CNPJ A1", "e-CNPJ A3", "BIRD ID"],
+  },
+  {
+    tipo: "unidade",
+    label: "Unidade",
+    hint: "Override por filial/posto de atendimento.",
+    alvos: ["Matriz — São Paulo", "Filial — Campinas", "Filial — Curitiba"],
+  },
+  {
+    tipo: "indicador",
+    label: "Indicador / contabilidade",
+    hint: "Override comercial por parceiro.",
+    alvos: ["Contabilidade Prisma", "Escritório Nova Era", "Contax Assessoria"],
+  },
 ];
 
 /* ------------------------------------------------------------------ Etapas */
@@ -177,13 +208,16 @@ export const APLICABILIDADES = [
 ] as const;
 
 let seq = 0;
-const uid = (p: string) => `${p}-${(seq += 1).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+const uid = (p: string) =>
+  `${p}-${(seq += 1).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
 function ck(label: string, obrigatorio = true): ItemChecklist {
   return { id: uid("ck"), label, obrigatorio };
 }
 
-function etapa(e: Partial<EtapaConfig> & Pick<EtapaConfig, "marco" | "nome" | "papel">): EtapaConfig {
+function etapa(
+  e: Partial<EtapaConfig> & Pick<EtapaConfig, "marco" | "nome" | "papel">,
+): EtapaConfig {
   return {
     id: uid("et"),
     slaHoras: 8,
@@ -207,7 +241,12 @@ function etapa(e: Partial<EtapaConfig> & Pick<EtapaConfig, "marco" | "nome" | "p
 }
 
 export function novaEtapaConfig(marco: MarcoId, nome: string, papel: string): EtapaConfig {
-  return etapa({ marco, nome, papel, instrucoes: "Descreva o que o operador deve fazer nesta etapa." });
+  return etapa({
+    marco,
+    nome,
+    papel,
+    instrucoes: "Descreva o que o operador deve fazer nesta etapa.",
+  });
 }
 
 export function novoItemChecklist(label: string): ItemChecklist {
@@ -226,7 +265,11 @@ function seedEtapas(): EtapaConfig[] {
       criterioEntrada: "Pedido criado por portal, indicador, chat ou importação.",
       criterioSaida: "Titular, produto e condição comercial definidos.",
       instrucoes: "Confirme quem é o titular, quem paga e quem acompanha o caso.",
-      checklist: [ck("Titular e representante identificados"), ck("Produto e modalidade escolhidos"), ck("Origem do pedido registrada", false)],
+      checklist: [
+        ck("Titular e representante identificados"),
+        ck("Produto e modalidade escolhidos"),
+        ck("Origem do pedido registrada", false),
+      ],
     }),
     etapa({
       marco: "captacao",
@@ -236,10 +279,17 @@ function seedEtapas(): EtapaConfig[] {
       obrigatoria: true,
       removivel: false,
       origem: "plataforma",
-      portao: { exige: "Pagamento confirmado, dispensa ou exceção aprovada", autorizador: "Financeiro" },
+      portao: {
+        exige: "Pagamento confirmado, dispensa ou exceção aprovada",
+        autorizador: "Financeiro",
+      },
       criterioSaida: "Pagamento confirmado, dispensa registrada ou exceção aprovada.",
-      instrucoes: "Cada emissão precisa da própria liberação. Nunca reaproveite o pagamento de outra emissão do mesmo caso.",
-      checklist: [ck("Condição comercial aplicada"), ck("Pagamento, dispensa ou exceção registrada")],
+      instrucoes:
+        "Cada emissão precisa da própria liberação. Nunca reaproveite o pagamento de outra emissão do mesmo caso.",
+      checklist: [
+        ck("Condição comercial aplicada"),
+        ck("Pagamento, dispensa ou exceção registrada"),
+      ],
       canais: ["email", "push", "whatsapp"],
     }),
     etapa({
@@ -252,7 +302,11 @@ function seedEtapas(): EtapaConfig[] {
       criterioEntrada: "Liberação comercial concluída.",
       criterioSaida: "Todos os itens obrigatórios do produto anexados.",
       instrucoes: "Anexe cada documento na versão mais recente e registre a origem do arquivo.",
-      checklist: [ck("Documento de identidade"), ck("Comprovante de vínculo (PJ)"), ck("Selfie / prova de vida", false)],
+      checklist: [
+        ck("Documento de identidade"),
+        ck("Comprovante de vínculo (PJ)"),
+        ck("Selfie / prova de vida", false),
+      ],
     }),
     etapa({
       marco: "preparacao",
@@ -275,10 +329,15 @@ function seedEtapas(): EtapaConfig[] {
       origem: "plataforma",
       segregacaoObrigatoria: true,
       papelVerificador: "AGR — Agente de registro",
-      criterioEntrada: "Dossiê enviado para verificação, ou perfil homologado que dispensa dossiê completo nesta etapa.",
+      criterioEntrada:
+        "Dossiê enviado para verificação, ou perfil homologado que dispensa dossiê completo nesta etapa.",
       criterioSaida: "Dossiê aprovado sem divergência aberta.",
       instrucoes: "Quem montou o dossiê não pode conferir o mesmo dossiê.",
-      checklist: [ck("Itens obrigatórios presentes"), ck("Legibilidade e validade conferidas"), ck("Divergências tratadas")],
+      checklist: [
+        ck("Itens obrigatórios presentes"),
+        ck("Legibilidade e validade conferidas"),
+        ck("Divergências tratadas"),
+      ],
     }),
     etapa({
       marco: "validacao",
@@ -291,7 +350,11 @@ function seedEtapas(): EtapaConfig[] {
       portao: { exige: "Biometria e gravação arquivadas", autorizador: "AGR — Agente de registro" },
       criterioSaida: "Validação aprovada e evidência arquivada.",
       instrucoes: "Registre o método usado (videoconferência, presencial ou base biométrica).",
-      checklist: [ck("Identidade confirmada"), ck("Gravação/evidência arquivada"), ck("Termo assinado")],
+      checklist: [
+        ck("Identidade confirmada"),
+        ck("Gravação/evidência arquivada"),
+        ck("Termo assinado"),
+      ],
     }),
     etapa({
       marco: "emissao",
@@ -329,7 +392,10 @@ function seedEtapas(): EtapaConfig[] {
       criterioSaida: "Instalação e funcionamento confirmados com o titular.",
       instrucoes:
         "Confirme o teste de assinatura ou acesso com o titular. Revogação e suporte continuam ligados a esta emissão; renovação abre um caso novo relacionado.",
-      checklist: [ck("Teste de funcionamento confirmado com o titular"), ck("Canal de suporte informado", false)],
+      checklist: [
+        ck("Teste de funcionamento confirmado com o titular"),
+        ck("Canal de suporte informado", false),
+      ],
     }),
   ];
 }
@@ -360,26 +426,102 @@ function seedSubfluxos(): SubfluxoConfig[] {
   });
 
   return [
-    base("Reagendamento", "Reabre o agendamento quando o titular não comparece ou pede outro horário.", "No-show ou pedido do titular", "VI — Vendas indireta", 8, ["Novo horário confirmado", "Titular avisado"]),
-    base("Pendência de dossiê", "Devolve o dossiê ao cliente quando falta um item obrigatório.", "Item obrigatório ausente", "Montadora de dossiê", 12, ["Pendência descrita", "Cliente notificado"]),
-    base("Divergência de dossiê", "Trata documento ilegível, vencido ou inconsistente apontado na conferência.", "Reprovação da verificadora", "Verificadora", 8, ["Motivo da divergência registrado", "Reenvio conferido"]),
-    base("Exceção comercial", "Permite avançar sem pagamento mediante autorização registrada.", "Solicitação do VD/indicador", "Financeiro", 4, ["Justificativa registrada", "Autorizador identificado"], { origem: "tenant" }),
-    base("Emissão manual", "Emissão conduzida fora do fluxo automático da AC.", "Falha ou indisponibilidade da AC", "AGR — Agente de registro", 6, ["Motivo registrado", "Protocolo manual anexado"], { origem: "ac" }),
-    base("Envio manual", "Reenvio do certificado quando a entrega automática falha.", "Falha de envio automático", "Suporte de entrega", 6, ["Canal alternativo usado", "Recebimento confirmado"]),
-    base("Revogação", "Revoga o certificado por perda, comprometimento ou desligamento.", "Pedido do titular ou compliance", "Compliance", 4, ["Motivo classificado", "Revogação confirmada pela AC"], { origem: "plataforma" }),
-    base("Suspeita de fraude", "Congela o caso e escala para compliance.", "Sinal de fraude detectado", "Compliance", 2, ["Caso congelado", "Análise registrada"], { origem: "plataforma" }),
-    base("Emissão relacionada / BIRD", "Segunda emissão aproveitando validação já realizada, quando a AC permitir.", "Novo produto no mesmo caso", "AGR — Agente de registro", 6, ["Elegibilidade conferida", "Liberação comercial própria"], {
-      ativo: false,
-      dependeHomologacao: true,
-      homologado: false,
-      origem: "ac",
-    }),
-    base("Atendimento presencial / voucher", "Validação em posto físico com voucher, quando homologado pela AC.", "Titular sem videoconferência", "AGR — Agente de registro", 12, ["Posto e horário definidos", "Voucher emitido"], {
-      ativo: false,
-      dependeHomologacao: true,
-      homologado: false,
-      origem: "ac",
-    }),
+    base(
+      "Reagendamento",
+      "Reabre o agendamento quando o titular não comparece ou pede outro horário.",
+      "No-show ou pedido do titular",
+      "VI — Vendas indireta",
+      8,
+      ["Novo horário confirmado", "Titular avisado"],
+    ),
+    base(
+      "Pendência de dossiê",
+      "Devolve o dossiê ao cliente quando falta um item obrigatório.",
+      "Item obrigatório ausente",
+      "Montadora de dossiê",
+      12,
+      ["Pendência descrita", "Cliente notificado"],
+    ),
+    base(
+      "Divergência de dossiê",
+      "Trata documento ilegível, vencido ou inconsistente apontado na conferência.",
+      "Reprovação da verificadora",
+      "Verificadora",
+      8,
+      ["Motivo da divergência registrado", "Reenvio conferido"],
+    ),
+    base(
+      "Exceção comercial",
+      "Permite avançar sem pagamento mediante autorização registrada.",
+      "Solicitação do VD/indicador",
+      "Financeiro",
+      4,
+      ["Justificativa registrada", "Autorizador identificado"],
+      { origem: "tenant" },
+    ),
+    base(
+      "Emissão manual",
+      "Emissão conduzida fora do fluxo automático da AC.",
+      "Falha ou indisponibilidade da AC",
+      "AGR — Agente de registro",
+      6,
+      ["Motivo registrado", "Protocolo manual anexado"],
+      { origem: "ac" },
+    ),
+    base(
+      "Envio manual",
+      "Reenvio do certificado quando a entrega automática falha.",
+      "Falha de envio automático",
+      "Suporte de entrega",
+      6,
+      ["Canal alternativo usado", "Recebimento confirmado"],
+    ),
+    base(
+      "Revogação",
+      "Revoga o certificado por perda, comprometimento ou desligamento.",
+      "Pedido do titular ou compliance",
+      "Compliance",
+      4,
+      ["Motivo classificado", "Revogação confirmada pela AC"],
+      { origem: "plataforma" },
+    ),
+    base(
+      "Suspeita de fraude",
+      "Congela o caso e escala para compliance.",
+      "Sinal de fraude detectado",
+      "Compliance",
+      2,
+      ["Caso congelado", "Análise registrada"],
+      { origem: "plataforma" },
+    ),
+    base(
+      "Emissão relacionada / BIRD",
+      "Segunda emissão aproveitando validação já realizada, quando a AC permitir.",
+      "Novo produto no mesmo caso",
+      "AGR — Agente de registro",
+      6,
+      ["Elegibilidade conferida", "Liberação comercial própria"],
+      {
+        ativo: false,
+        dependeHomologacao: true,
+        homologado: false,
+        origem: "ac",
+      },
+    ),
+    base(
+      "Atendimento presencial / voucher",
+      "Validação em posto físico com voucher, quando homologado pela AC.",
+      "Titular sem videoconferência",
+      "AGR — Agente de registro",
+      12,
+      ["Posto e horário definidos", "Voucher emitido"],
+      {
+        ativo: false,
+        dependeHomologacao: true,
+        homologado: false,
+        origem: "ac",
+      },
+    ),
   ];
 }
 
@@ -417,8 +559,24 @@ export function seedPublicada(): VersaoPerfil {
 export function seedHistorico(): VersaoPerfil[] {
   const p = seedPublicada();
   return [
-    { ...p, id: "v-11", numero: "v11", autor: "Rafael Lima", data: "2026-07-02T09:10:00", nota: "SLA de entrega ampliado para 24h.", casos: 41 },
-    { ...p, id: "v-10", numero: "v10", autor: "Helena Prado", data: "2026-05-14T16:45:00", nota: "Subfluxo de divergência de dossiê ativado.", casos: 12 },
+    {
+      ...p,
+      id: "v-11",
+      numero: "v11",
+      autor: "Rafael Lima",
+      data: "2026-07-02T09:10:00",
+      nota: "SLA de entrega ampliado para 24h.",
+      casos: 41,
+    },
+    {
+      ...p,
+      id: "v-10",
+      numero: "v10",
+      autor: "Helena Prado",
+      data: "2026-05-14T16:45:00",
+      nota: "Subfluxo de divergência de dossiê ativado.",
+      casos: 12,
+    },
   ];
 }
 
@@ -473,7 +631,11 @@ export function validarPublicacao(perfil: PerfilOperacional): AchadoPublicacao[]
         comoResolver: "Informe o prazo em horas.",
       });
     }
-    if (perfil.escopo.tipo === "indicador" && !ORIGENS[e.origem].editavel && e.origem !== "tenant") {
+    if (
+      perfil.escopo.tipo === "indicador" &&
+      !ORIGENS[e.origem].editavel &&
+      e.origem !== "tenant"
+    ) {
       achados.push({
         id: `indicador-${e.id}`,
         tipo: "erro",
@@ -546,7 +708,12 @@ export function compararVersoes(pub: PerfilOperacional, dra: PerfilOperacional):
   for (const e of dra.etapas) {
     const antes = mapPub.get(e.id);
     if (!antes) {
-      linhas.push({ chave: e.id, titulo: `Etapa “${e.nome}”`, publicada: "—", rascunho: "Nova etapa" });
+      linhas.push({
+        chave: e.id,
+        titulo: `Etapa “${e.nome}”`,
+        publicada: "—",
+        rascunho: "Nova etapa",
+      });
       continue;
     }
     const campos: [string, string, string][] = [
@@ -561,14 +728,24 @@ export function compararVersoes(pub: PerfilOperacional, dra: PerfilOperacional):
     ];
     for (const [campo, a, b] of campos) {
       if (a !== b) {
-        linhas.push({ chave: `${e.id}-${campo}`, titulo: `${e.nome} · ${campo}`, publicada: a, rascunho: b });
+        linhas.push({
+          chave: `${e.id}-${campo}`,
+          titulo: `${e.nome} · ${campo}`,
+          publicada: a,
+          rascunho: b,
+        });
       }
     }
   }
 
   for (const e of pub.etapas) {
     if (!mapDra.has(e.id)) {
-      linhas.push({ chave: `rm-${e.id}`, titulo: `Etapa “${e.nome}”`, publicada: "Existia", rascunho: "Removida" });
+      linhas.push({
+        chave: `rm-${e.id}`,
+        titulo: `Etapa “${e.nome}”`,
+        publicada: "Existia",
+        rascunho: "Removida",
+      });
     }
   }
 
@@ -610,18 +787,95 @@ export interface Cenario {
 }
 
 export const CENARIOS: Cenario[] = [
-  { id: "pago", nome: "Pago e aprovado diretamente", descricao: "Pagamento confirmado no ato e validação aprovada na primeira tentativa.", subfluxos: [], pulaValidacaoDossie: true, proximaAcao: "Solicitar emissão à AC" },
-  { id: "pendente", nome: "Atendimento realizado com pagamento pendente", descricao: "Validação concluída, mas sem liberação comercial.", subfluxos: ["Exceção comercial"], bloqueio: { titulo: "Emissão bloqueada por liberação comercial", regra: "Cada emissão exige pagamento, dispensa ou exceção próprios.", origem: "plataforma" }, proximaAcao: "Registrar pagamento ou aprovar exceção comercial" },
-  { id: "dossie", nome: "Validação que exige dossiê", descricao: "Produto PJ com dossiê obrigatório antes da validação.", subfluxos: ["Pendência de dossiê"], proximaAcao: "Enviar dossiê para verificação" },
-  { id: "divergente", nome: "Dossiê divergente", descricao: "Verificadora reprova um documento.", subfluxos: ["Divergência de dossiê", "Pendência de dossiê"], bloqueio: { titulo: "Validação travada por divergência aberta", regra: "Dossiê com divergência não avança para validação de identidade.", origem: "plataforma" }, proximaAcao: "Devolver ao cliente com o motivo da divergência" },
-  { id: "noshow", nome: "No-show e reagendamento", descricao: "Titular não comparece à videoconferência.", subfluxos: ["Reagendamento"], proximaAcao: "Reagendar atendimento e avisar o titular" },
-  { id: "envio", nome: "Falha de envio automático", descricao: "Emissão concluída, entrega automática falhou.", subfluxos: ["Envio manual"], proximaAcao: "Reenviar manualmente e confirmar recebimento" },
-  { id: "bird", nome: "BIRD seguido de outro produto", descricao: "Primeira emissão BIRD concluída, segunda emissão no mesmo caso.", subfluxos: ["Emissão relacionada / BIRD"], bloqueio: { titulo: "Segunda emissão aguarda liberação comercial própria", regra: "Uma emissão nunca é liberada pelo pagamento ou validação de outra.", origem: "plataforma" }, proximaAcao: "Aplicar condição comercial da segunda emissão" },
-  { id: "presencial", nome: "Atendimento presencial, ainda não homologado", descricao: "Titular pede validação em posto físico.", subfluxos: ["Atendimento presencial / voucher"], bloqueio: { titulo: "Capability não homologada pela AC", regra: "Atendimento presencial/voucher depende de homologação da AC e não pode ser ligado manualmente.", origem: "ac" }, proximaAcao: "Oferecer videoconferência ou solicitar homologação à AC" },
+  {
+    id: "pago",
+    nome: "Pago e aprovado diretamente",
+    descricao: "Pagamento confirmado no ato e validação aprovada na primeira tentativa.",
+    subfluxos: [],
+    pulaValidacaoDossie: true,
+    proximaAcao: "Solicitar emissão à AC",
+  },
+  {
+    id: "pendente",
+    nome: "Atendimento realizado com pagamento pendente",
+    descricao: "Validação concluída, mas sem liberação comercial.",
+    subfluxos: ["Exceção comercial"],
+    bloqueio: {
+      titulo: "Emissão bloqueada por liberação comercial",
+      regra: "Cada emissão exige pagamento, dispensa ou exceção próprios.",
+      origem: "plataforma",
+    },
+    proximaAcao: "Registrar pagamento ou aprovar exceção comercial",
+  },
+  {
+    id: "dossie",
+    nome: "Validação que exige dossiê",
+    descricao: "Produto PJ com dossiê obrigatório antes da validação.",
+    subfluxos: ["Pendência de dossiê"],
+    proximaAcao: "Enviar dossiê para verificação",
+  },
+  {
+    id: "divergente",
+    nome: "Dossiê divergente",
+    descricao: "Verificadora reprova um documento.",
+    subfluxos: ["Divergência de dossiê", "Pendência de dossiê"],
+    bloqueio: {
+      titulo: "Validação travada por divergência aberta",
+      regra: "Dossiê com divergência não avança para validação de identidade.",
+      origem: "plataforma",
+    },
+    proximaAcao: "Devolver ao cliente com o motivo da divergência",
+  },
+  {
+    id: "noshow",
+    nome: "No-show e reagendamento",
+    descricao: "Titular não comparece à videoconferência.",
+    subfluxos: ["Reagendamento"],
+    proximaAcao: "Reagendar atendimento e avisar o titular",
+  },
+  {
+    id: "envio",
+    nome: "Falha de envio automático",
+    descricao: "Emissão concluída, entrega automática falhou.",
+    subfluxos: ["Envio manual"],
+    proximaAcao: "Reenviar manualmente e confirmar recebimento",
+  },
+  {
+    id: "bird",
+    nome: "BIRD seguido de outro produto",
+    descricao: "Primeira emissão BIRD concluída, segunda emissão no mesmo caso.",
+    subfluxos: ["Emissão relacionada / BIRD"],
+    bloqueio: {
+      titulo: "Segunda emissão aguarda liberação comercial própria",
+      regra: "Uma emissão nunca é liberada pelo pagamento ou validação de outra.",
+      origem: "plataforma",
+    },
+    proximaAcao: "Aplicar condição comercial da segunda emissão",
+  },
+  {
+    id: "presencial",
+    nome: "Atendimento presencial, ainda não homologado",
+    descricao: "Titular pede validação em posto físico.",
+    subfluxos: ["Atendimento presencial / voucher"],
+    bloqueio: {
+      titulo: "Capability não homologada pela AC",
+      regra:
+        "Atendimento presencial/voucher depende de homologação da AC e não pode ser ligado manualmente.",
+      origem: "ac",
+    },
+    proximaAcao: "Oferecer videoconferência ou solicitar homologação à AC",
+  },
 ];
 
 export interface ResultadoSimulacao {
-  etapas: { marco: string; nome: string; papel: string; sla: number; portao: string | null; origem: OrigemRegra }[];
+  etapas: {
+    marco: string;
+    nome: string;
+    papel: string;
+    sla: number;
+    portao: string | null;
+    origem: OrigemRegra;
+  }[];
   tarefas: { papel: string; quantidade: number }[];
   portoes: { etapa: string; exige: string; autorizador: string }[];
   notificacoes: { etapa: string; canais: string; alvo: string }[];
@@ -635,7 +889,10 @@ export function simular(perfil: PerfilOperacional, cenario: Cenario): ResultadoS
   const ativas = perfil.etapas
     .filter((e) => e.ativa)
     .filter((e) => !(cenario.pulaValidacaoDossie && e.nome === "Conferência do dossiê"))
-    .sort((a, b) => MARCOS.findIndex((m) => m.id === a.marco) - MARCOS.findIndex((m) => m.id === b.marco));
+    .sort(
+      (a, b) =>
+        MARCOS.findIndex((m) => m.id === a.marco) - MARCOS.findIndex((m) => m.id === b.marco),
+    );
 
   const tarefas = new Map<string, number>();
   for (const e of ativas) tarefas.set(e.papel, (tarefas.get(e.papel) ?? 0) + 1);
@@ -643,14 +900,26 @@ export function simular(perfil: PerfilOperacional, cenario: Cenario): ResultadoS
   const subfluxos = cenario.subfluxos.map((nome) => {
     const s = perfil.subfluxos.find((x) => x.nome === nome);
     if (!s) return { nome, estado: "Não catalogado", responsavel: "—", sla: 0 };
-    const estado = s.dependeHomologacao && !s.homologado ? "Dependente de homologação da AC" : s.ativo ? "Ativo" : "Desativado nesta configuração";
+    const estado =
+      s.dependeHomologacao && !s.homologado
+        ? "Dependente de homologação da AC"
+        : s.ativo
+          ? "Ativo"
+          : "Desativado nesta configuração";
     return { nome: s.nome, estado, responsavel: s.responsavel, sla: s.slaHoras };
   });
 
   const bloqueios = [...(cenario.bloqueio ? [cenario.bloqueio] : [])];
   for (const s of subfluxos) {
-    if (s.estado === "Dependente de homologação da AC" && !bloqueios.some((b) => b.origem === "ac")) {
-      bloqueios.push({ titulo: `${s.nome} indisponível`, regra: "Capability precisa ser homologada pela AC.", origem: "ac" });
+    if (
+      s.estado === "Dependente de homologação da AC" &&
+      !bloqueios.some((b) => b.origem === "ac")
+    ) {
+      bloqueios.push({
+        titulo: `${s.nome} indisponível`,
+        regra: "Capability precisa ser homologada pela AC.",
+        origem: "ac",
+      });
     }
   }
 
@@ -664,19 +933,26 @@ export function simular(perfil: PerfilOperacional, cenario: Cenario): ResultadoS
       origem: e.origem,
     })),
     tarefas: [...tarefas.entries()].map(([papel, quantidade]) => ({ papel, quantidade })),
-    portoes: ativas.filter((e) => e.portao).map((e) => ({ etapa: e.nome, exige: e.portao!.exige, autorizador: e.portao!.autorizador })),
+    portoes: ativas
+      .filter((e) => e.portao)
+      .map((e) => ({ etapa: e.nome, exige: e.portao!.exige, autorizador: e.portao!.autorizador })),
     notificacoes: ativas
       .filter((e) => e.canais.length > 0 && (e.avisarPapel || e.avisarCliente))
       .map((e) => ({
         etapa: e.nome,
         canais: e.canais.join(", "),
-        alvo: [e.avisarPapel ? e.papel : null, e.avisarCliente ? "Titular" : null].filter(Boolean).join(" + "),
+        alvo: [e.avisarPapel ? e.papel : null, e.avisarCliente ? "Titular" : null]
+          .filter(Boolean)
+          .join(" + "),
       })),
     bloqueios,
     subfluxos,
     regraEfetiva: bloqueios[0]
       ? { regra: bloqueios[0].regra, origem: bloqueios[0].origem }
-      : { regra: `Perfil ${perfil.escopo.alvo} aplicado sem exceções.`, origem: perfil.escopo.tipo === "tenant" ? "tenant" : (perfil.escopo.tipo as OrigemRegra) },
+      : {
+          regra: `Perfil ${perfil.escopo.alvo} aplicado sem exceções.`,
+          origem: perfil.escopo.tipo === "tenant" ? "tenant" : (perfil.escopo.tipo as OrigemRegra),
+        },
     proximaAcao: cenario.proximaAcao,
   };
 }

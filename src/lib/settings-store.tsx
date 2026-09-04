@@ -1365,7 +1365,7 @@ export const gruposPermissoes: {
         hint: "Abrir Visão geral, Minha fila e Todos os casos.",
       },
       { id: "op.assumir", label: "Assumir caso", hint: "Puxar um caso não atribuído para si." },
-        {
+      {
         id: "op.reatribuir",
         label: "Reatribuir",
         hint: "Passar um caso para outra pessoa ou perfil.",

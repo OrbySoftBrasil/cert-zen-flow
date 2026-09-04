@@ -145,9 +145,9 @@ function Operacao() {
   const [caso, setCaso] = useState<string | null>(null);
   const [pendente, setPendente] = useState<{ acao: AcaoCaso; requestId: string } | null>(null);
   const [selecao, setSelecao] = useState<string[]>([]);
-  const [lote, setLote] = useState<
-    null | "assumir" | "priorizar" | "bloquear" | "reatribuir"
-  >(null);
+  const [lote, setLote] = useState<null | "assumir" | "priorizar" | "bloquear" | "reatribuir">(
+    null,
+  );
   const [ordemVisivel, setOrdemVisivel] = useState<string[]>([]);
 
   const casoAberto = requests.find((r) => r.id === caso) ?? null;
@@ -397,10 +397,10 @@ function Operacao() {
         open={!!lote && lote !== "reatribuir"}
         title={
           lote === "assumir"
-              ? "Assumir casos selecionados"
-              : lote === "priorizar"
-                ? "Elevar prioridade para crítica"
-                : "Registrar bloqueio em lote"
+            ? "Assumir casos selecionados"
+            : lote === "priorizar"
+              ? "Elevar prioridade para crítica"
+              : "Registrar bloqueio em lote"
         }
         descricao={`${selecao.length} caso(s) selecionado(s).`}
         confirmLabel="Confirmar"
