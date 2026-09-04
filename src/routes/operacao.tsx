@@ -651,7 +651,20 @@ function VisaoGeral({
           </button>
         )}
         <LegendaProntidao />
+        <button
+          onClick={() => setCarga((v) => !v)}
+          aria-expanded={carga}
+          className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+        >
+          {carga ? "Ocultar carga da equipe" : "Ver carga da equipe"}
+        </button>
       </div>
+
+      {carga && (
+        <div className="mb-3">
+          <PainelCarga requests={requests} agenteAtivo={responsavel} onFiltrarAgente={setResponsavel} />
+        </div>
+      )}
 
       <p className="mb-3 flex items-start gap-1.5 text-[11px] text-muted-foreground">
         <Lock className="mt-px size-3 shrink-0" />
@@ -665,6 +678,9 @@ function VisaoGeral({
           {marcos.map((m) => {
             const cards = filtrados.filter((r) => marcoDe(r) === m.id);
             const total = cards.reduce((s, r) => s + r.valor, 0);
+            const atrasados = cards.filter((r) => r.slaRestanteHoras < 0).length;
+            const ids = cards.map((r) => r.id);
+            const todosMarcados = ids.length > 0 && ids.every((id) => selecao.includes(id));
             return (
               <div
                 key={m.id}
@@ -676,26 +692,69 @@ function VisaoGeral({
                 className="flex w-[290px] shrink-0 flex-col rounded-lg border border-border bg-surface"
               >
                 <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{m.nome}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">{m.descricao}</p>
+                  <div className="flex min-w-0 items-start gap-2">
+                    <span className="pt-0.5">
+                      <CaixaSelecao
+                        marcada={todosMarcados}
+                        rotulo={`Selecionar todos os casos do marco ${m.nome}`}
+                        onChange={(v) => onSelecionarVarios(ids, v)}
+                      />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium">{m.nome}</span>
+                      <span className="block truncate text-[11px] text-muted-foreground">{m.descricao}</span>
+                    </span>
                   </div>
                   <div className="text-right">
                     <p className="tabular text-sm font-semibold">{cards.length}</p>
                     <p className="tabular text-[11px] text-muted-foreground">{brl(total)}</p>
+                    {atrasados > 0 && (
+                      <p className="tabular text-[10px] font-medium text-alert">{atrasados} fora do prazo</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex-1 space-y-2 overflow-y-auto p-2 lg:max-h-[calc(100vh-22rem)]">
                   {cards.map((r) => (
-                    <CasoCard
-                      key={r.id}
-                      r={r}
-                      emissoes={emissoes[r.clienteId] ?? 1}
-                      onOpen={() => onOpen(r.id)}
-                      onDragStart={() => setArrastando(r.id)}
-                      onDragEnd={() => setArrastando(null)}
-                      {...(arrastando === r.id ? { arrastando: true } : {})}
-                    />
+                    <div key={r.id} className="relative">
+                      <span className="absolute right-2 top-2 z-10">
+                        <CaixaSelecao
+                          marcada={selecao.includes(r.id)}
+                          rotulo={`Selecionar caso ${r.protocolo}`}
+                          onChange={(v) => onSelecionar(r.id, v)}
+                        />
+                      </span>
+                      <CasoCard
+                        r={r}
+                        emissoes={emissoes[r.clienteId] ?? 1}
+                        onOpen={() => onOpen(r.id)}
+                        onDragStart={() => setArrastando(r.id)}
+                        onDragEnd={() => setArrastando(null)}
+                        {...(arrastando === r.id ? { arrastando: true } : {})}
+                      />
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {acoesDe(r)
+                          .filter((a) => a.id === "avancar" || a.id === "assumir")
+                          .map((a) => {
+                            const imp = impedimentoDe(r, a);
+                            return (
+                              <button
+                                key={a.id}
+                                onClick={() => onAcaoRapida(r.id, a.id)}
+                                disabled={!!imp}
+                                title={imp ?? a.descricao}
+                                className={cn(
+                                  "rounded border px-1.5 py-0.5 text-[10px] transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+                                  imp
+                                    ? "cursor-not-allowed border-border text-muted-foreground/60"
+                                    : "border-border-strong text-muted-foreground hover:border-primary hover:text-primary-deep",
+                                )}
+                              >
+                                {a.id === "assumir" ? "Assumir" : imp ? "Avanço bloqueado" : "Avançar"}
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
                   ))}
                   {cards.length === 0 && (
                     <p className="px-1 py-6 text-center text-xs text-muted-foreground">Nenhum caso neste marco</p>
@@ -706,7 +765,13 @@ function VisaoGeral({
           })}
         </div>
       ) : (
-        <TabelaCasos requests={filtrados} onOpen={onOpen} />
+        <TabelaCasos
+          requests={filtrados}
+          onOpen={onOpen}
+          selecao={selecao}
+          onSelecionar={onSelecionar}
+          onSelecionarVarios={onSelecionarVarios}
+        />
       )}
     </>
   );
