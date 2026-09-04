@@ -779,14 +779,35 @@ function VisaoGeral({
 
 // ------------------------------------------------------------ tabela casos
 
-function TabelaCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: string) => void }) {
+function TabelaCasos({
+  requests,
+  onOpen,
+  selecao,
+  onSelecionar,
+  onSelecionarVarios,
+}: {
+  requests: Request[];
+  onOpen: (id: string) => void;
+  selecao: string[];
+  onSelecionar: (id: string, marcado: boolean) => void;
+  onSelecionarVarios: (ids: string[], marcado: boolean) => void;
+}) {
   const pag = usePaginacao(requests, 25);
+  const idsPagina = pag.visiveis.map((r) => r.id);
+  const todosMarcados = idsPagina.length > 0 && idsPagina.every((id) => selecao.includes(id));
   return (
     <Panel bodyClassName="p-0">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] text-sm">
+        <table className="w-full min-w-[960px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-medium">
+                <CaixaSelecao
+                  marcada={todosMarcados}
+                  rotulo="Selecionar todos os casos desta página"
+                  onChange={(v) => onSelecionarVarios(idsPagina, v)}
+                />
+              </th>
               <th className="px-4 py-2 font-medium">Caso</th>
               <th className="px-4 py-2 font-medium">Cliente</th>
               <th className="px-4 py-2 font-medium">Produto</th>
@@ -802,8 +823,18 @@ function TabelaCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: s
               <tr
                 key={r.id}
                 onClick={() => onOpen(r.id)}
-                className="cursor-pointer transition-colors hover:bg-muted/50"
+                className={cn(
+                  "cursor-pointer transition-colors hover:bg-muted/50",
+                  selecao.includes(r.id) && "bg-primary-soft/50",
+                )}
               >
+                <td className="px-3 py-2.5">
+                  <CaixaSelecao
+                    marcada={selecao.includes(r.id)}
+                    rotulo={`Selecionar caso ${r.protocolo}`}
+                    onChange={(v) => onSelecionar(r.id, v)}
+                  />
+                </td>
                 <td className="px-4 py-2.5 tabular text-primary">{r.protocolo}</td>
                 <td className="px-4 py-2.5">
                   <p className="truncate">{r.cliente}</p>
@@ -820,7 +851,10 @@ function TabelaCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: s
                 <td className="px-4 py-2.5">
                   <SlaBadge horas={r.slaRestanteHoras} />
                 </td>
-                <td className="px-4 py-2.5 text-[11px] text-muted-foreground">{proximaAcaoLabel(r)}</td>
+                <td className="px-4 py-2.5 text-[11px] text-muted-foreground">
+                  <p>{proximaAcaoLabel(r)}</p>
+                  <p className="text-alert">{bloqueioPrincipal(r).startsWith("Sem bloqueio") ? "" : bloqueioPrincipal(r)}</p>
+                </td>
               </tr>
             ))}
           </tbody>
