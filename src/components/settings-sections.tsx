@@ -1352,6 +1352,18 @@ export function SecaoEquipe() {
               papel={papel}
               usuarios={contarUsuarios(papel.id)}
               etapas={etapasDoPapel(papel)}
+              onRenomear={(nome) => {
+                const antigo = papel.nome;
+                if (!nome.trim() || nome === antigo) return;
+                replace(
+                  "papeis",
+                  papeis.map((x) => (x.id === papel.id ? { ...x, nome } : x)) as PapelRule[],
+                );
+                if (papel.operacional)
+                  opcfg.patchEtapas((etapas) =>
+                    etapas.map((e) => (e.papel === antigo ? { ...e, papel: nome } : e)),
+                  );
+              }}
               onTogglePerm={(perm) => togglePerm(papel.id, perm)}
               onPatch={(patch) =>
                 replace(
@@ -1643,6 +1655,7 @@ function CartaoPapel({
   papel,
   usuarios,
   etapas,
+  onRenomear,
   onTogglePerm,
   onPatch,
   onRemover,
@@ -1650,6 +1663,7 @@ function CartaoPapel({
   papel: PapelRule;
   usuarios: number;
   etapas: { id: string; nome: string; marco: string }[];
+  onRenomear: (nome: string) => void;
   onTogglePerm: (perm: string) => void;
   onPatch: (patch: Partial<PapelRule>) => void;
   onRemover: () => void;
@@ -1696,6 +1710,19 @@ function CartaoPapel({
       {aberto && (
         <div className="mt-3 space-y-3 rounded-lg border border-border p-3">
           <Grid>
+            <Field
+              label="Nome do papel"
+              hint="Renomear atualiza junto as etapas da esteira que apontam para ele."
+            >
+              <TextInput
+                defaultValue={papel.nome}
+                key={papel.nome}
+                onBlur={(e) => onRenomear(e.target.value.trim())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                }}
+              />
+            </Field>
             <div className="rounded-md border border-border px-3">
               <Toggle
                 checked={papel.operacional}
