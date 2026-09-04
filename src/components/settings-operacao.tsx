@@ -600,7 +600,7 @@ function AbaSubfluxos() {
         open={aberto !== undefined}
         onClose={() => setAbrindo(null)}
         title={aberto ? `Subfluxo: ${aberto.nome}` : ""}
-        hint={aberto?.descricao}
+        {...(aberto ? { hint: aberto.descricao } : {})}
         width="max-w-2xl"
         footer={
           <Btn onClick={() => setAbrindo(null)}>Concluir</Btn>
