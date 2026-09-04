@@ -1527,6 +1527,30 @@ function CasoDrawerConteudo({
             </AvisoRegulatorio>
           </div>
         </div>
+
+        <div>
+          <Field label="Nota rápida da operação" hint="Fica registrada no histórico do caso, com autor e horário.">
+            <div className="flex flex-wrap gap-2">
+              <input
+                value={nota}
+                onChange={(e) => setNota(e.target.value)}
+                placeholder="Ex.: cliente confirmou reenvio do comprovante hoje à tarde"
+                className="min-w-56 flex-1 rounded-md border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-primary"
+              />
+              <Btn
+                disabled={nota.trim().length < 3}
+                onClick={() => {
+                  onNota(nota.trim());
+                  setNota("");
+                }}
+              >
+                Registrar
+              </Btn>
+            </div>
+          </Field>
+        </div>
+
+        <TimelineRecente eventos={r.timeline} />
       </div>
     </Modal>
   );
