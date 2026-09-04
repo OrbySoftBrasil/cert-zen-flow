@@ -12,7 +12,7 @@ import {
   Pencil,
   Play,
   Plus,
-  Search,
+
   ShieldCheck,
   Trash2,
   XCircle,
@@ -305,7 +305,6 @@ function EditorEtapaOperacao({
   somenteLeitura: boolean;
 }) {
   const { updateEtapa, patchEtapas } = useOpConfig();
-  const [novoItem, setNovoItem] = useState("");
   const [removendo, setRemovendo] = useState(false);
   const travada = !ORIGENS[etapa.origem].editavel;
   const bloqueado = somenteLeitura || travada;
