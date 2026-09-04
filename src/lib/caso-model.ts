@@ -352,7 +352,9 @@ export function dossieDe(r: Request, cliente?: Client): Dossie {
   });
 
   const montadora = agentById("a3").nome;
-  const verificadora = agentById(h % 2 === 0 ? "a1" : "a3").nome;
+  // Segregação de funções: a verificadora só coincide com a montadora em casos
+  // irregulares — o workspace sinaliza o bloqueio quando isso acontece.
+  const verificadora = agentById(h % 5 === 0 ? "a3" : h % 2 === 0 ? "a1" : "a2").nome;
 
   return {
     produto: r.tipo,
