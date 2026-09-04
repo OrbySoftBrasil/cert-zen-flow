@@ -57,8 +57,6 @@ export const secoes = [
 
 export type SecaoId = (typeof secoes)[number]["id"];
 
-
-
 export function SettingsWorkspace({
   ativa,
   onChange,
@@ -73,64 +71,75 @@ export function SettingsWorkspace({
 
   return (
     <SettingsNavProvider value={onChange as (id: string) => void}>
-    <div className={cn("grid gap-4", compact ? "md:grid-cols-[210px_minmax(0,1fr)]" : "lg:grid-cols-[220px_minmax(0,1fr)]")}>
-      <nav className={compact ? "md:sticky md:top-0 md:self-start" : "lg:sticky lg:top-4 lg:self-start"}>
-        <div
-          className={cn(
-            "flex gap-1.5 overflow-x-auto rounded-lg border border-border bg-card p-1.5",
-            compact ? "md:block md:space-y-3 md:overflow-visible md:p-2" : "lg:block lg:space-y-3 lg:overflow-visible lg:p-2",
-          )}
+      <div
+        className={cn(
+          "grid gap-4",
+          compact ? "md:grid-cols-[210px_minmax(0,1fr)]" : "lg:grid-cols-[220px_minmax(0,1fr)]",
+        )}
+      >
+        <nav
+          className={
+            compact ? "md:sticky md:top-0 md:self-start" : "lg:sticky lg:top-4 lg:self-start"
+          }
         >
-          {grupos.map((g) => (
-            <div key={g} className={compact ? "contents md:block" : "contents lg:block"}>
-              <p
-                className={cn(
-                  "hidden px-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground",
-                  compact ? "md:block" : "lg:block",
-                )}
-              >
-                {g}
-              </p>
-              {secoes
-                .filter((s) => s.grupo === g)
-                .map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => onChange(s.id)}
-                    className={cn(
-                      "flex shrink-0 items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors",
-                      compact ? "md:w-full" : "lg:w-full",
-                      ativa === s.id
-                        ? "bg-primary-soft font-medium text-primary-deep"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <s.icon className="size-4 shrink-0" />
-                    <span className="whitespace-nowrap">{s.label}</span>
-                  </button>
-                ))}
-            </div>
-          ))}
-        </div>
-      </nav>
+          <div
+            className={cn(
+              "flex gap-1.5 overflow-x-auto rounded-lg border border-border bg-card p-1.5",
+              compact
+                ? "md:block md:space-y-3 md:overflow-visible md:p-2"
+                : "lg:block lg:space-y-3 lg:overflow-visible lg:p-2",
+            )}
+          >
+            {grupos.map((g) => (
+              <div key={g} className={compact ? "contents md:block" : "contents lg:block"}>
+                <p
+                  className={cn(
+                    "hidden px-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground",
+                    compact ? "md:block" : "lg:block",
+                  )}
+                >
+                  {g}
+                </p>
+                {secoes
+                  .filter((s) => s.grupo === g)
+                  .map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => onChange(s.id)}
+                      className={cn(
+                        "flex shrink-0 items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors",
+                        compact ? "md:w-full" : "lg:w-full",
+                        ativa === s.id
+                          ? "bg-primary-soft font-medium text-primary-deep"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      <s.icon className="size-4 shrink-0" />
+                      <span className="whitespace-nowrap">{s.label}</span>
+                    </button>
+                  ))}
+              </div>
+            ))}
+          </div>
+        </nav>
 
-      <div className="min-w-0">
-        {ativa === "organizacao" && <SecaoOrganizacao />}
-        {ativa === "operacao" && <SecaoOperacaoPerfis />}
-        {ativa === "catalogo" && <SecaoCatalogo />}
-        {ativa === "sla" && <SecaoSla />}
-        {ativa === "classificacoes" && <SecaoClassificacoes />}
-        {ativa === "conhecimento" && <SecaoConhecimento />}
-        {ativa === "equipe" && <SecaoEquipe />}
-        {ativa === "seguranca" && <SecaoSeguranca />}
-        {ativa === "notificacoes" && <SecaoNotificacoes />}
-        {ativa === "integracoes" && <SecaoIntegracoes />}
-        {ativa === "financeiro" && <SecaoFinanceiro />}
-        {ativa === "aparencia" && <SecaoAparencia />}
-        {ativa === "dados" && <SecaoDados onReset={resetSettings} />}
+        <div className="min-w-0">
+          {ativa === "organizacao" && <SecaoOrganizacao />}
+          {ativa === "operacao" && <SecaoOperacaoPerfis />}
+          {ativa === "catalogo" && <SecaoCatalogo />}
+          {ativa === "sla" && <SecaoSla />}
+          {ativa === "classificacoes" && <SecaoClassificacoes />}
+          {ativa === "conhecimento" && <SecaoConhecimento />}
+          {ativa === "equipe" && <SecaoEquipe />}
+          {ativa === "seguranca" && <SecaoSeguranca />}
+          {ativa === "notificacoes" && <SecaoNotificacoes />}
+          {ativa === "integracoes" && <SecaoIntegracoes />}
+          {ativa === "financeiro" && <SecaoFinanceiro />}
+          {ativa === "aparencia" && <SecaoAparencia />}
+          {ativa === "dados" && <SecaoDados onReset={resetSettings} />}
+        </div>
       </div>
-    </div>
     </SettingsNavProvider>
   );
 }
@@ -145,7 +154,11 @@ export function SettingsActions(): ReactNode {
 
   return (
     <>
-      {dirty ? <Chip tone="alert">Alterações não publicadas</Chip> : <Chip tone="blue">Tudo publicado</Chip>}
+      {dirty ? (
+        <Chip tone="alert">Alterações não publicadas</Chip>
+      ) : (
+        <Chip tone="blue">Tudo publicado</Chip>
+      )}
       <Btn
         variant="ghost"
         onClick={() =>
