@@ -1365,13 +1365,65 @@ function CasoDrawer({
   onClose,
   onAcao,
   onAbrirFicha,
+  onToggleChecklist,
+  onResponsavel,
+  onNota,
+  onAnterior,
+  onProximo,
+  posicao,
 }: {
   r: Request | null;
   onClose: () => void;
   onAcao: (acao: AcaoCaso) => void;
   onAbrirFicha: () => void;
+  onToggleChecklist: (itemId: string) => void;
+  onResponsavel: (agenteId: string) => void;
+  onNota: (texto: string) => void;
+  onAnterior?: () => void;
+  onProximo?: () => void;
+  posicao?: string;
 }) {
   if (!r) return null;
+  return (
+    <CasoDrawerConteudo
+      r={r}
+      onClose={onClose}
+      onAcao={onAcao}
+      onAbrirFicha={onAbrirFicha}
+      onToggleChecklist={onToggleChecklist}
+      onResponsavel={onResponsavel}
+      onNota={onNota}
+      {...(onAnterior ? { onAnterior } : {})}
+      {...(onProximo ? { onProximo } : {})}
+      {...(posicao ? { posicao } : {})}
+    />
+  );
+}
+
+function CasoDrawerConteudo({
+  r,
+  onClose,
+  onAcao,
+  onAbrirFicha,
+  onToggleChecklist,
+  onResponsavel,
+  onNota,
+  onAnterior,
+  onProximo,
+  posicao,
+}: {
+  r: Request;
+  onClose: () => void;
+  onAcao: (acao: AcaoCaso) => void;
+  onAbrirFicha: () => void;
+  onToggleChecklist: (itemId: string) => void;
+  onResponsavel: (agenteId: string) => void;
+  onNota: (texto: string) => void;
+  onAnterior?: () => void;
+  onProximo?: () => void;
+  posicao?: string;
+}) {
+  const [nota, setNota] = useState("");
   const acoes = acoesDe(r);
   const pendentes = pendenciasDe(r);
   const marco = marcos.find((m) => m.id === marcoDe(r));
@@ -1385,6 +1437,15 @@ function CasoDrawer({
       width="max-w-2xl"
       footer={
         <>
+          <div className="mr-auto flex items-center gap-1.5">
+            <Btn variant="ghost" disabled={!onAnterior} onClick={() => onAnterior?.()}>
+              <ChevronLeft className="size-3.5" /> Anterior
+            </Btn>
+            <Btn variant="ghost" disabled={!onProximo} onClick={() => onProximo?.()}>
+              Próximo <ChevronRight className="size-3.5" />
+            </Btn>
+            {posicao && <span className="tabular text-[11px] text-muted-foreground">{posicao}</span>}
+          </div>
           <Btn variant="ghost" onClick={onClose}>
             Fechar
           </Btn>
@@ -1408,6 +1469,10 @@ function CasoDrawer({
           </p>
           <ProntidaoLinha r={r} completo />
         </div>
+
+        <ResponsavelCaso r={r} onChange={onResponsavel} />
+
+        <ChecklistCaso r={r} onToggle={onToggleChecklist} />
 
         <div>
           <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
