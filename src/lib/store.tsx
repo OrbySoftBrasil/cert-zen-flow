@@ -15,6 +15,7 @@ import {
   type Channel,
   type Client,
   type DocumentFile,
+  type EvidenciaRequisito,
   type Priority,
   type Request,
   type StageId,
@@ -154,7 +155,12 @@ interface Actions {
   addRequest: (input: NovaSolicitacaoInput) => Request;
   updateRequest: (id: string, patch: Partial<Request>) => void;
   moveRequest: (id: string, stage: StageId, detalhe?: string) => void;
-  toggleChecklist: (requestId: string, itemId: string) => void;
+  cumprirRequisito: (
+    requestId: string,
+    itemId: string,
+    evidencia: Omit<EvidenciaRequisito, "por" | "registradoEm">,
+  ) => void;
+  reabrirRequisito: (requestId: string, itemId: string, motivo: string) => void;
   logRequest: (requestId: string, titulo: string, detalhe?: string, tipo?: TimelineEvent["tipo"]) => void;
   issueCertificate: (requestId: string) => Certificate | undefined;
   // agenda
@@ -339,14 +345,70 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           };
         }),
 
-      toggleChecklist: (requestId, itemId) =>
+      cumprirRequisito: (requestId, itemId, dados) => {
+        const evidencia: EvidenciaRequisito = {
+          ...dados,
+          por: USUARIO_ATUAL.nome,
+          registradoEm: agora(),
+        };
+        setState((s) => {
+          const req = s.requests.find((r) => r.id === requestId);
+          const item = req?.checklist.find((c) => c.id === itemId);
+          if (!req || !item) return s;
+          const detalhe = [evidencia.referencia, evidencia.arquivo, evidencia.valor, evidencia.observacao]
+            .filter(Boolean)
+            .join(" · ");
+          const anexo = evidencia.arquivo;
+          return {
+            ...s,
+            requests: s.requests.map((r) =>
+              r.id === requestId
+                ? {
+                    ...r,
+                    checklist: r.checklist.map((c) =>
+                      c.id === itemId ? { ...c, done: true, evidencia } : c,
+                    ),
+                    timeline: [
+                      ...r.timeline,
+                      evento(`Requisito cumprido: ${item.label}`, detalhe || undefined, "humano"),
+                    ],
+                  }
+                : r,
+            ),
+            // Anexos entram no dossiê do cliente para não haver duas verdades.
+            clients: anexo
+              ? s.clients.map((c) =>
+                  c.id === req.clienteId
+                    ? {
+                        ...c,
+                        documentos: [
+                          {
+                            id: uid("d"),
+                            nome: anexo,
+                            tipo: evidencia.referencia ?? item.label,
+                            enviadoEm: hojeIso(),
+                            status: "em análise" as const,
+                          },
+                          ...c.documentos,
+                        ],
+                      }
+                    : c,
+                )
+              : s.clients,
+          };
+        });
+      },
+
+      reabrirRequisito: (requestId, itemId, motivo) =>
         patchRequest(requestId, (r) => {
           const item = r.checklist.find((c) => c.id === itemId);
           return {
             ...r,
-            checklist: r.checklist.map((c) => (c.id === itemId ? { ...c, done: !c.done } : c)),
+            checklist: r.checklist.map((c) =>
+              c.id === itemId ? { id: c.id, label: c.label, done: false } : c,
+            ),
             timeline: item
-              ? [...r.timeline, evento(`${item.done ? "Reabriu" : "Concluiu"}: ${item.label}`)]
+              ? [...r.timeline, evento(`Requisito reaberto: ${item.label}`, motivo, "alerta")]
               : r.timeline,
           };
         }),

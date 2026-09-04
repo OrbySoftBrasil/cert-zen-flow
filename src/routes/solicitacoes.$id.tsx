@@ -18,6 +18,7 @@ import { AppShell } from "@/components/app-shell";
 import { NovoAgendamentoDialog } from "@/components/dialogs";
 import { Btn, Field, Modal, SelectInput, TextArea } from "@/components/forms";
 import { AvisoBloqueio, BotaoAcao, EstadoChip, LinhaDado, RegraObrigatoria } from "@/components/caso-kit";
+import { RequisitosEtapa } from "@/components/requisitos-etapa";
 import { Chip, Panel, SlaBadge } from "@/components/ui-kit";
 import {
   acoesWorkspace,
@@ -438,20 +439,11 @@ function Workspace() {
                 </div>
               </Panel>
               <EmissoesPanel emissoes={emissoes} resumido />
-              <Panel title="Requisitos da etapa atual" hint={`${pendentes.length} pendência(s)`}>
-                <ul className="space-y-1">
-                  {caso.checklist.map((c) => (
-                    <li key={c.id}>
-                      <button
-                        onClick={() => store.toggleChecklist(caso.id, c.id)}
-                        className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted"
-                      >
-                        <EstadoChip estado={c.done ? "concluido" : "pendente"} label={c.done ? "OK" : "Falta"} />
-                        <span className={cn(c.done && "text-muted-foreground line-through")}>{c.label}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+              <Panel
+                title="Requisitos da etapa atual"
+                hint={`${pendentes.length} pendência(s) — cada item exige a ação registrada no sistema`}
+              >
+                <RequisitosEtapa r={caso} />
               </Panel>
             </>
           )}

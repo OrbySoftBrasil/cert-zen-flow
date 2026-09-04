@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { RequisitosEtapa } from "@/components/requisitos-etapa";
 import {
   AlertTriangle,
   ArrowRight,
@@ -27,7 +28,6 @@ import { Btn, ConfirmDialog, EmptyState, Field, Modal } from "@/components/forms
 import {
   BarraLote,
   CaixaSelecao,
-  ChecklistCaso,
   PainelCarga,
   ReatribuirDialog,
   ResponsavelCaso,
@@ -126,7 +126,7 @@ const pesoPrioridade = { critica: 0, alta: 1, normal: 2, baixa: 3 } as const;
 const abasValidas: Aba[] = ["visao", "fila", "casos", "demo"];
 
 function Operacao() {
-  const { requests, moveRequest, updateRequest, toggleChecklist, logRequest } = useStore();
+  const { requests, moveRequest, updateRequest, logRequest } = useStore();
   const navigate = useNavigate();
   const { aba: abaUrl } = Route.useSearch();
 
@@ -403,7 +403,6 @@ function Operacao() {
         r={casoAberto}
         onClose={() => setCaso(null)}
         onAcao={(acao) => casoAberto && pedirConfirmacao(acao, casoAberto.id)}
-        onToggleChecklist={(itemId) => casoAberto && toggleChecklist(casoAberto.id, itemId)}
         onResponsavel={(agenteId) => {
           if (!casoAberto) return;
           updateRequest(casoAberto.id, { responsavelId: agenteId });
@@ -1442,7 +1441,6 @@ function CasoDrawer({
   onClose,
   onAcao,
   onAbrirFicha,
-  onToggleChecklist,
   onResponsavel,
   onNota,
   onAnterior,
@@ -1453,7 +1451,6 @@ function CasoDrawer({
   onClose: () => void;
   onAcao: (acao: AcaoCaso) => void;
   onAbrirFicha: () => void;
-  onToggleChecklist: (itemId: string) => void;
   onResponsavel: (agenteId: string) => void;
   onNota: (texto: string) => void;
   onAnterior?: () => void;
@@ -1467,7 +1464,6 @@ function CasoDrawer({
       onClose={onClose}
       onAcao={onAcao}
       onAbrirFicha={onAbrirFicha}
-      onToggleChecklist={onToggleChecklist}
       onResponsavel={onResponsavel}
       onNota={onNota}
       {...(onAnterior ? { onAnterior } : {})}
@@ -1482,7 +1478,6 @@ function CasoDrawerConteudo({
   onClose,
   onAcao,
   onAbrirFicha,
-  onToggleChecklist,
   onResponsavel,
   onNota,
   onAnterior,
@@ -1493,7 +1488,6 @@ function CasoDrawerConteudo({
   onClose: () => void;
   onAcao: (acao: AcaoCaso) => void;
   onAbrirFicha: () => void;
-  onToggleChecklist: (itemId: string) => void;
   onResponsavel: (agenteId: string) => void;
   onNota: (texto: string) => void;
   onAnterior?: () => void;
@@ -1551,7 +1545,7 @@ function CasoDrawerConteudo({
 
         <ResponsavelCaso r={r} onChange={onResponsavel} />
 
-        <ChecklistCaso r={r} onToggle={onToggleChecklist} />
+        <RequisitosEtapa r={r} compacto />
 
         <div>
           <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">

@@ -24,10 +24,23 @@ export interface Agent {
   tempoMedioMin: number;
 }
 
+/** Prova concreta que libera a conclusão de um requisito de etapa. */
+export interface EvidenciaRequisito {
+  tipo: string;
+  referencia?: string;
+  arquivo?: string;
+  valor?: string;
+  quando?: string;
+  observacao?: string;
+  por: string;
+  registradoEm: string;
+}
+
 export interface ChecklistItem {
   id: string;
   label: string;
   done: boolean;
+  evidencia?: EvidenciaRequisito;
 }
 
 export interface TimelineEvent {
