@@ -32,7 +32,7 @@ import {
   type TicketCategoria,
   type TimelineEvent,
 } from "@/lib/mock-data";
-import { cenarioAppointments, cenarioRequests } from "@/lib/cenarios";
+import { cenarioAppointments, cenarioRegistros, cenarioRequests } from "@/lib/cenarios";
 import {
   type AutorRegistro,
   type EmissaoRelacionada,
@@ -94,7 +94,7 @@ function seed(): AppState {
     contratos: seedContratos,
     comissoes: seedComissoes,
     regrasComissao: seedRegras,
-    emissoes: {},
+    emissoes: Object.fromEntries(cenarioRegistros.map((r) => [r.emissaoId, r])),
     emissoesExtras: {},
     operadorId: USUARIO_ATUAL.id,
   };
