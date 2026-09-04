@@ -525,22 +525,36 @@ function papelEsperadoAgente(r: Request) {
 
 // ------------------------------------------------------------- visão geral
 
+interface SelecaoProps {
+  selecao: string[];
+  onSelecionar: (id: string, marcado: boolean) => void;
+  onSelecionarVarios: (ids: string[], marcado: boolean) => void;
+  onOrdemVisivel: (ids: string[]) => void;
+}
+
 function VisaoGeral({
   requests,
   emissoes,
   onOpen,
   onSolicitarTransicao,
-}: {
+  onAcaoRapida,
+  selecao,
+  onSelecionar,
+  onSelecionarVarios,
+  onOrdemVisivel,
+}: SelecaoProps & {
   requests: Request[];
   emissoes: Record<string, number>;
   onOpen: (id: string) => void;
   onSolicitarTransicao: (id: string, marco: MarcoId) => void;
+  onAcaoRapida: (id: string, acaoId: string) => void;
 }) {
   const [modo, setModo] = useState<"kanban" | "tabela">("kanban");
   const [responsavel, setResponsavel] = useState("todos");
   const [prioridade, setPrioridade] = useState("todas");
   const [somenteSla, setSomenteSla] = useState(false);
   const [arrastando, setArrastando] = useState<string | null>(null);
+  const [carga, setCarga] = useState(false);
 
   const filtrados = useMemo(
     () =>
@@ -553,7 +567,13 @@ function VisaoGeral({
     [requests, responsavel, prioridade, somenteSla],
   );
 
+  useEffect(() => {
+    onOrdemVisivel(filtrados.map((r) => r.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtrados]);
+
   const filtroAtivo = responsavel !== "todos" || prioridade !== "todas" || somenteSla;
+
 
 
   return (
