@@ -95,7 +95,7 @@ export function BotaoAcao({
         ) : (
           <span className="size-1.5 shrink-0 rounded-full bg-primary" />
         )}
-        <span className="truncate">{label}</span>
+        <span className="leading-tight">{label}</span>
       </span>
       {regulatoria && <Chip tone="outline">Regulatória</Chip>}
     </button>
