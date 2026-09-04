@@ -82,8 +82,8 @@ export interface PapelRule {
   permissoes: string[];
   usuarios: number;
   escopoVisibilidade: EscopoVisibilidade;
-  /** Perfil da esteira (Operação & perfis) que este papel executa. */
-  perfilOperacional: string;
+  /** Papéis operacionais aparecem como "Papel responsável" das etapas da esteira. */
+  operacional: boolean;
 }
 
 export type StatusUsuario = "ativo" | "convidado" | "suspenso";
@@ -221,8 +221,6 @@ export interface Settings {
     horarioComercialApenas: boolean;
     pausarAguardandoCliente: boolean;
   };
-  /** Perfis da esteira (Operação & perfis) que os papéis podem executar. */
-  perfisEsteira: string[];
   papeis: PapelRule[];
   usuarios: UsuarioRule[];
 
@@ -597,7 +595,6 @@ export function seedSettings(): Settings {
       horarioComercialApenas: true,
       pausarAguardandoCliente: true,
     },
-    perfisEsteira: [...PAPEIS_OPERACAO],
     papeis: [
       {
         id: "r1",
@@ -627,11 +624,11 @@ export function seedSettings(): Settings {
         ],
         usuarios: 2,
         escopoVisibilidade: "todas",
-        perfilOperacional: "—",
+        operacional: false,
       },
       {
         id: "r2",
-        nome: "Agente de Registro (AGR)",
+        nome: "AGR — Agente de registro",
         descricao: "Conduz validação presencial ou por videoconferência e emite o certificado.",
         permissoes: [
           "op.ver.todas",
@@ -643,7 +640,7 @@ export function seedSettings(): Settings {
         ],
         usuarios: 6,
         escopoVisibilidade: "proprias",
-        perfilOperacional: "AGR — Agente de registro",
+        operacional: true,
       },
       {
         id: "r6",
@@ -652,7 +649,7 @@ export function seedSettings(): Settings {
         permissoes: ["op.ver.todas", "op.assumir", "op.mover", "dossie.montar", "clientes"],
         usuarios: 4,
         escopoVisibilidade: "unidade",
-        perfilOperacional: "Montadora de dossiê",
+        operacional: true,
       },
       {
         id: "r7",
@@ -667,25 +664,25 @@ export function seedSettings(): Settings {
         ],
         usuarios: 3,
         escopoVisibilidade: "todas",
-        perfilOperacional: "Verificadora",
+        operacional: true,
       },
       {
         id: "r8",
-        nome: "Vendas direta (VD)",
+        nome: "VD — Vendas direta",
         descricao: "Capta o cliente, define condição comercial e acompanha até a emissão.",
         permissoes: ["op.ver.todas", "op.assumir", "comercial.desconto", "clientes", "relatorios"],
         usuarios: 7,
         escopoVisibilidade: "proprias",
-        perfilOperacional: "VD — Vendas direta",
+        operacional: true,
       },
       {
         id: "r9",
-        nome: "Vendas indireta (VI)",
+        nome: "VI — Vendas indireta",
         descricao: "Atende pedidos vindos de contabilidades e indicadores.",
         permissoes: ["op.ver.todas", "op.assumir", "clientes", "parceiros", "relatorios"],
         usuarios: 5,
         escopoVisibilidade: "unidade",
-        perfilOperacional: "VI — Vendas indireta",
+        operacional: true,
       },
       {
         id: "r10",
@@ -694,7 +691,7 @@ export function seedSettings(): Settings {
         permissoes: ["op.ver.todas", "financeiro.baixa", "financeiro.dispensa", "relatorios"],
         usuarios: 3,
         escopoVisibilidade: "todas",
-        perfilOperacional: "Financeiro",
+        operacional: true,
       },
       {
         id: "r11",
@@ -703,7 +700,7 @@ export function seedSettings(): Settings {
         permissoes: ["op.ver.todas", "op.assumir", "entrega.instalar", "clientes"],
         usuarios: 4,
         escopoVisibilidade: "unidade",
-        perfilOperacional: "Suporte de entrega",
+        operacional: true,
       },
       {
         id: "r3",
@@ -712,7 +709,7 @@ export function seedSettings(): Settings {
         permissoes: ["op.ver.todas", "clientes"],
         usuarios: 5,
         escopoVisibilidade: "todas",
-        perfilOperacional: "—",
+        operacional: false,
       },
       {
         id: "r4",
@@ -728,7 +725,7 @@ export function seedSettings(): Settings {
         ],
         usuarios: 2,
         escopoVisibilidade: "todas",
-        perfilOperacional: "Compliance",
+        operacional: true,
       },
       {
         id: "r5",
@@ -737,7 +734,7 @@ export function seedSettings(): Settings {
         permissoes: ["clientes"],
         usuarios: 38,
         escopoVisibilidade: "proprias",
-        perfilOperacional: "—",
+        operacional: false,
       },
     ],
     usuarios: [
@@ -1204,9 +1201,8 @@ function normalizar(s: Settings): Settings {
         },
       })),
     },
-    perfisEsteira: s.perfisEsteira && s.perfisEsteira.length ? s.perfisEsteira : base.perfisEsteira,
-    // Papéis anteriores ao modelo de perfis operacionais são substituídos pelo seed novo.
-    papeis: (s.papeis ?? base.papeis).some((p) => !p.perfilOperacional)
+    // Papéis anteriores ao modelo unificado (perfis separados) voltam ao seed novo.
+    papeis: (s.papeis ?? base.papeis).some((p) => typeof p.operacional !== "boolean")
       ? base.papeis
       : s.papeis.map((p) => ({ ...p, escopoVisibilidade: p.escopoVisibilidade ?? "todas" })),
 
