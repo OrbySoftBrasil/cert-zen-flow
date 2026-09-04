@@ -143,6 +143,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+      <DensidadeProvider>
       <AuthProvider>
       <AppStoreProvider>
         <SettingsProvider>
