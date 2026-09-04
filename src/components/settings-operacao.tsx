@@ -305,7 +305,7 @@ function EditorEtapaOperacao({
   return (
     <Panel
       title={`Etapa: ${etapa.nome}`}
-      hint={MARCOS.find((m) => m.id === etapa.marco)?.nome}
+      hint={MARCOS.find((m) => m.id === etapa.marco)?.nome ?? ""}
       actions={
         <div className="flex items-center gap-1.5">
           <OrigemChip origem={etapa.origem} />
@@ -482,7 +482,7 @@ function EditorEtapaOperacao({
             />
             <Toggle
               label="Etapa ativa"
-              hint={etapa.obrigatoria ? "Etapa obrigatória do produto — não pode ser desativada." : undefined}
+              hint={etapa.obrigatoria ? "Etapa obrigatória do produto — não pode ser desativada." : ""}
               checked={etapa.ativa}
               disabled={somenteLeitura || etapa.obrigatoria}
               onChange={(v) => updateEtapa(etapa.id, { ativa: v })}
@@ -561,9 +561,9 @@ function EditorEtapaOperacao({
 
       <ConfirmDialog
         open={removendo}
-        onClose={() => setRemovendo(false)}
+        onCancel={() => setRemovendo(false)}
         title={`Remover a etapa “${etapa.nome}”?`}
-        description="A etapa sai do rascunho. Casos em andamento continuam com a versão em que foram criados."
+        descricao="A etapa sai do rascunho. Casos em andamento continuam com a versão em que foram criados."
         confirmLabel="Remover etapa"
         onConfirm={() => {
           patchEtapas((l) => l.filter((e) => e.id !== etapa.id));
@@ -967,9 +967,9 @@ function AbaVersoes() {
 
       <ConfirmDialog
         open={descartando}
-        onClose={() => setDescartando(false)}
+        onCancel={() => setDescartando(false)}
         title="Descartar rascunho?"
-        description="O rascunho volta a ser exatamente a versão publicada. As alterações não salvas são perdidas."
+        descricao="O rascunho volta a ser exatamente a versão publicada. As alterações não salvas são perdidas."
         confirmLabel="Descartar"
         onConfirm={() => {
           descartarRascunho();
