@@ -16,7 +16,7 @@ import {
   Wallet,
   Workflow,
 } from "lucide-react";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Btn, Modal } from "@/components/forms";
@@ -35,6 +35,7 @@ import {
 import { SecaoClassificacoes, SecaoConhecimento } from "@/components/settings-chamados";
 import { SecaoOperacaoPerfis } from "@/components/settings-operacao";
 import { Chip } from "@/components/ui-kit";
+import { SettingsNavProvider } from "@/lib/settings-nav";
 import { useSettings } from "@/lib/settings-store";
 import { cn } from "@/lib/utils";
 
@@ -56,12 +57,7 @@ export const secoes = [
 
 export type SecaoId = (typeof secoes)[number]["id"];
 
-const NavCtx = createContext<((id: SecaoId) => void) | null>(null);
 
-/** Permite que uma seção envie o usuário para outra (ex.: criar papel em Equipe). */
-export function useIrParaSecao() {
-  return useContext(NavCtx);
-}
 
 export function SettingsWorkspace({
   ativa,
@@ -76,7 +72,7 @@ export function SettingsWorkspace({
   const grupos = [...new Set(secoes.map((s) => s.grupo))];
 
   return (
-    <NavCtx.Provider value={onChange}>
+    <SettingsNavProvider value={onChange as (id: string) => void}>
     <div className={cn("grid gap-4", compact ? "md:grid-cols-[210px_minmax(0,1fr)]" : "lg:grid-cols-[220px_minmax(0,1fr)]")}>
       <nav className={compact ? "md:sticky md:top-0 md:self-start" : "lg:sticky lg:top-4 lg:self-start"}>
         <div
@@ -135,7 +131,7 @@ export function SettingsWorkspace({
         {ativa === "dados" && <SecaoDados onReset={resetSettings} />}
       </div>
     </div>
-    </NavCtx.Provider>
+    </SettingsNavProvider>
   );
 }
 

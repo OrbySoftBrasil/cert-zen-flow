@@ -39,7 +39,7 @@ import {
 } from "@/lib/opconfig-model";
 import { useOpConfig } from "@/lib/opconfig-store";
 import { useSettings } from "@/lib/settings-store";
-import { useIrParaSecao } from "@/components/settings-workspace";
+import { useIrParaSecao } from "@/lib/settings-nav";
 import { cn } from "@/lib/utils";
 
 
