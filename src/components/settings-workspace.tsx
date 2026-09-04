@@ -156,7 +156,8 @@ export function SettingsActions(): ReactNode {
         onClick={() => {
           marcarSalvo();
           toast.success("Configurações publicadas", {
-            description: "As novas regras já valem para solicitações em andamento.",
+            description:
+              "Esta versão será aplicada aos novos casos. Casos em andamento continuam usando a versão com que foram criados.",
           });
         }}
       >

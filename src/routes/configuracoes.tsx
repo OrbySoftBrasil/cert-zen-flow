@@ -28,7 +28,7 @@ export const Route = createFileRoute("/configuracoes")({
 
 
 function ConfiguracoesPage() {
-  const [ativa, setAtiva] = useState<SecaoId>("fluxo");
+  const [ativa, setAtiva] = useState<SecaoId>("operacao");
 
   return (
     <AppShell
