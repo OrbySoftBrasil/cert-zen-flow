@@ -870,24 +870,49 @@ function TabelaCasos({
 
 // ------------------------------------------------------------- todos casos
 
-function TodosOsCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: string) => void }) {
+function TodosOsCasos({
+  requests,
+  onOpen,
+  selecao,
+  onSelecionar,
+  onSelecionarVarios,
+  onOrdemVisivel,
+}: SelecaoProps & { requests: Request[]; onOpen: (id: string) => void }) {
   const [busca, setBusca] = useState("");
   const [marco, setMarco] = useState("todos");
   const [origem, setOrigem] = useState("todas");
+  const [responsavel, setResponsavel] = useState("todos");
+  const [prazo, setPrazo] = useState("todos");
+  const [ordem, setOrdem] = useState<"sla" | "valor" | "cliente">("sla");
 
-  const filtrados = useMemo(
-    () =>
-      requests.filter((r) => {
-        const texto = `${r.protocolo} ${r.cliente} ${r.documento} ${r.tipo}`.toLowerCase();
-        return (
-          (busca === "" || texto.includes(busca.toLowerCase())) &&
-          (marco === "todos" || marcoDe(r) === marco) &&
-          (origem === "todas" ||
-            (origem === "parceiro" ? origemDe(r).startsWith("Contabilidade") : !origemDe(r).startsWith("Contabilidade")))
-        );
-      }),
-    [requests, busca, marco, origem],
-  );
+  const filtrados = useMemo(() => {
+    const base = requests.filter((r) => {
+      const texto = `${r.protocolo} ${r.cliente} ${r.documento} ${r.tipo}`.toLowerCase();
+      return (
+        (busca === "" || texto.includes(busca.toLowerCase())) &&
+        (marco === "todos" || marcoDe(r) === marco) &&
+        (responsavel === "todos" || r.responsavelId === responsavel) &&
+        (prazo === "todos" ||
+          (prazo === "vencido" && r.slaRestanteHoras < 0) ||
+          (prazo === "hoje" && r.slaRestanteHoras >= 0 && r.slaRestanteHoras <= 8) ||
+          (prazo === "futuro" && r.slaRestanteHoras > 8)) &&
+        (origem === "todas" ||
+          (origem === "parceiro" ? origemDe(r).startsWith("Contabilidade") : !origemDe(r).startsWith("Contabilidade")))
+      );
+    });
+    return [...base].sort((a, b) =>
+      ordem === "sla"
+        ? a.slaRestanteHoras - b.slaRestanteHoras
+        : ordem === "valor"
+          ? b.valor - a.valor
+          : a.cliente.localeCompare(b.cliente),
+    );
+  }, [requests, busca, marco, origem, responsavel, prazo, ordem]);
+
+  useEffect(() => {
+    onOrdemVisivel(filtrados.map((r) => r.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtrados]);
 
   return (
     <>
@@ -898,30 +923,47 @@ function TodosOsCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: 
           placeholder="Buscar por protocolo, cliente ou documento"
           className="min-w-56 flex-1 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs outline-none focus:border-primary"
         />
-        <select
-          value={marco}
-          onChange={(e) => setMarco(e.target.value)}
-          className="rounded-md border border-border bg-card px-2 py-1 text-xs"
-        >
+        <SelectFiltro value={marco} onChange={setMarco}>
           <option value="todos">Todos os marcos</option>
           {marcos.map((m) => (
             <option key={m.id} value={m.id}>
               {m.nome}
             </option>
           ))}
-        </select>
-        <select
-          value={origem}
-          onChange={(e) => setOrigem(e.target.value)}
-          className="rounded-md border border-border bg-card px-2 py-1 text-xs"
-        >
+        </SelectFiltro>
+        <SelectFiltro value={responsavel} onChange={setResponsavel}>
+          <option value="todos">Todos os responsáveis</option>
+          {agentesOperacao.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.nome}
+            </option>
+          ))}
+        </SelectFiltro>
+        <SelectFiltro value={prazo} onChange={setPrazo}>
+          <option value="todos">Qualquer prazo</option>
+          <option value="vencido">SLA estourado</option>
+          <option value="hoje">Vence em até 8h</option>
+          <option value="futuro">Prazo folgado</option>
+        </SelectFiltro>
+        <SelectFiltro value={origem} onChange={setOrigem}>
           <option value="todas">Toda origem</option>
           <option value="parceiro">Indicação de contabilidade</option>
           <option value="direto">Canal direto</option>
-        </select>
+        </SelectFiltro>
+        <SelectFiltro value={ordem} onChange={(v) => setOrdem(v as "sla")}>
+          <option value="sla">Ordenar por SLA</option>
+          <option value="valor">Ordenar por valor</option>
+          <option value="cliente">Ordenar por cliente</option>
+        </SelectFiltro>
         <span className="tabular ml-auto text-[11px] text-muted-foreground">{filtrados.length} casos</span>
       </div>
-      <TabelaCasos requests={filtrados} onOpen={onOpen} />
+      <TabelaCasos
+        requests={filtrados}
+        onOpen={onOpen}
+        selecao={selecao}
+        onSelecionar={onSelecionar}
+        onSelecionarVarios={onSelecionarVarios}
+      />
     </>
   );
 }
