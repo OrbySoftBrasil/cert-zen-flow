@@ -401,65 +401,12 @@ function EditorEtapaOperacao({
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Checklist</p>
-          <div className="divide-y divide-border rounded-md border border-border">
-            {etapa.checklist.length === 0 && <p className="p-3 text-xs text-muted-foreground">Nenhum item.</p>}
-            {etapa.checklist.map((c) => (
-              <div key={c.id} className="flex items-center gap-2 px-3 py-2">
-                <TextInput
-                  value={c.label}
-                  disabled={somenteLeitura}
-                  onChange={(e) =>
-                    updateEtapa(etapa.id, {
-                      checklist: etapa.checklist.map((x) => (x.id === c.id ? { ...x, label: e.target.value } : x)),
-                    })
-                  }
-                />
-                <button
-                  type="button"
-                  disabled={somenteLeitura}
-                  onClick={() =>
-                    updateEtapa(etapa.id, {
-                      checklist: etapa.checklist.map((x) => (x.id === c.id ? { ...x, obrigatorio: !x.obrigatorio } : x)),
-                    })
-                  }
-                  className={cn(
-                    "shrink-0 rounded border px-1.5 py-1 text-[11px]",
-                    c.obrigatorio ? "border-primary bg-primary-soft text-primary-deep" : "border-border text-muted-foreground",
-                  )}
-                >
-                  {c.obrigatorio ? "Obrigatório" : "Opcional"}
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Remover ${c.label}`}
-                  disabled={somenteLeitura}
-                  onClick={() => updateEtapa(etapa.id, { checklist: etapa.checklist.filter((x) => x.id !== c.id) })}
-                  className="shrink-0 text-muted-foreground hover:text-alert"
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <form
-            className="mt-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!novoItem.trim()) return;
-              updateEtapa(etapa.id, { checklist: [...etapa.checklist, novoItemChecklist(novoItem.trim())] });
-              setNovoItem("");
-            }}
-          >
-            <TextInput
-              value={novoItem}
-              disabled={somenteLeitura}
-              onChange={(e) => setNovoItem(e.target.value)}
-              placeholder="Adicionar item ao checklist…"
-            />
-          </form>
-        </div>
+        <ChecklistEditor
+          titulo="Checklist da etapa"
+          itens={etapa.checklist}
+          disabled={somenteLeitura}
+          onChange={(checklist) => updateEtapa(etapa.id, { checklist })}
+        />
 
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Notificações e controles</p>
@@ -491,29 +438,15 @@ function EditorEtapaOperacao({
               onChange={(v) => updateEtapa(etapa.id, { segregacaoObrigatoria: v })}
             />
           </Rows>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {CANAIS.map((c) => {
-              const on = etapa.canais.includes(c.id);
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  disabled={somenteLeitura}
-                  onClick={() =>
-                    updateEtapa(etapa.id, {
-                      canais: on ? etapa.canais.filter((x) => x !== c.id) : [...etapa.canais, c.id],
-                    })
-                  }
-                  className={cn(
-                    "rounded border px-2 py-1 text-[11px]",
-                    on ? "border-primary bg-primary-soft text-primary-deep" : "border-border text-muted-foreground",
-                  )}
-                >
-                  {c.label}
-                </button>
-              );
-            })}
+          <div className="mt-2">
+            <p className="mb-1 text-[11px] text-muted-foreground">Canais de aviso</p>
+            <CanaisPicker
+              value={etapa.canais}
+              disabled={somenteLeitura}
+              onChange={(canais) => updateEtapa(etapa.id, { canais })}
+            />
           </div>
+
 
           {etapa.segregacaoObrigatoria && (
             <div className="mt-3">
