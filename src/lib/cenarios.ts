@@ -5,6 +5,7 @@
 import type { Appointment, ChecklistItem, Request, TimelineEvent } from "@/lib/mock-data";
 import type { DetalheProntidao, Dossie, EmissaoCaso, TrilhaCaso } from "@/lib/caso-model";
 import type { PerfilId, TipoPendencia } from "@/lib/operacao-model";
+import type { CicloEmissao, RegistroEmissao } from "@/lib/emissao-model";
 
 const hoje = new Date();
 
@@ -49,6 +50,8 @@ export interface Cenario {
   visibilidadeRestrita?: string;
   evidencias?: { id: string; quando: string; por: string; texto: string }[];
   agendamentos?: Appointment[];
+  /** Registros de emissão manual já existentes (carregados no estado inicial). */
+  registros?: RegistroEmissao[];
 }
 
 const semRevogacao = { estado: "na" as const, detalhe: "Sem pedido de revogação" };
@@ -85,14 +88,14 @@ const c1: Cenario = {
       ["Pagamento confirmado", true],
       ["Documentos conferidos", true],
       ["Identificação por videoconferência", true],
-      ["Certificado entregue ao titular", true],
+      ["Instalação e funcionamento confirmados", true],
     ]),
     timeline: [
       ev("d1t1", dia(-2) + " 09:04", "Sistema", "Pedido criado pelo site", "sistema"),
       ev("d1t2", dia(-2) + " 09:11", "Financeiro", "Pagamento Pix confirmado", "sistema", "R$ 159,00 · conciliado automaticamente"),
       ev("d1t3", dia(-2) + " 10:32", "Marina Duarte", "Validação concluída", "humano", "Videoconferência de 12 min, biometria aprovada"),
       ev("d1t4", dia(-2) + " 10:40", "Marina Duarte", "Aprovação direta", "humano", "Dossiê suficiente, sem nova coleta"),
-      ev("d1t5", dia(-2) + " 10:52", "Sistema", "Certificado emitido e entregue", "sistema", "Série S-448120 · envio automático confirmado"),
+      ev("d1t5", dia(-2) + " 10:52", "Sistema", "Emissão confirmada e instruções enviadas", "sistema", "Série S-448120 · instruções de acesso enviadas pela AC"),
     ],
   },
   emissoes: [
@@ -115,7 +118,7 @@ const c1: Cenario = {
       principal: true,
     },
   ],
-  proximaAcao: "Confirmar funcionamento",
+  proximaAcao: "Confirmar instalação e funcionamento",
 };
 
 // ------------------------------------------------------ 2. pagamento pendente
@@ -527,7 +530,7 @@ const c6: Cenario = {
     ]),
     timeline: [
       ev("d6t1", dia(-2) + " 11:00", "Marina Duarte", "Certificado emitido", "humano", "Série S-771043"),
-      ev("d6t2", dia(-2) + " 11:02", "Sistema", "Falha no envio automático", "alerta", "Integração de e-mail retornou 550 — caixa do titular rejeitou o anexo"),
+      ev("d6t2", dia(-2) + " 11:02", "Sistema", "Falha no envio automático", "alerta", "Integração de e-mail retornou 550 — o endereço do titular recusou a mensagem de instruções"),
       ev("d6t3", dia(-2) + " 11:05", "Sistema", "Tarefa de envio manual criada", "sistema", "Atribuída ao suporte de entrega"),
     ],
   },
@@ -555,7 +558,7 @@ const c6: Cenario = {
   prontidao: {
     entrega: {
       estado: "bloqueado",
-      concluido: ["Certificado gerado e disponível no cofre"],
+      concluido: ["Emissão confirmada na conferência"],
       falta: ["Envio manual do certificado ao titular"],
       quemAge: "Suporte de entrega",
     },
