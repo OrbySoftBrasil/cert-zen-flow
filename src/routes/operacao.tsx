@@ -211,7 +211,7 @@ function Operacao() {
       <ConfirmDialog
         open={!!pendente}
         title={pendente?.acao.label ?? ""}
-        descricao={pendente?.acao.descricao}
+        {...(pendente?.acao.descricao ? { descricao: pendente.acao.descricao } : {})}
         confirmLabel="Confirmar ação"
         {...(pendente?.acao.destrutiva ? { destructive: true } : {})}
         onCancel={() => setPendente(null)}
