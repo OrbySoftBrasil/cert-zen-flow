@@ -412,7 +412,7 @@ function EditorEtapaOperacao({
         </Field>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className="mt-4 grid gap-4">
         <ChecklistEditor
           titulo="Checklist da etapa"
           itens={etapa.checklist}
