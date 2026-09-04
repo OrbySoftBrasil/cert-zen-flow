@@ -8,8 +8,10 @@ import {
   FileStack,
   MessageSquarePlus,
   Paperclip,
+  ShieldAlert,
+
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
@@ -19,6 +21,7 @@ import { AvisoBloqueio, BotaoAcao, EstadoChip, LinhaDado, RegraObrigatoria } fro
 import { Chip, Panel, SlaBadge } from "@/components/ui-kit";
 import {
   acoesWorkspace,
+  bloqueioAbsolutoDe,
   cabecalhoDe,
   dossieBloqueado,
   dossieDe,
@@ -30,13 +33,17 @@ import {
   type DetalheProntidao,
   type EmissaoCaso,
 } from "@/lib/caso-model";
+import { cenarioDe } from "@/lib/cenarios";
 import { agentById, agents, brl, requestById } from "@/lib/mock-data";
+
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/solicitacoes/$id")({
+  validateSearch: (search: Record<string, unknown>): { aba?: string } =>
+    typeof search["aba"] === "string" ? { aba: search["aba"] } : {},
   loader: ({ params }) => {
-    const r = requestById(params.id);
+    const r = requestById(params.id) ?? cenarioDe(params.id)?.request;
     return { protocolo: r?.protocolo ?? "Caso", cliente: r?.cliente ?? "" };
   },
   head: ({ loaderData }) => ({
@@ -49,10 +56,13 @@ export const Route = createFileRoute("/solicitacoes/$id")({
       },
       { property: "og:title", content: loaderData ? `${loaderData.protocolo} — Workspace do Caso` : "Workspace do Caso" },
       { property: "og:description", content: "Prontidão, emissões, dossiê e trilha de auditoria do caso." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Workspace,
 });
+
 
 const abas = [
   { id: "visao", label: "Visão geral" },
@@ -69,17 +79,33 @@ type AbaId = (typeof abas)[number]["id"];
 
 function Workspace() {
   const { id } = Route.useParams();
+  const { aba: abaUrl } = Route.useSearch();
   const navigate = useNavigate();
   const store = useStore();
   const caso = store.requests.find((r) => r.id === id);
   const cliente = store.clients.find((c) => c.id === caso?.clienteId);
+  const cenario = cenarioDe(id);
 
-  const [aba, setAba] = useState<AbaId>("visao");
+  const abaInicial = abas.some((a) => a.id === abaUrl) ? (abaUrl as AbaId) : "visao";
+  const [aba, setAbaEstado] = useState<AbaId>(abaInicial);
   const [acao, setAcao] = useState<AcaoWorkspace | null>(null);
   const [motivo, setMotivo] = useState("");
+  const [erroMotivo, setErroMotivo] = useState<string | null>(null);
   const [trilha, setTrilha] = useState<DetalheProntidao | null>(null);
   const [agendando, setAgendando] = useState(false);
   const [nota, setNota] = useState("");
+
+  // Mantém a aba sincronizada com a URL para que links externos abram direto na
+  // aba certa (Emissões, Dossiê…) e o botão voltar funcione.
+  useEffect(() => {
+    if (abaUrl && abas.some((a) => a.id === abaUrl) && abaUrl !== aba) setAbaEstado(abaUrl as AbaId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abaUrl]);
+
+  function setAba(proxima: AbaId) {
+    setAbaEstado(proxima);
+    void navigate({ to: "/solicitacoes/$id", params: { id }, search: { aba: proxima }, replace: true });
+  }
 
   const prontidao = useMemo(() => (caso ? prontidaoCaso(caso, cliente) : []), [caso, cliente]);
   const emissoes = useMemo(() => (caso ? emissoesDoCaso(caso) : []), [caso]);
@@ -104,21 +130,28 @@ function Workspace() {
   const cab = cabecalhoDe(caso);
   const frentes = frentesDe(caso);
   const travaDossie = dossieBloqueado(dossie);
+  const bloqueioAbsoluto = bloqueioAbsolutoDe(caso);
   const pendentes = caso.checklist.filter((c) => !c.done);
   const proximaAcao =
-    caso.stage === "concluido"
-      ? "Confirmar funcionamento"
-      : travaDossie
-        ? "Abrir montagem de dossiê"
-        : pendentes.length
-          ? "Enviar para verificação"
-          : "Registrar resultado da validação";
-  const bloqueioAtual = travaDossie ?? (pendentes[0]?.label ? `Pendência: ${pendentes[0].label}` : null);
+    cenario?.proximaAcao && acoesWorkspace.some((a) => a.label === cenario.proximaAcao)
+      ? cenario.proximaAcao
+      : caso.stage === "concluido"
+        ? "Confirmar funcionamento"
+        : travaDossie
+          ? "Abrir montagem de dossiê"
+          : pendentes.length
+            ? "Enviar para verificação"
+            : "Registrar resultado da validação";
+  const bloqueioAtual =
+    bloqueioAbsoluto ?? cenario?.bloqueio ?? travaDossie ?? (pendentes[0]?.label ? `Pendência: ${pendentes[0].label}` : null);
 
   const agendamentos = store.appointments.filter((a) => a.clienteId === caso.clienteId);
   const chamados = store.tickets.filter((t) => t.clienteId === caso.clienteId);
 
   function bloqueioDaAcao(a: AcaoWorkspace): string | null {
+    // Bloqueio de conformidade (ex.: fraude) não é superado por nenhuma
+    // liberação comercial, emissão ou entrega.
+    if (bloqueioAbsoluto && a.id !== "fraude" && a.grupo !== "Atendimento") return bloqueioAbsoluto;
     if (a.id === "enviar-verificacao" && travaDossie) return travaDossie;
     if (a.id === "resultado-validacao" && travaDossie) return "Dossiê incompleto — verifique os itens obrigatórios.";
     if (a.id === "emissao-manual") {
@@ -132,8 +165,10 @@ function Workspace() {
     return null;
   }
 
+
   function abrir(a: AcaoWorkspace) {
     setMotivo("");
+    setErroMotivo(null);
     if (a.id === "agendar" || a.id === "reagendar") {
       setAgendando(true);
       return;
@@ -145,14 +180,17 @@ function Workspace() {
     const a = acao;
     if (!a) return;
     if (a.motivoObrigatorio && motivo.trim().length < 4) {
-      toast.error("Motivo obrigatório", { description: "Descreva o motivo com pelo menos 4 caracteres." });
+      setErroMotivo("Descreva o motivo com pelo menos 4 caracteres — ele fica registrado na auditoria.");
+      document.getElementById("campo-motivo")?.focus();
       return;
     }
+    setErroMotivo(null);
     const bloqueio = bloqueioDaAcao(a);
     if (bloqueio) {
       toast.error("Ação bloqueada", { description: bloqueio });
       return;
     }
+
 
     switch (a.id) {
       case "no-show":
@@ -226,8 +264,49 @@ function Workspace() {
         </>
       }
     >
+      {/* -------------------------------------------------- cenário demonstrativo */}
+      {cenario && (
+        <section className="mb-4 rounded-lg border border-border bg-muted/40 px-3 py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip tone="blue">Cenário {cenario.titulo}</Chip>
+            {cenario.visibilidadeRestrita && (
+              <Chip tone="alert">
+                <ShieldAlert className="size-3" aria-hidden="true" /> Visibilidade restrita — conformidade
+              </Chip>
+            )}
+          </div>
+          <p className="mt-2 text-sm text-foreground">{cenario.resumo}</p>
+          {cenario.observar?.length ? (
+            <ul className="mt-2 space-y-1">
+              {cenario.observar.map((o) => (
+                <li key={o} className="flex gap-1.5 text-xs text-muted-foreground">
+                  <ChevronRight className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+                  <span>{o}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {cenario.evidencias?.length ? (
+            <div className="mt-2 border-t border-border pt-2">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                Evidências registradas
+              </p>
+              <ul className="mt-1 space-y-1">
+                {cenario.evidencias.map((e) => (
+                  <li key={e.id} className="text-xs text-foreground">
+                    <span className="tabular text-muted-foreground">{e.quando}</span> · {e.por}: {e.texto}
+                  </li>
+                ))}
+
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      )}
+
       {/* ---------------------------------------------------------- cabeçalho */}
       <section className="rounded-lg border border-border bg-card">
+
         <div className="grid grid-cols-2 divide-y divide-border sm:grid-cols-3 xl:grid-cols-6 xl:divide-y-0">
           <LinhaDado rotulo="Caso">
             <span className="tabular font-medium">{cab.numero}</span>
@@ -280,13 +359,30 @@ function Workspace() {
       </Panel>
 
       {/* ------------------------------------------------------------- abas */}
-      <div className="mt-4 flex gap-1 overflow-x-auto rounded-lg border border-border bg-card p-1">
-        {abas.map((a) => (
+      <div
+        role="tablist"
+        aria-label="Seções do caso"
+        className="mt-4 flex gap-1 overflow-x-auto rounded-lg border border-border bg-card p-1"
+      >
+        {abas.map((a, i) => (
           <button
             key={a.id}
+            role="tab"
+            id={`aba-${a.id}`}
+            aria-selected={aba === a.id}
+            aria-controls="painel-caso"
+            tabIndex={aba === a.id ? 0 : -1}
+            onKeyDown={(e) => {
+              const delta = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+              if (!delta) return;
+              e.preventDefault();
+              const proxima = abas[(i + delta + abas.length) % abas.length]!;
+              setAba(proxima.id);
+              document.getElementById(`aba-${proxima.id}`)?.focus();
+            }}
             onClick={() => setAba(a.id)}
             className={cn(
-              "shrink-0 rounded-md px-3 py-1.5 text-sm transition-colors",
+              "shrink-0 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
               aba === a.id
                 ? "bg-primary-soft font-medium text-primary-deep"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -297,8 +393,10 @@ function Workspace() {
         ))}
       </div>
 
+
       <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="space-y-4">
+        <div id="painel-caso" role="tabpanel" aria-labelledby={`aba-${aba}`} className="space-y-4">
+
           {aba === "visao" && (
             <>
               <Panel title="Frentes de trabalho" hint="Quem está com a bola em cada frente" bodyClassName="p-0">
@@ -782,9 +880,18 @@ function Workspace() {
               <RegraObrigatoria texto="Regra regulatória aplicada automaticamente pelo fluxo da AR — não editável nesta tela." />
             )}
             {acao.motivoObrigatorio && (
-              <Field label="Motivo (obrigatório)">
-                <TextArea value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Descreva o motivo que será registrado na auditoria" />
+              <Field label="Motivo (obrigatório)" {...(erroMotivo ? { error: erroMotivo } : {})}>
+                <TextArea
+                  id="campo-motivo"
+                  value={motivo}
+                  onChange={(e) => {
+                    setMotivo(e.target.value);
+                    if (erroMotivo) setErroMotivo(null);
+                  }}
+                  placeholder="Descreva o motivo que será registrado na auditoria"
+                />
               </Field>
+
             )}
           </div>
         )}

@@ -1,9 +1,22 @@
 // Primitivas de formulário do protótipo — mesma linguagem visual das telas:
 // bordas finas, densidade alta, foco azul institucional.
 import { X } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useId,
+  useRef,
+  type ReactElement,
+  type ReactNode,
+} from "react";
+
 
 import { cn } from "@/lib/utils";
+
+const FOCAVEIS =
+  'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 export function Modal({
   open,
@@ -22,9 +35,46 @@ export function Modal({
   children: ReactNode;
   width?: string;
 }) {
+  const painel = useRef<HTMLDivElement>(null);
+  const anterior = useRef<HTMLElement | null>(null);
+  const tituloId = useId();
+
+  // Guarda o elemento que abriu o diálogo, move o foco para dentro e devolve o
+  // foco à origem quando o diálogo fecha (acessibilidade por teclado).
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    anterior.current = document.activeElement as HTMLElement | null;
+    const alvo = painel.current?.querySelector<HTMLElement>(FOCAVEIS) ?? painel.current;
+    window.setTimeout(() => alvo?.focus(), 0);
+    return () => {
+      const volta = anterior.current;
+      if (volta && document.contains(volta)) window.setTimeout(() => volta.focus(), 0);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !painel.current) return;
+      const itens = [...painel.current.querySelectorAll<HTMLElement>(FOCAVEIS)].filter(
+        (el) => el.offsetParent !== null,
+      );
+      if (itens.length === 0) return;
+      const primeiro = itens[0]!;
+      const ultimo = itens[itens.length - 1]!;
+      const ativo = document.activeElement;
+      if (e.shiftKey && (ativo === primeiro || !painel.current.contains(ativo))) {
+        e.preventDefault();
+        ultimo.focus();
+      } else if (!e.shiftKey && ativo === ultimo) {
+        e.preventDefault();
+        primeiro.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
@@ -32,25 +82,34 @@ export function Modal({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center p-0 sm:items-center sm:p-4">
-      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" />
+      <button
+        aria-label="Fechar janela"
+        tabIndex={-1}
+        onClick={onClose}
+        className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]"
+      />
       <div
+        ref={painel}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby={tituloId}
+        tabIndex={-1}
         className={cn(
-          "relative flex max-h-[92dvh] w-full flex-col rounded-t-xl border border-border bg-card shadow-lg sm:rounded-xl",
+          "relative flex max-h-[92dvh] w-full flex-col rounded-t-xl border border-border bg-card shadow-lg outline-none sm:rounded-xl",
           width,
         )}
       >
         <header className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
-          <div>
-            <h2 className="font-display text-sm font-semibold">{title}</h2>
+          <div className="min-w-0">
+            <h2 id={tituloId} className="font-display text-sm font-semibold">
+              {title}
+            </h2>
             {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
           </div>
           <button
             onClick={onClose}
             aria-label="Fechar"
-            className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="grid size-9 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary"
           >
             <X className="size-4" />
           </button>
@@ -66,6 +125,7 @@ export function Modal({
   );
 }
 
+
 export function Field({
   label,
   hint,
@@ -79,18 +139,37 @@ export function Field({
   className?: string;
   children: ReactNode;
 }) {
+  const base = useId();
+  const erroId = `${base}-erro`;
+  const dicaId = `${base}-dica`;
+  // Associa mensagem de erro/dica ao próprio campo, para leitores de tela.
+  const campo = Children.map(children, (filho) =>
+    isValidElement(filho)
+      ? cloneElement(filho as ReactElement<Record<string, unknown>>, {
+          "aria-describedby": error ? erroId : hint ? dicaId : undefined,
+          "aria-invalid": error ? true : undefined,
+        })
+      : filho,
+  );
   return (
     <label className={cn("block space-y-1", className)}>
       <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
-      {children}
+      {campo}
       {error ? (
-        <span className="block text-[11px] text-alert">{error}</span>
+        <span id={erroId} role="alert" className="block text-[11px] text-alert">
+          {error}
+        </span>
       ) : (
-        hint && <span className="block text-[11px] text-muted-foreground">{hint}</span>
+        hint && (
+          <span id={dicaId} className="block text-[11px] text-muted-foreground">
+            {hint}
+          </span>
+        )
       )}
     </label>
   );
 }
+
 
 const base =
   "w-full rounded-md border border-border bg-card px-2.5 py-2 text-sm outline-none transition-colors focus:border-primary disabled:opacity-60";
