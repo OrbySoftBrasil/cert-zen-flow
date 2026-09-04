@@ -9,3 +9,10 @@
 - [x] Financeiro integrado: lançar a pagar/receber, planos, contratos, regras de comissão
 - [x] Portal do parceiro: anexos no cadastro de cliente e gestão de documentos
 - [x] Login, MFA, recuperação e redefinição de senha
+
+## Casos demonstrativos (rodada atual)
+- [x] 8 cenários (fluxo direto, pagamento pendente, dossiê divergente, BIRD + produto final, no-show, falha de envio, revogação posterior, suspeita de fraude)
+- [x] Aba "Casos demonstrativos" em Operação com links para Caso / Emissões / Dossiê
+- [x] Deep link por aba no workspace (?aba=) e navegação sem links sem destino
+- [x] Bloqueio absoluto de conformidade: exceção comercial não libera
+- [x] Acessibilidade: tablist com setas, foco preservado em modais, erro de motivo associado ao campo
