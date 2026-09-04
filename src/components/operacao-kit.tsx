@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   Ban,
   Check,
+  HelpCircle,
   CircleSlash,
   Lock,
   Minus,
@@ -105,8 +106,9 @@ export function CasoCard({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onClick={onOpen}
+      aria-label={`Abrir caso ${r.protocolo} de ${r.cliente}. ${proximaAcaoLabel(r)}. ${bloqueio}`}
       className={cn(
-        "block w-full cursor-pointer rounded-md border border-border bg-card p-2.5 text-left transition-colors hover:border-border-strong",
+        "block w-full cursor-pointer rounded-md border border-border bg-card p-2.5 text-left transition-all hover:-translate-y-px hover:border-primary/60 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
         arrastando && "opacity-50",
       )}
     >
@@ -194,5 +196,39 @@ export function PerfilAvatar({ sigla }: { sigla: string }) {
       <User className="size-3" />
       {sigla}
     </span>
+  );
+}
+
+// Legenda: o significado de cada estado de prontidão fica explícito, sem
+// depender de cor — ícone + texto, como exige a leitura acessível.
+export function LegendaProntidao() {
+  return (
+    <details className="group text-[11px]">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded-md border border-border px-2 py-1 text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none">
+        <HelpCircle className="size-3" aria-hidden="true" />
+        Como ler os indicadores
+      </summary>
+      <div className="mt-2 space-y-2 rounded-md border border-border bg-card p-3">
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(estiloProntidao) as EstadoProntidao[]).map((e) => (
+            <ProntidaoChip key={e} trilha={rotuloProntidao[e]} estado={e} />
+          ))}
+        </div>
+        <ul className="space-y-1 text-muted-foreground">
+          <li>
+            <span className="font-medium text-foreground">Frentes</span> — {trilhas.map((t) => t.nome).join(" · ")}. Cada
+            uma avança em paralelo.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">SLA</span> — horas restantes do prazo da AR; negativo indica
+            prazo estourado.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Bloqueio</span> — a regra que hoje impede a próxima ação.
+            Abra o caso para ver quem precisa agir.
+          </li>
+        </ul>
+      </div>
+    </details>
   );
 }

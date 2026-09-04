@@ -73,6 +73,17 @@ export function AppShell({
   const [open, setOpen] = useState(false);
   const [navMobile, setNavMobile] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
+
+  // Em tablets a barra lateral entra recolhida para sobrar largura ao conteúdo.
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px) and (max-width: 1279px)");
+    const aplicar = (m: MediaQueryList | MediaQueryListEvent) => {
+      if (m.matches) setCollapsed(true);
+    };
+    aplicar(mq);
+    mq.addEventListener("change", aplicar);
+    return () => mq.removeEventListener("change", aplicar);
+  }, []);
   const navigate = useNavigate();
   const { sessao, sair } = useAuth();
   const { efetivo, alternar } = useTema();

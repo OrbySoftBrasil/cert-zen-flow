@@ -243,6 +243,18 @@ function Workspace() {
 
   const grupos = [...new Set(acoesWorkspace.map((a) => a.grupo))];
 
+  // Contadores nas abas: o usuário vê onde há trabalho antes de clicar.
+  const contagens: Record<AbaId, number> = {
+    visao: 0,
+    emissoes: emissoes.length,
+    atendimento: agendamentos.length,
+    dossie: dossie.itens.filter((i) => i.status !== "aprovado").length,
+    comercial: 0,
+    mensagens: cliente?.documentos.length ?? 0,
+    entrega: chamados.length,
+    historico: caso.timeline.length,
+  };
+
   return (
     <AppShell
       title={`Caso ${cab.numero}`}
@@ -362,7 +374,7 @@ function Workspace() {
       <div
         role="tablist"
         aria-label="Seções do caso"
-        className="mt-4 flex gap-1 overflow-x-auto rounded-lg border border-border bg-card p-1"
+        className="sticky top-14 z-20 mt-4 flex gap-1 overflow-x-auto rounded-lg border border-border bg-card/95 p-1 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80"
       >
         {abas.map((a, i) => (
           <button
@@ -382,13 +394,23 @@ function Workspace() {
             }}
             onClick={() => setAba(a.id)}
             className={cn(
-              "shrink-0 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+              "flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
               aba === a.id
                 ? "bg-primary-soft font-medium text-primary-deep"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             {a.label}
+            {contagens[a.id] ? (
+              <span
+                className={cn(
+                  "tabular rounded px-1 text-[10px] font-semibold",
+                  aba === a.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                )}
+              >
+                {contagens[a.id]}
+              </span>
+            ) : null}
           </button>
         ))}
       </div>
@@ -706,7 +728,7 @@ function Workspace() {
         </div>
 
         {/* -------------------------------------------------------- coluna direita */}
-        <aside className="space-y-4">
+        <aside className="space-y-4 xl:sticky xl:top-32 xl:self-start">
           <Panel title="Responsável atual">
             <div className="space-y-2.5 text-sm">
               <SelectInput
@@ -742,6 +764,27 @@ function Workspace() {
 
           <Panel title="Ações do caso" hint="Toda ação registra evidência e define o próximo responsável" bodyClassName="p-3">
             <div className="space-y-3">
+              {(() => {
+                const recomendada = acoesWorkspace.find((a) => a.label === proximaAcao);
+                if (!recomendada) return null;
+                const trava = bloqueioDaAcao(recomendada);
+                return (
+                  <div className="rounded-md border border-primary/40 bg-primary-soft/40 p-2">
+                    <p className="mb-1.5 px-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-deep">
+                      Recomendado agora
+                    </p>
+                    <BotaoAcao
+                      label={recomendada.label}
+                      onClick={() => abrir(recomendada)}
+                      bloqueio={trava}
+                      {...(recomendada.regulatoria ? { regulatoria: true } : {})}
+                    />
+                    <p className="mt-1.5 px-0.5 text-[11px] text-muted-foreground">
+                      {trava ?? `Próximo responsável: ${recomendada.proximoResponsavel}`}
+                    </p>
+                  </div>
+                );
+              })()}
               {grupos.map((g) => (
                 <div key={g} className="space-y-1.5">
                   <p className="px-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{g}</p>
