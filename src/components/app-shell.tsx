@@ -40,6 +40,7 @@ import { clients, requests } from "@/lib/mock-data";
 import { SettingsDialog } from "@/components/settings-workspace";
 import { useAuth } from "@/lib/auth-store";
 import { useTema } from "@/lib/theme";
+import { useDensidade } from "@/lib/densidade";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -69,7 +70,6 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
-  const [dense, setDense] = useState(false);
   const [open, setOpen] = useState(false);
   const [navMobile, setNavMobile] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
@@ -87,6 +87,7 @@ export function AppShell({
   const navigate = useNavigate();
   const { sessao, sair } = useAuth();
   const { efetivo, alternar } = useTema();
+  const { compacto, alternar: alternarDensidade } = useDensidade();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
@@ -166,7 +167,7 @@ export function AppShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card/90 px-4 backdrop-blur md:px-6">
+        <header className="densidade-topo sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card/90 px-4 backdrop-blur md:px-6">
           <button
             onClick={() => setNavMobile(true)}
             aria-label="Abrir menu"
@@ -186,11 +187,15 @@ export function AppShell({
           </button>
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
             <button
-              onClick={() => setDense((v) => !v)}
-              title={dense ? "Densidade confortável" : "Densidade compacta"}
-              className="hidden size-9 place-items-center sm:grid rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={alternarDensidade}
+              aria-pressed={compacto}
+              title={compacto ? "Modo compacto ativo — voltar ao confortável" : "Ativar modo compacto (mais informação na tela)"}
+              className={cn(
+                "hidden size-9 place-items-center sm:grid rounded-md transition-colors hover:bg-muted hover:text-foreground",
+                compacto ? "bg-primary-soft text-primary-deep" : "text-muted-foreground",
+              )}
             >
-              {dense ? <Rows4 className="size-4" /> : <Rows3 className="size-4" />}
+              {compacto ? <Rows4 className="size-4" /> : <Rows3 className="size-4" />}
             </button>
             <button
               onClick={alternar}
@@ -225,7 +230,7 @@ export function AppShell({
           </div>
         </header>
 
-        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border bg-card px-4 py-4 md:px-6">
+        <div className="densidade-titulo flex flex-wrap items-end justify-between gap-3 border-b border-border bg-card px-4 py-4 md:px-6">
           <div>
             <h1 className="font-display text-xl font-semibold">{title}</h1>
             {subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>}
@@ -233,7 +238,7 @@ export function AppShell({
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
 
-        <main className={cn("flex-1 px-4 md:px-6", dense ? "py-3" : "py-6")}>{children}</main>
+        <main className="densidade-conteudo flex-1 px-4 py-6 md:px-6">{children}</main>
       </div>
 
       {navMobile && (
