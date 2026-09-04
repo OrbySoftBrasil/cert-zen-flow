@@ -1,7 +1,15 @@
 // Configurações da aplicação — cada AC opera com uma esteira própria, então
 // etapas, checklists, requisitos de avanço, SLA, catálogo, segurança e
 // integrações são parametrizáveis. Persistido em localStorage.
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { stages, type StageId } from "@/lib/mock-data";
 
@@ -73,6 +81,8 @@ export interface PapelRule {
   permissoes: string[];
   usuarios: number;
   escopoVisibilidade: EscopoVisibilidade;
+  /** Perfil da esteira (Operação & perfis) que este papel executa. */
+  perfilOperacional: string;
 }
 
 export type StatusUsuario = "ativo" | "convidado" | "suspenso";
@@ -94,7 +104,6 @@ export interface UsuarioRule {
   ultimoAcesso: string;
   observacao: string;
 }
-
 
 export interface SessaoAtiva {
   id: string;
@@ -202,7 +211,12 @@ export interface Settings {
   };
   produtos: ProdutoRule[];
   sla: {
-    porPrioridade: { prioridade: string; primeiraRespostaH: number; resolucaoH: number; alertaEmPercent: number }[];
+    porPrioridade: {
+      prioridade: string;
+      primeiraRespostaH: number;
+      resolucaoH: number;
+      alertaEmPercent: number;
+    }[];
     horarioComercialApenas: boolean;
     pausarAguardandoCliente: boolean;
   };
@@ -270,8 +284,16 @@ export interface Settings {
 
 const checklistBase: Record<StageId, string[]> = {
   novo: ["Confirmar dados do titular", "Validar forma de pagamento"],
-  documentacao: ["Documento de identidade", "Comprovante de endereço", "Contrato social / procuração"],
-  validacao: ["Conferência biométrica", "Checagem em bases públicas", "Parecer do agente de registro"],
+  documentacao: [
+    "Documento de identidade",
+    "Comprovante de endereço",
+    "Contrato social / procuração",
+  ],
+  validacao: [
+    "Conferência biométrica",
+    "Checagem em bases públicas",
+    "Parecer do agente de registro",
+  ],
   agendamento: ["Enviar convite de videoconferência", "Confirmar disponibilidade do titular"],
   videoconferencia: ["Gravação arquivada", "Termo de titularidade assinado"],
   emissao: ["Gerar par de chaves", "Entregar mídia ao titular"],
@@ -342,24 +364,153 @@ function seedEtapas(): StageRule[] {
 
 function seedClassificacoes(): ClassificacaoChamado[] {
   const base: Omit<ClassificacaoChamado, "id">[] = [
-    { nome: "Instalação e uso", descricao: "Dúvidas de instalação de driver, uso do token e assinatura de documentos.", subcategorias: ["Driver do token", "Assinatura em PDF", "Navegador / Java", "Acesso na nuvem"], prioridadePadrao: "normal", slaRespostaHoras: 4, slaResolucaoHoras: 24, papelResponsavel: "Atendimento", visivelPortal: true, ativo: true },
-    { nome: "Documentação", descricao: "Reenvio, reprovação e conferência de documentos do titular.", subcategorias: ["Documento reprovado", "Reenvio de arquivo", "Procuração"], prioridadePadrao: "normal", slaRespostaHoras: 4, slaResolucaoHoras: 24, papelResponsavel: "Validação Documental", visivelPortal: true, ativo: true },
-    { nome: "Agendamento", descricao: "Remarcações e problemas na videoconferência de validação.", subcategorias: ["Remarcar videoconferência", "Não consegui entrar na sala", "Confirmar horário"], prioridadePadrao: "alta", slaRespostaHoras: 2, slaResolucaoHoras: 8, papelResponsavel: "Atendimento", visivelPortal: true, ativo: true },
-    { nome: "Financeiro", descricao: "Boletos, notas fiscais, reembolsos e cobranças.", subcategorias: ["2ª via de boleto", "Nota fiscal", "Reembolso", "Cobrança indevida"], prioridadePadrao: "normal", slaRespostaHoras: 8, slaResolucaoHoras: 48, papelResponsavel: "Financeiro", visivelPortal: true, ativo: true },
-    { nome: "Revogação", descricao: "Perda, comprometimento ou desligamento do titular.", subcategorias: ["Perda do token", "Suspeita de comprometimento", "Desligamento do titular"], prioridadePadrao: "critica", slaRespostaHoras: 1, slaResolucaoHoras: 4, papelResponsavel: "Compliance", visivelPortal: true, ativo: true },
-    { nome: "Erro no certificado", descricao: "Certificado com dados incorretos ou não reconhecido pelos sistemas.", subcategorias: ["Dados incorretos", "Certificado não reconhecido", "Expirado antes do prazo"], prioridadePadrao: "alta", slaRespostaHoras: 2, slaResolucaoHoras: 12, papelResponsavel: "Agente de Registro", visivelPortal: true, ativo: true },
-    { nome: "Outros", descricao: "Assuntos gerais, sugestões e reclamações.", subcategorias: ["Dúvida geral", "Sugestão", "Reclamação"], prioridadePadrao: "baixa", slaRespostaHoras: 8, slaResolucaoHoras: 72, papelResponsavel: "Atendimento", visivelPortal: true, ativo: true },
+    {
+      nome: "Instalação e uso",
+      descricao: "Dúvidas de instalação de driver, uso do token e assinatura de documentos.",
+      subcategorias: [
+        "Driver do token",
+        "Assinatura em PDF",
+        "Navegador / Java",
+        "Acesso na nuvem",
+      ],
+      prioridadePadrao: "normal",
+      slaRespostaHoras: 4,
+      slaResolucaoHoras: 24,
+      papelResponsavel: "Atendimento",
+      visivelPortal: true,
+      ativo: true,
+    },
+    {
+      nome: "Documentação",
+      descricao: "Reenvio, reprovação e conferência de documentos do titular.",
+      subcategorias: ["Documento reprovado", "Reenvio de arquivo", "Procuração"],
+      prioridadePadrao: "normal",
+      slaRespostaHoras: 4,
+      slaResolucaoHoras: 24,
+      papelResponsavel: "Validação Documental",
+      visivelPortal: true,
+      ativo: true,
+    },
+    {
+      nome: "Agendamento",
+      descricao: "Remarcações e problemas na videoconferência de validação.",
+      subcategorias: [
+        "Remarcar videoconferência",
+        "Não consegui entrar na sala",
+        "Confirmar horário",
+      ],
+      prioridadePadrao: "alta",
+      slaRespostaHoras: 2,
+      slaResolucaoHoras: 8,
+      papelResponsavel: "Atendimento",
+      visivelPortal: true,
+      ativo: true,
+    },
+    {
+      nome: "Financeiro",
+      descricao: "Boletos, notas fiscais, reembolsos e cobranças.",
+      subcategorias: ["2ª via de boleto", "Nota fiscal", "Reembolso", "Cobrança indevida"],
+      prioridadePadrao: "normal",
+      slaRespostaHoras: 8,
+      slaResolucaoHoras: 48,
+      papelResponsavel: "Financeiro",
+      visivelPortal: true,
+      ativo: true,
+    },
+    {
+      nome: "Revogação",
+      descricao: "Perda, comprometimento ou desligamento do titular.",
+      subcategorias: ["Perda do token", "Suspeita de comprometimento", "Desligamento do titular"],
+      prioridadePadrao: "critica",
+      slaRespostaHoras: 1,
+      slaResolucaoHoras: 4,
+      papelResponsavel: "Compliance",
+      visivelPortal: true,
+      ativo: true,
+    },
+    {
+      nome: "Erro no certificado",
+      descricao: "Certificado com dados incorretos ou não reconhecido pelos sistemas.",
+      subcategorias: ["Dados incorretos", "Certificado não reconhecido", "Expirado antes do prazo"],
+      prioridadePadrao: "alta",
+      slaRespostaHoras: 2,
+      slaResolucaoHoras: 12,
+      papelResponsavel: "Agente de Registro",
+      visivelPortal: true,
+      ativo: true,
+    },
+    {
+      nome: "Outros",
+      descricao: "Assuntos gerais, sugestões e reclamações.",
+      subcategorias: ["Dúvida geral", "Sugestão", "Reclamação"],
+      prioridadePadrao: "baixa",
+      slaRespostaHoras: 8,
+      slaResolucaoHoras: 72,
+      papelResponsavel: "Atendimento",
+      visivelPortal: true,
+      ativo: true,
+    },
   ];
   return base.map((c) => ({ ...c, id: id("cl") }));
 }
 
 function seedConhecimento(): DocumentoConhecimento[] {
   const base: Omit<DocumentoConhecimento, "id">[] = [
-    { titulo: "Como instalar o driver do token A3", classificacao: "Instalação e uso", arquivo: "guia-driver-token-a3.pdf", formato: "PDF", tamanhoKb: 842, atualizadoEm: "2026-06-18", autor: "Marina Duarte", publicadoNoPortal: true, downloads: 3120 },
-    { titulo: "Certificado não aparece no e-CAC — checklist", classificacao: "Erro no certificado", arquivo: "checklist-ecac.pdf", formato: "PDF", tamanhoKb: 512, atualizadoEm: "2026-05-02", autor: "Diego Nunes", publicadoNoPortal: true, downloads: 2410 },
-    { titulo: "Documentos aceitos para e-CNPJ", classificacao: "Documentação", arquivo: "documentos-ecnpj.pdf", formato: "PDF", tamanhoKb: 388, atualizadoEm: "2026-07-09", autor: "Compliance", publicadoNoPortal: true, downloads: 1980 },
-    { titulo: "Roteiro de atendimento — revogação emergencial", classificacao: "Revogação", arquivo: "roteiro-revogacao.docx", formato: "DOCX", tamanhoKb: 96, atualizadoEm: "2026-07-22", autor: "Helena Prado", publicadoNoPortal: false, downloads: 74 },
-    { titulo: "Emitir 2ª via de boleto e nota fiscal", classificacao: "Financeiro", arquivo: "segunda-via-boleto.pdf", formato: "PDF", tamanhoKb: 265, atualizadoEm: "2026-04-11", autor: "Financeiro", publicadoNoPortal: true, downloads: 1201 },
+    {
+      titulo: "Como instalar o driver do token A3",
+      classificacao: "Instalação e uso",
+      arquivo: "guia-driver-token-a3.pdf",
+      formato: "PDF",
+      tamanhoKb: 842,
+      atualizadoEm: "2026-06-18",
+      autor: "Marina Duarte",
+      publicadoNoPortal: true,
+      downloads: 3120,
+    },
+    {
+      titulo: "Certificado não aparece no e-CAC — checklist",
+      classificacao: "Erro no certificado",
+      arquivo: "checklist-ecac.pdf",
+      formato: "PDF",
+      tamanhoKb: 512,
+      atualizadoEm: "2026-05-02",
+      autor: "Diego Nunes",
+      publicadoNoPortal: true,
+      downloads: 2410,
+    },
+    {
+      titulo: "Documentos aceitos para e-CNPJ",
+      classificacao: "Documentação",
+      arquivo: "documentos-ecnpj.pdf",
+      formato: "PDF",
+      tamanhoKb: 388,
+      atualizadoEm: "2026-07-09",
+      autor: "Compliance",
+      publicadoNoPortal: true,
+      downloads: 1980,
+    },
+    {
+      titulo: "Roteiro de atendimento — revogação emergencial",
+      classificacao: "Revogação",
+      arquivo: "roteiro-revogacao.docx",
+      formato: "DOCX",
+      tamanhoKb: 96,
+      atualizadoEm: "2026-07-22",
+      autor: "Helena Prado",
+      publicadoNoPortal: false,
+      downloads: 74,
+    },
+    {
+      titulo: "Emitir 2ª via de boleto e nota fiscal",
+      classificacao: "Financeiro",
+      arquivo: "segunda-via-boleto.pdf",
+      formato: "PDF",
+      tamanhoKb: 265,
+      atualizadoEm: "2026-04-11",
+      autor: "Financeiro",
+      publicadoNoPortal: true,
+      downloads: 1201,
+    },
   ];
   return base.map((d) => ({ ...d, id: id("kb") }));
 }
@@ -392,11 +543,46 @@ export function seedSettings(): Settings {
       limiteWipPorAgente: 12,
     },
     produtos: [
-      { id: "p1", nome: "e-CPF A1", validadeMeses: 12, preco: 189, exigeVideoconferencia: true, ativo: true },
-      { id: "p2", nome: "e-CPF A3", validadeMeses: 36, preco: 289, exigeVideoconferencia: true, ativo: true },
-      { id: "p3", nome: "e-CNPJ A1", validadeMeses: 12, preco: 249, exigeVideoconferencia: true, ativo: true },
-      { id: "p4", nome: "e-CNPJ A3", validadeMeses: 36, preco: 389, exigeVideoconferencia: true, ativo: true },
-      { id: "p5", nome: "Nuvem PJ", validadeMeses: 12, preco: 329, exigeVideoconferencia: false, ativo: true },
+      {
+        id: "p1",
+        nome: "e-CPF A1",
+        validadeMeses: 12,
+        preco: 189,
+        exigeVideoconferencia: true,
+        ativo: true,
+      },
+      {
+        id: "p2",
+        nome: "e-CPF A3",
+        validadeMeses: 36,
+        preco: 289,
+        exigeVideoconferencia: true,
+        ativo: true,
+      },
+      {
+        id: "p3",
+        nome: "e-CNPJ A1",
+        validadeMeses: 12,
+        preco: 249,
+        exigeVideoconferencia: true,
+        ativo: true,
+      },
+      {
+        id: "p4",
+        nome: "e-CNPJ A3",
+        validadeMeses: 36,
+        preco: 389,
+        exigeVideoconferencia: true,
+        ativo: true,
+      },
+      {
+        id: "p5",
+        nome: "Nuvem PJ",
+        validadeMeses: 12,
+        preco: 329,
+        exigeVideoconferencia: false,
+        ativo: true,
+      },
     ],
     sla: {
       porPrioridade: [
@@ -412,34 +598,133 @@ export function seedSettings(): Settings {
       {
         id: "r1",
         nome: "Administrador",
-        descricao: "Acesso total, inclusive configurações e financeiro.",
-        permissoes: ["config", "financeiro", "emitir", "revogar", "clientes", "relatorios", "parceiros"],
+        descricao: "Acesso total, inclusive configuração da esteira e publicação de versões.",
+        permissoes: [
+          "op.ver.todas",
+          "op.assumir",
+          "op.mover",
+          "op.reatribuir",
+          "dossie.montar",
+          "dossie.verificar",
+          "dossie.devolver",
+          "emissao.emitir",
+          "emissao.revogar",
+          "entrega.instalar",
+          "comercial.excecao",
+          "comercial.desconto",
+          "financeiro.baixa",
+          "financeiro.dispensa",
+          "clientes",
+          "relatorios",
+          "parceiros",
+          "config.editar",
+          "config.publicar",
+          "restrito.ver",
+        ],
         usuarios: 2,
         escopoVisibilidade: "todas",
+        perfilOperacional: "—",
       },
       {
         id: "r2",
-        nome: "Agente de Registro",
-        descricao: "Conduz validação, videoconferência e emissão.",
-        permissoes: ["emitir", "clientes", "relatorios"],
+        nome: "Agente de Registro (AGR)",
+        descricao: "Conduz validação presencial ou por videoconferência e emite o certificado.",
+        permissoes: [
+          "op.ver.todas",
+          "op.assumir",
+          "op.mover",
+          "emissao.emitir",
+          "clientes",
+          "relatorios",
+        ],
         usuarios: 6,
         escopoVisibilidade: "proprias",
+        perfilOperacional: "AGR — Agente de registro",
+      },
+      {
+        id: "r6",
+        nome: "Montadora de dossiê",
+        descricao: "Reúne documentos, monta o dossiê e envia para verificação.",
+        permissoes: ["op.ver.todas", "op.assumir", "op.mover", "dossie.montar", "clientes"],
+        usuarios: 4,
+        escopoVisibilidade: "unidade",
+        perfilOperacional: "Montadora de dossiê",
+      },
+      {
+        id: "r7",
+        nome: "Verificadora",
+        descricao: "Confere o dossiê montado por outra pessoa, aprova ou devolve com divergência.",
+        permissoes: [
+          "op.ver.todas",
+          "op.assumir",
+          "dossie.verificar",
+          "dossie.devolver",
+          "relatorios",
+        ],
+        usuarios: 3,
+        escopoVisibilidade: "todas",
+        perfilOperacional: "Verificadora",
+      },
+      {
+        id: "r8",
+        nome: "Vendas direta (VD)",
+        descricao: "Capta o cliente, define condição comercial e acompanha até a emissão.",
+        permissoes: ["op.ver.todas", "op.assumir", "comercial.desconto", "clientes", "relatorios"],
+        usuarios: 7,
+        escopoVisibilidade: "proprias",
+        perfilOperacional: "VD — Vendas direta",
+      },
+      {
+        id: "r9",
+        nome: "Vendas indireta (VI)",
+        descricao: "Atende pedidos vindos de contabilidades e indicadores.",
+        permissoes: ["op.ver.todas", "op.assumir", "clientes", "parceiros", "relatorios"],
+        usuarios: 5,
+        escopoVisibilidade: "unidade",
+        perfilOperacional: "VI — Vendas indireta",
+      },
+      {
+        id: "r10",
+        nome: "Financeiro",
+        descricao: "Baixa pagamentos, concede dispensa e libera a frente financeira do caso.",
+        permissoes: ["op.ver.todas", "financeiro.baixa", "financeiro.dispensa", "relatorios"],
+        usuarios: 3,
+        escopoVisibilidade: "todas",
+        perfilOperacional: "Financeiro",
+      },
+      {
+        id: "r11",
+        nome: "Suporte de entrega",
+        descricao: "Acompanha instalação, reenvio de mídia e suporte pós-emissão.",
+        permissoes: ["op.ver.todas", "op.assumir", "entrega.instalar", "clientes"],
+        usuarios: 4,
+        escopoVisibilidade: "unidade",
+        perfilOperacional: "Suporte de entrega",
       },
       {
         id: "r3",
         nome: "Atendimento",
-        descricao: "Chamados, chat e agendamentos.",
-        permissoes: ["clientes"],
+        descricao: "Chamados, chat e agendamentos. Não move etapas regulatórias.",
+        permissoes: ["op.ver.todas", "clientes"],
         usuarios: 5,
         escopoVisibilidade: "todas",
+        perfilOperacional: "—",
       },
       {
         id: "r4",
         nome: "Compliance",
-        descricao: "Auditoria, revogações e conformidade.",
-        permissoes: ["revogar", "relatorios", "config"],
+        descricao: "Auditoria, revogações, casos restritos e conformidade regulatória.",
+        permissoes: [
+          "op.ver.todas",
+          "dossie.verificar",
+          "emissao.revogar",
+          "relatorios",
+          "config.editar",
+          "restrito.ver",
+        ],
         usuarios: 2,
         escopoVisibilidade: "todas",
+        perfilOperacional: "Compliance",
       },
       {
         id: "r5",
@@ -448,6 +733,7 @@ export function seedSettings(): Settings {
         permissoes: ["clientes"],
         usuarios: 38,
         escopoVisibilidade: "proprias",
+        perfilOperacional: "—",
       },
     ],
     usuarios: [
@@ -472,7 +758,7 @@ export function seedSettings(): Settings {
         nome: "Rafael Bastos",
         email: "rafael.bastos@certus.com.br",
         iniciais: "RB",
-        papelId: "r2",
+        papelId: "r6",
         unidade: "Matriz — São Paulo",
         telefone: "(11) 99120-7781",
         status: "ativo",
@@ -488,7 +774,7 @@ export function seedSettings(): Settings {
         nome: "Carolina Ito",
         email: "carolina.ito@certus.com.br",
         iniciais: "CI",
-        papelId: "r2",
+        papelId: "r7",
         unidade: "Filial — Campinas",
         telefone: "(19) 99871-3320",
         status: "ativo",
@@ -568,7 +854,7 @@ export function seedSettings(): Settings {
         nome: "Otávio Lins",
         email: "otavio.lins@certus.com.br",
         iniciais: "OL",
-        papelId: "r2",
+        papelId: "r8",
         unidade: "Filial — Recife",
         telefone: "(81) 99614-2287",
         status: "suspenso",
@@ -626,23 +912,112 @@ export function seedSettings(): Settings {
         },
       ],
       acessos: [
-        { id: "l1", usuario: "Marina Duarte", quando: "hoje, 08:12", local: "São Paulo/SP", ip: "200.155.30.14", metodo: "Senha + app", resultado: "sucesso" },
-        { id: "l2", usuario: "Rafael Bastos", quando: "hoje, 07:58", local: "São Paulo/SP", ip: "200.155.30.22", metodo: "SSO Google", resultado: "sucesso" },
-        { id: "l3", usuario: "Desconhecido", quando: "ontem, 23:41", local: "Hanói, VN", ip: "45.62.11.7", metodo: "Senha", resultado: "bloqueado" },
-        { id: "l4", usuario: "Carolina Ito", quando: "ontem, 19:03", local: "Campinas/SP", ip: "189.4.77.12", metodo: "Senha + SMS", resultado: "sucesso" },
-        { id: "l5", usuario: "Diego Nunes", quando: "ontem, 18:20", local: "Recife/PE", ip: "177.92.3.44", metodo: "Senha", resultado: "falha" },
+        {
+          id: "l1",
+          usuario: "Marina Duarte",
+          quando: "hoje, 08:12",
+          local: "São Paulo/SP",
+          ip: "200.155.30.14",
+          metodo: "Senha + app",
+          resultado: "sucesso",
+        },
+        {
+          id: "l2",
+          usuario: "Rafael Bastos",
+          quando: "hoje, 07:58",
+          local: "São Paulo/SP",
+          ip: "200.155.30.22",
+          metodo: "SSO Google",
+          resultado: "sucesso",
+        },
+        {
+          id: "l3",
+          usuario: "Desconhecido",
+          quando: "ontem, 23:41",
+          local: "Hanói, VN",
+          ip: "45.62.11.7",
+          metodo: "Senha",
+          resultado: "bloqueado",
+        },
+        {
+          id: "l4",
+          usuario: "Carolina Ito",
+          quando: "ontem, 19:03",
+          local: "Campinas/SP",
+          ip: "189.4.77.12",
+          metodo: "Senha + SMS",
+          resultado: "sucesso",
+        },
+        {
+          id: "l5",
+          usuario: "Diego Nunes",
+          quando: "ontem, 18:20",
+          local: "Recife/PE",
+          ip: "177.92.3.44",
+          metodo: "Senha",
+          resultado: "falha",
+        },
       ],
     },
     notificacoes: {
       eventos: [
-        { id: "n1", label: "Solicitação criada", email: true, whatsapp: true, sms: false, push: true },
-        { id: "n2", label: "Documento reprovado", email: true, whatsapp: true, sms: true, push: true },
-        { id: "n3", label: "Videoconferência agendada", email: true, whatsapp: true, sms: true, push: false },
-        { id: "n4", label: "Certificado emitido", email: true, whatsapp: true, sms: false, push: true },
+        {
+          id: "n1",
+          label: "Solicitação criada",
+          email: true,
+          whatsapp: true,
+          sms: false,
+          push: true,
+        },
+        {
+          id: "n2",
+          label: "Documento reprovado",
+          email: true,
+          whatsapp: true,
+          sms: true,
+          push: true,
+        },
+        {
+          id: "n3",
+          label: "Videoconferência agendada",
+          email: true,
+          whatsapp: true,
+          sms: true,
+          push: false,
+        },
+        {
+          id: "n4",
+          label: "Certificado emitido",
+          email: true,
+          whatsapp: true,
+          sms: false,
+          push: true,
+        },
         { id: "n5", label: "SLA em risco", email: false, whatsapp: false, sms: false, push: true },
-        { id: "n6", label: "Renovação em 30 dias", email: true, whatsapp: true, sms: false, push: false },
-        { id: "n7", label: "Fatura vencida", email: true, whatsapp: false, sms: false, push: false },
-        { id: "n8", label: "Novo chamado no portal", email: true, whatsapp: false, sms: false, push: true },
+        {
+          id: "n6",
+          label: "Renovação em 30 dias",
+          email: true,
+          whatsapp: true,
+          sms: false,
+          push: false,
+        },
+        {
+          id: "n7",
+          label: "Fatura vencida",
+          email: true,
+          whatsapp: false,
+          sms: false,
+          push: false,
+        },
+        {
+          id: "n8",
+          label: "Novo chamado no portal",
+          email: true,
+          whatsapp: false,
+          sms: false,
+          push: true,
+        },
       ],
       remetente: "operacao@certus.com.br",
       assinatura: "Equipe Certus AC · suporte 24/7",
@@ -652,22 +1027,97 @@ export function seedSettings(): Settings {
     },
     integracoes: {
       chaves: [
-        { id: "k1", nome: "Portal do parceiro", prefixo: "cts_live_9f2a", escopo: "pedidos:rw", criadaEm: "2026-02-10", ultimoUso: "hoje, 09:12", ativa: true },
-        { id: "k2", nome: "ERP financeiro", prefixo: "cts_live_41bd", escopo: "financeiro:ro", criadaEm: "2025-11-02", ultimoUso: "hoje, 06:00", ativa: true },
-        { id: "k3", nome: "Integração legada", prefixo: "cts_test_77c0", escopo: "clientes:ro", criadaEm: "2025-04-18", ultimoUso: "há 4 meses", ativa: false },
+        {
+          id: "k1",
+          nome: "Portal do parceiro",
+          prefixo: "cts_live_9f2a",
+          escopo: "pedidos:rw",
+          criadaEm: "2026-02-10",
+          ultimoUso: "hoje, 09:12",
+          ativa: true,
+        },
+        {
+          id: "k2",
+          nome: "ERP financeiro",
+          prefixo: "cts_live_41bd",
+          escopo: "financeiro:ro",
+          criadaEm: "2025-11-02",
+          ultimoUso: "hoje, 06:00",
+          ativa: true,
+        },
+        {
+          id: "k3",
+          nome: "Integração legada",
+          prefixo: "cts_test_77c0",
+          escopo: "clientes:ro",
+          criadaEm: "2025-04-18",
+          ultimoUso: "há 4 meses",
+          ativa: false,
+        },
       ],
       webhooks: [
-        { id: "w1", evento: "certificado.emitido", url: "https://erp.certus.com.br/hooks/emissao", ativo: true, ultimaEntrega: "hoje, 09:40", status: "ok" },
-        { id: "w2", evento: "chamado.criado", url: "https://crm.certus.com.br/hooks/ticket", ativo: true, ultimaEntrega: "hoje, 08:55", status: "ok" },
-        { id: "w3", evento: "fatura.vencida", url: "https://erp.certus.com.br/hooks/cobranca", ativo: false, ultimaEntrega: "há 2 dias", status: "falha" },
+        {
+          id: "w1",
+          evento: "certificado.emitido",
+          url: "https://erp.certus.com.br/hooks/emissao",
+          ativo: true,
+          ultimaEntrega: "hoje, 09:40",
+          status: "ok",
+        },
+        {
+          id: "w2",
+          evento: "chamado.criado",
+          url: "https://crm.certus.com.br/hooks/ticket",
+          ativo: true,
+          ultimaEntrega: "hoje, 08:55",
+          status: "ok",
+        },
+        {
+          id: "w3",
+          evento: "fatura.vencida",
+          url: "https://erp.certus.com.br/hooks/cobranca",
+          ativo: false,
+          ultimaEntrega: "há 2 dias",
+          status: "falha",
+        },
       ],
       conectores: [
-        { id: "c1", nome: "WhatsApp Business", descricao: "Atendimento e notificações no chat.", conectado: true },
-        { id: "c2", nome: "Gateway de pagamento", descricao: "Pix, boleto e cartão nas cobranças.", conectado: true },
-        { id: "c3", nome: "Assinador ICP-Brasil", descricao: "Emissão e revogação de certificados.", conectado: true },
-        { id: "c4", nome: "Receita Federal / Serpro", descricao: "Consulta de CPF, CNPJ e situação cadastral.", conectado: true },
-        { id: "c5", nome: "Biometria facial", descricao: "Prova de vida na videoconferência.", conectado: false },
-        { id: "c6", nome: "Google Agenda", descricao: "Sincronização dos atendimentos.", conectado: false },
+        {
+          id: "c1",
+          nome: "WhatsApp Business",
+          descricao: "Atendimento e notificações no chat.",
+          conectado: true,
+        },
+        {
+          id: "c2",
+          nome: "Gateway de pagamento",
+          descricao: "Pix, boleto e cartão nas cobranças.",
+          conectado: true,
+        },
+        {
+          id: "c3",
+          nome: "Assinador ICP-Brasil",
+          descricao: "Emissão e revogação de certificados.",
+          conectado: true,
+        },
+        {
+          id: "c4",
+          nome: "Receita Federal / Serpro",
+          descricao: "Consulta de CPF, CNPJ e situação cadastral.",
+          conectado: true,
+        },
+        {
+          id: "c5",
+          nome: "Biometria facial",
+          descricao: "Prova de vida na videoconferência.",
+          conectado: false,
+        },
+        {
+          id: "c6",
+          nome: "Google Agenda",
+          descricao: "Sincronização dos atendimentos.",
+          conectado: false,
+        },
       ],
     },
     financeiro: {
@@ -684,7 +1134,8 @@ export function seedSettings(): Settings {
       densidade: "confortavel",
       corPrimaria: "#1d4ed8",
       exibirLogoPortal: true,
-      mensagemPortal: "Precisa de ajuda com seu certificado? Abra um chamado — respondemos em até 4 horas úteis.",
+      mensagemPortal:
+        "Precisa de ajuda com seu certificado? Abra um chamado — respondemos em até 4 horas úteis.",
       formatoData: "dd/MM/yyyy",
     },
     classificacoes: seedClassificacoes(),
@@ -749,7 +1200,11 @@ function normalizar(s: Settings): Settings {
         },
       })),
     },
-    papeis: (s.papeis ?? base.papeis).map((p) => ({ ...p, escopoVisibilidade: p.escopoVisibilidade ?? "todas" })),
+    // Papéis anteriores ao modelo de perfis operacionais são substituídos pelo seed novo.
+    papeis: (s.papeis ?? base.papeis).some((p) => !p.perfilOperacional)
+      ? base.papeis
+      : s.papeis.map((p) => ({ ...p, escopoVisibilidade: p.escopoVisibilidade ?? "todas" })),
+
     usuarios: (s.usuarios ?? base.usuarios).map((u) => ({
       ...u,
       escopoVisibilidade: u.escopoVisibilidade ?? "herdado",
@@ -828,7 +1283,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<SettingsCtx>(
-    () => ({ settings, update, replace, updateEtapa, patchEtapas, resetSettings, dirty, marcarSalvo: () => setDirty(false) }),
+    () => ({
+      settings,
+      update,
+      replace,
+      updateEtapa,
+      patchEtapas,
+      resetSettings,
+      dirty,
+      marcarSalvo: () => setDirty(false),
+    }),
     [settings, update, replace, updateEtapa, patchEtapas, resetSettings, dirty],
   );
 
@@ -882,14 +1346,138 @@ export const unidadesDisponiveis = [
   "Remoto",
 ];
 
-
-
-export const permissoesDisponiveis = [
-  { id: "config", label: "Configurações" },
-  { id: "financeiro", label: "Financeiro" },
-  { id: "emitir", label: "Emitir certificado" },
-  { id: "revogar", label: "Revogar certificado" },
-  { id: "clientes", label: "Clientes e chamados" },
-  { id: "relatorios", label: "Relatórios" },
-  { id: "parceiros", label: "Parceiros" },
+/** Permissões agrupadas pelas frentes do caso (mesma linguagem da esteira). */
+export const gruposPermissoes: {
+  id: string;
+  label: string;
+  hint: string;
+  itens: { id: string; label: string; hint: string }[];
+}[] = [
+  {
+    id: "operacao",
+    label: "Operação",
+    hint: "Fila, atribuição e avanço de etapas.",
+    itens: [
+      {
+        id: "op.ver.todas",
+        label: "Ver a esteira",
+        hint: "Abrir Visão geral, Minha fila e Todos os casos.",
+      },
+      { id: "op.assumir", label: "Assumir caso", hint: "Puxar um caso não atribuído para si." },
+      { id: "op.mover", label: "Avançar etapa", hint: "Concluir etapa e mover o caso adiante." },
+      {
+        id: "op.reatribuir",
+        label: "Reatribuir",
+        hint: "Passar um caso para outra pessoa ou perfil.",
+      },
+    ],
+  },
+  {
+    id: "dossie",
+    label: "Dossiê",
+    hint: "Segregação de funções: montar e verificar não deveriam ficar na mesma pessoa.",
+    itens: [
+      {
+        id: "dossie.montar",
+        label: "Montar dossiê",
+        hint: "Anexar documentos e enviar para verificação.",
+      },
+      {
+        id: "dossie.verificar",
+        label: "Verificar dossiê",
+        hint: "Aprovar a conferência documental.",
+      },
+      {
+        id: "dossie.devolver",
+        label: "Devolver com divergência",
+        hint: "Retornar o dossiê apontando o que falta.",
+      },
+    ],
+  },
+  {
+    id: "emissao",
+    label: "Emissão e entrega",
+    hint: "Atos regulatórios do certificado.",
+    itens: [
+      { id: "emissao.emitir", label: "Emitir certificado", hint: "Concluir a emissão junto à AC." },
+      { id: "emissao.revogar", label: "Revogar certificado", hint: "Revogar emissão já entregue." },
+      {
+        id: "entrega.instalar",
+        label: "Entrega e instalação",
+        hint: "Registrar entrega, instalação e reenvio.",
+      },
+    ],
+  },
+  {
+    id: "comercial",
+    label: "Comercial e financeiro",
+    hint: "Liberações que afetam o pagamento de cada emissão.",
+    itens: [
+      {
+        id: "comercial.desconto",
+        label: "Aplicar condição comercial",
+        hint: "Definir preço, desconto e cortesia.",
+      },
+      {
+        id: "comercial.excecao",
+        label: "Conceder exceção comercial",
+        hint: "Liberar emissão antes do pagamento.",
+      },
+      {
+        id: "financeiro.baixa",
+        label: "Baixar pagamento",
+        hint: "Confirmar recebimento da emissão.",
+      },
+      {
+        id: "financeiro.dispensa",
+        label: "Dispensar cobrança",
+        hint: "Registrar dispensa com motivo.",
+      },
+    ],
+  },
+  {
+    id: "geral",
+    label: "Módulos",
+    hint: "Acesso às demais áreas do sistema.",
+    itens: [
+      {
+        id: "clientes",
+        label: "Clientes e chamados",
+        hint: "Dossiê do cliente, chat, agenda e helpdesk.",
+      },
+      { id: "relatorios", label: "Relatórios", hint: "Painéis e exportações CSV/XLSX/PDF." },
+      { id: "parceiros", label: "Parceiros", hint: "Contadores, indicadores e comissões." },
+      {
+        id: "restrito.ver",
+        label: "Ver casos restritos",
+        hint: "Casos com suspeita de fraude e visibilidade limitada.",
+      },
+    ],
+  },
+  {
+    id: "config",
+    label: "Configuração",
+    hint: "Quem desenha e quem publica a esteira.",
+    itens: [
+      {
+        id: "config.editar",
+        label: "Editar rascunho da esteira",
+        hint: "Alterar marcos, etapas e subfluxos.",
+      },
+      {
+        id: "config.publicar",
+        label: "Publicar versão",
+        hint: "Colocar o rascunho em vigor para casos novos.",
+      },
+    ],
+  },
 ];
+
+export const permissoesDisponiveis = gruposPermissoes.flatMap((g) => g.itens);
+
+/** Papéis que acumulam montagem e verificação do mesmo dossiê. */
+export function conflitoSegregacao(papel: PapelRule) {
+  return (
+    papel.permissoes.includes("dossie.montar") && papel.permissoes.includes("dossie.verificar")
+  );
+}

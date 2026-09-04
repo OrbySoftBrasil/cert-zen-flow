@@ -19,13 +19,26 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Btn, ConfirmDialog, EmptyState, Field, Modal, SelectInput, TextArea, TextInput } from "@/components/forms";
+import {
+  Btn,
+  ConfirmDialog,
+  EmptyState,
+  Field,
+  Modal,
+  SelectInput,
+  TextArea,
+  TextInput,
+} from "@/components/forms";
 import { Grid, Rows, TagList, Toggle } from "@/components/settings-kit";
 import { Chip, Metric, Panel } from "@/components/ui-kit";
 import { agents } from "@/lib/mock-data";
+import { PAPEIS_OPERACAO } from "@/lib/opconfig-model";
+import { useOpConfig } from "@/lib/opconfig-store";
 import {
+  conflitoSegregacao,
   escoposVisibilidade,
   escopoEfetivo,
+  gruposPermissoes,
   iniciaisDe,
   novaEtapa,
   novoChecklistItem,
@@ -55,36 +68,54 @@ export function SecaoOrganizacao() {
   const dias = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"];
   return (
     <div className="space-y-4">
-      <Panel title="Identificação da AC" hint="Dados usados em documentos, e-mails e no portal do cliente.">
+      <Panel
+        title="Identificação da AC"
+        hint="Dados usados em documentos, e-mails e no portal do cliente."
+      >
         <Grid>
           <Field label="Nome fantasia">
             <TextInput value={o.nome} onChange={(e) => update("org", { nome: e.target.value })} />
           </Field>
           <Field label="Razão social">
-            <TextInput value={o.razaoSocial} onChange={(e) => update("org", { razaoSocial: e.target.value })} />
+            <TextInput
+              value={o.razaoSocial}
+              onChange={(e) => update("org", { razaoSocial: e.target.value })}
+            />
           </Field>
           <Field label="CNPJ">
             <TextInput value={o.cnpj} onChange={(e) => update("org", { cnpj: e.target.value })} />
           </Field>
           <Field label="Cadeia de confiança">
-            <TextInput value={o.acRaiz} onChange={(e) => update("org", { acRaiz: e.target.value })} />
+            <TextInput
+              value={o.acRaiz}
+              onChange={(e) => update("org", { acRaiz: e.target.value })}
+            />
           </Field>
           <Field label="E-mail operacional">
             <TextInput value={o.email} onChange={(e) => update("org", { email: e.target.value })} />
           </Field>
           <Field label="Telefone">
-            <TextInput value={o.telefone} onChange={(e) => update("org", { telefone: e.target.value })} />
+            <TextInput
+              value={o.telefone}
+              onChange={(e) => update("org", { telefone: e.target.value })}
+            />
           </Field>
           <Field label="Site" className="sm:col-span-2">
             <TextInput value={o.site} onChange={(e) => update("org", { site: e.target.value })} />
           </Field>
           <Field label="Endereço" className="sm:col-span-2">
-            <TextInput value={o.endereco} onChange={(e) => update("org", { endereco: e.target.value })} />
+            <TextInput
+              value={o.endereco}
+              onChange={(e) => update("org", { endereco: e.target.value })}
+            />
           </Field>
         </Grid>
       </Panel>
 
-      <Panel title="Expediente e regionalização" hint="Base de cálculo de SLA e janelas de atendimento.">
+      <Panel
+        title="Expediente e regionalização"
+        hint="Base de cálculo de SLA e janelas de atendimento."
+      >
         <Grid cols={3}>
           <Field label="Fuso horário">
             <SelectInput value={o.fuso} onChange={(e) => update("org", { fuso: e.target.value })}>
@@ -101,7 +132,10 @@ export function SecaoOrganizacao() {
             </SelectInput>
           </Field>
           <Field label="Idioma">
-            <SelectInput value={o.idioma} onChange={(e) => update("org", { idioma: e.target.value })}>
+            <SelectInput
+              value={o.idioma}
+              onChange={(e) => update("org", { idioma: e.target.value })}
+            >
               <option>pt-BR</option>
               <option>en-US</option>
               <option>es-AR</option>
@@ -180,7 +214,10 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
     <div className="space-y-4 p-4">
       <Grid cols={3}>
         <Field label="Nome da etapa">
-          <TextInput value={etapa.nome} onChange={(e) => updateEtapa(etapa.id, { nome: e.target.value })} />
+          <TextInput
+            value={etapa.nome}
+            onChange={(e) => updateEtapa(etapa.id, { nome: e.target.value })}
+          />
         </Field>
         <Field label="SLA da etapa (horas)">
           <TextInput
@@ -222,7 +259,11 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
                 <TextInput
                   value={item.label}
                   onChange={(e) =>
-                    setChecklist(etapa.checklist.map((c) => (c.id === item.id ? { ...c, label: e.target.value } : c)))
+                    setChecklist(
+                      etapa.checklist.map((c) =>
+                        c.id === item.id ? { ...c, label: e.target.value } : c,
+                      ),
+                    )
                   }
                   className="min-w-40 flex-1"
                 />
@@ -232,7 +273,9 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
                   onChange={(e) =>
                     setChecklist(
                       etapa.checklist.map((c) =>
-                        c.id === item.id ? { ...c, evidencia: e.target.value as ChecklistRule["evidencia"] } : c,
+                        c.id === item.id
+                          ? { ...c, evidencia: e.target.value as ChecklistRule["evidencia"] }
+                          : c,
                       ),
                     )
                   }
@@ -247,7 +290,9 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
                   type="button"
                   onClick={() =>
                     setChecklist(
-                      etapa.checklist.map((c) => (c.id === item.id ? { ...c, obrigatorio: !c.obrigatorio } : c)),
+                      etapa.checklist.map((c) =>
+                        c.id === item.id ? { ...c, obrigatorio: !c.obrigatorio } : c,
+                      ),
                     )
                   }
                   className={cn(
@@ -313,7 +358,11 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
               setNovo("");
             }}
           >
-            <TextInput value={novo} onChange={(e) => setNovo(e.target.value)} placeholder="Novo item do checklist" />
+            <TextInput
+              value={novo}
+              onChange={(e) => setNovo(e.target.value)}
+              placeholder="Novo item do checklist"
+            />
             <Btn type="submit" variant="ghost">
               <Plus className="size-4" /> Adicionar
             </Btn>
@@ -330,54 +379,80 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
                 label="Checklist obrigatório concluído"
                 hint="Bloqueia o avanço enquanto houver item obrigatório pendente."
                 checked={etapa.gates.checklistObrigatorio}
-                onChange={(v) => updateEtapa(etapa.id, { gates: { ...etapa.gates, checklistObrigatorio: v } })}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, { gates: { ...etapa.gates, checklistObrigatorio: v } })
+                }
               />
               <Toggle
                 label="Documentos aprovados"
                 checked={etapa.gates.documentosAprovados}
-                onChange={(v) => updateEtapa(etapa.id, { gates: { ...etapa.gates, documentosAprovados: v } })}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, { gates: { ...etapa.gates, documentosAprovados: v } })
+                }
               />
               <Toggle
                 label="Pagamento confirmado"
                 checked={etapa.gates.pagamentoConfirmado}
-                onChange={(v) => updateEtapa(etapa.id, { gates: { ...etapa.gates, pagamentoConfirmado: v } })}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, { gates: { ...etapa.gates, pagamentoConfirmado: v } })
+                }
               />
               <Toggle
                 label="Dupla conferência (4 olhos)"
                 hint="Exige um segundo agente diferente do executor."
                 checked={etapa.gates.duplaConferencia}
-                onChange={(v) => updateEtapa(etapa.id, { gates: { ...etapa.gates, duplaConferencia: v } })}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, { gates: { ...etapa.gates, duplaConferencia: v } })
+                }
               />
               <Toggle
                 label="Biometria validada"
                 checked={etapa.gates.biometriaValidada}
-                onChange={(v) => updateEtapa(etapa.id, { gates: { ...etapa.gates, biometriaValidada: v } })}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, { gates: { ...etapa.gates, biometriaValidada: v } })
+                }
               />
               <Toggle
                 label="Gravação arquivada"
                 checked={etapa.gates.gravacaoArquivada}
-                onChange={(v) => updateEtapa(etapa.id, { gates: { ...etapa.gates, gravacaoArquivada: v } })}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, { gates: { ...etapa.gates, gravacaoArquivada: v } })
+                }
               />
             </Rows>
           </div>
 
           <div className="rounded-lg border border-border p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Automações</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Automações
+            </p>
             <Rows>
               <Toggle
                 label="Notificar cliente ao entrar na etapa"
                 checked={etapa.automacoes.notificarCliente}
-                onChange={(v) => updateEtapa(etapa.id, { automacoes: { ...etapa.automacoes, notificarCliente: v } })}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, {
+                    automacoes: { ...etapa.automacoes, notificarCliente: v },
+                  })
+                }
               />
               <Toggle
                 label="Distribuir automaticamente ao papel responsável"
                 checked={etapa.automacoes.atribuirAutomatico}
-                onChange={(v) => updateEtapa(etapa.id, { automacoes: { ...etapa.automacoes, atribuirAutomatico: v } })}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, {
+                    automacoes: { ...etapa.automacoes, atribuirAutomatico: v },
+                  })
+                }
               />
               <Toggle
                 label="Escalar quando o SLA estourar"
                 checked={etapa.automacoes.escalarSlaEstourado}
-                onChange={(v) => updateEtapa(etapa.id, { automacoes: { ...etapa.automacoes, escalarSlaEstourado: v } })}
+                onChange={(v) =>
+                  updateEtapa(etapa.id, {
+                    automacoes: { ...etapa.automacoes, escalarSlaEstourado: v },
+                  })
+                }
               />
             </Rows>
           </div>
@@ -392,7 +467,9 @@ function EditorEtapa({ etapa }: { etapa: StageRule }) {
                 hint="Todas as pessoas desse papel recebem o aviso quando a solicitação entra nesta etapa."
                 checked={etapa.automacoes.notificarPapelResponsavel}
                 onChange={(v) =>
-                  updateEtapa(etapa.id, { automacoes: { ...etapa.automacoes, notificarPapelResponsavel: v } })
+                  updateEtapa(etapa.id, {
+                    automacoes: { ...etapa.automacoes, notificarPapelResponsavel: v },
+                  })
                 }
               />
             </Rows>
@@ -478,7 +555,11 @@ export function SecaoFluxo() {
   const [sel, setSel] = useState<string | undefined>(etapas[1]?.id ?? etapas[0]?.id);
   const atual = etapas.find((e) => e.id === sel) ?? etapas[0];
   const [criando, setCriando] = useState(false);
-  const [novaEtapaDraft, setNovaEtapaDraft] = useState({ nome: "", papel: "Agente de Registro", posicao: "fim" });
+  const [novaEtapaDraft, setNovaEtapaDraft] = useState({
+    nome: "",
+    papel: "Agente de Registro",
+    posicao: "fim",
+  });
 
   const criarEtapa = () => {
     const nome = novaEtapaDraft.nome.trim();
@@ -495,7 +576,9 @@ export function SecaoFluxo() {
     setSel(etapa.id);
     setCriando(false);
     setNovaEtapaDraft({ nome: "", papel: "Agente de Registro", posicao: "fim" });
-    toast.success("Etapa adicionada à esteira", { description: "Configure checklist, gates e avisos abaixo." });
+    toast.success("Etapa adicionada à esteira", {
+      description: "Configure checklist, gates e avisos abaixo.",
+    });
   };
 
   const moverEtapa = (etapaId: string, dir: -1 | 1) =>
@@ -593,7 +676,9 @@ export function SecaoFluxo() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-2.5">
               <div className="flex items-center gap-2">
                 <h3 className="font-display text-sm font-semibold">{atual.nome}</h3>
-                <Chip tone={atual.ativo ? "blue" : "outline"}>{atual.ativo ? "Ativa" : "Desativada"}</Chip>
+                <Chip tone={atual.ativo ? "blue" : "outline"}>
+                  {atual.ativo ? "Ativa" : "Desativada"}
+                </Chip>
                 <Chip tone="outline">
                   {atual.checklist.filter((c) => c.obrigatorio).length} itens obrigatórios
                 </Chip>
@@ -770,7 +855,10 @@ export function SecaoCatalogo() {
             {produtos.map((p) => (
               <tr key={p.id}>
                 <td className="px-4 py-2">
-                  <TextInput value={p.nome} onChange={(e) => patch(p.id, { nome: e.target.value })} />
+                  <TextInput
+                    value={p.nome}
+                    onChange={(e) => patch(p.id, { nome: e.target.value })}
+                  />
                 </td>
                 <td className="px-4 py-2">
                   <TextInput
@@ -789,7 +877,9 @@ export function SecaoCatalogo() {
                     onChange={(e) => patch(p.id, { preco: Number(e.target.value) })}
                     className="w-28"
                   />
-                  <span className="mt-1 block text-[11px] text-muted-foreground tabular">{moeda(p.preco)}</span>
+                  <span className="mt-1 block text-[11px] text-muted-foreground tabular">
+                    {moeda(p.preco)}
+                  </span>
                 </td>
                 <td className="px-4 py-2">
                   <button
@@ -833,7 +923,9 @@ export function SecaoSla() {
   const sla = settings.sla;
   const patch = (prioridade: string, dados: Partial<(typeof sla.porPrioridade)[number]>) =>
     update("sla", {
-      porPrioridade: sla.porPrioridade.map((p) => (p.prioridade === prioridade ? { ...p, ...dados } : p)),
+      porPrioridade: sla.porPrioridade.map((p) =>
+        p.prioridade === prioridade ? { ...p, ...dados } : p,
+      ),
     });
 
   return (
@@ -853,7 +945,15 @@ export function SecaoSla() {
               {sla.porPrioridade.map((p) => (
                 <tr key={p.prioridade}>
                   <td className="px-4 py-2 capitalize">
-                    <Chip tone={p.prioridade === "critica" ? "alert" : p.prioridade === "alta" ? "deep" : "blue"}>
+                    <Chip
+                      tone={
+                        p.prioridade === "critica"
+                          ? "alert"
+                          : p.prioridade === "alta"
+                            ? "deep"
+                            : "blue"
+                      }
+                    >
                       {p.prioridade}
                     </Chip>
                   </td>
@@ -862,7 +962,9 @@ export function SecaoSla() {
                       type="number"
                       min={1}
                       value={p.primeiraRespostaH}
-                      onChange={(e) => patch(p.prioridade, { primeiraRespostaH: Number(e.target.value) })}
+                      onChange={(e) =>
+                        patch(p.prioridade, { primeiraRespostaH: Number(e.target.value) })
+                      }
                       className="w-24"
                     />
                   </td>
@@ -881,7 +983,9 @@ export function SecaoSla() {
                       min={10}
                       max={100}
                       value={p.alertaEmPercent}
-                      onChange={(e) => patch(p.prioridade, { alertaEmPercent: Number(e.target.value) })}
+                      onChange={(e) =>
+                        patch(p.prioridade, { alertaEmPercent: Number(e.target.value) })
+                      }
                       className="w-24"
                     />
                   </td>
@@ -962,12 +1066,16 @@ export function SecaoEquipe() {
   const [rascunho, setRascunho] = useState<RascunhoUsuario>(rascunhoVazio(papeis[0]?.id ?? "r2"));
   const [remover, setRemover] = useState<UsuarioRule | null>(null);
   const [novoPapel, setNovoPapel] = useState(false);
-  const [papelDraft, setPapelDraft] = useState({ nome: "", descricao: "" });
+  const [papelDraft, setPapelDraft] = useState({ nome: "", descricao: "", perfil: "—" });
   const [removerPapel, setRemoverPapel] = useState<string | null>(null);
 
+  const opcfg = useOpConfig();
   const nomePapel = (id: string) => papeis.find((p) => p.id === id)?.nome ?? "Sem papel";
   const contarUsuarios = (papelId: string) =>
     usuarios.filter((u) => u.papelId === papelId && u.status !== "suspenso").length;
+  /** Etapas da esteira que caem neste perfil operacional. */
+  const etapasDoPerfil = (perfil: string) =>
+    perfil === "—" ? [] : opcfg.rascunho.etapas.filter((e) => e.papel === perfil && e.ativa);
 
   const setUsuarios = (lista: UsuarioRule[]) => replace("usuarios", lista);
 
@@ -1029,11 +1137,18 @@ export function SecaoEquipe() {
       setUsuarios(
         usuarios.map((u) =>
           u.id === editando
-            ? { ...u, ...rascunho, email: rascunho.email.trim(), iniciais: iniciaisDe(rascunho.nome) }
+            ? {
+                ...u,
+                ...rascunho,
+                email: rascunho.email.trim(),
+                iniciais: iniciaisDe(rascunho.nome),
+              }
             : u,
         ),
       );
-      toast.success("Usuário atualizado", { description: "Alteração registrada na trilha de auditoria." });
+      toast.success("Usuário atualizado", {
+        description: "Alteração registrada na trilha de auditoria.",
+      });
     }
     setEditando(null);
   };
@@ -1047,11 +1162,15 @@ export function SecaoEquipe() {
   };
 
   const reenviarConvite = (u: UsuarioRule) =>
-    toast.success("Convite reenviado", { description: `Link válido por 24h enviado para ${u.email}.` });
+    toast.success("Convite reenviado", {
+      description: `Link válido por 24h enviado para ${u.email}.`,
+    });
 
   const resetarMfa = (u: UsuarioRule) => {
     setUsuarios(usuarios.map((x) => (x.id === u.id ? { ...x, mfa: false } : x)));
-    toast.success("MFA redefinido", { description: `${u.nome} fará novo cadastro do app autenticador no login.` });
+    toast.success("MFA redefinido", {
+      description: `${u.nome} fará novo cadastro do app autenticador no login.`,
+    });
   };
 
   const togglePerm = (papelId: string, perm: string) =>
@@ -1083,20 +1202,26 @@ export function SecaoEquipe() {
         permissoes: [],
         usuarios: 0,
         escopoVisibilidade: "proprias",
+        perfilOperacional: papelDraft.perfil || "—",
       },
     ]);
-    setPapelDraft({ nome: "", descricao: "" });
+    setPapelDraft({ nome: "", descricao: "", perfil: "—" });
     setNovoPapel(false);
-    toast.success("Papel criado", { description: "Marque as permissões na matriz de acesso." });
+    toast.success("Papel criado", { description: "Marque as permissões no cartão do papel." });
   };
 
-  const usuarioEditado = editando && editando !== "novo" ? usuarios.find((u) => u.id === editando) : null;
+  const usuarioEditado =
+    editando && editando !== "novo" ? usuarios.find((u) => u.id === editando) : null;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap rounded-lg border border-border bg-card">
         <Metric label="Usuários" value={String(usuarios.length)} hint="cadastrados" />
-        <Metric label="Ativos" value={String(usuarios.filter((u) => u.status === "ativo").length)} hint="com acesso" />
+        <Metric
+          label="Ativos"
+          value={String(usuarios.filter((u) => u.status === "ativo").length)}
+          hint="com acesso"
+        />
         <Metric
           label="Convites pendentes"
           value={String(usuarios.filter((u) => u.status === "convidado").length)}
@@ -1182,15 +1307,16 @@ export function SecaoEquipe() {
                   <Chip tone="neutral">
                     Fila:{" "}
                     {escoposVisibilidade.find(
-                      (x) => x.id === escopoEfetivo(u, papeis.find((p) => p.id === u.papelId)),
+                      (x) =>
+                        x.id ===
+                        escopoEfetivo(
+                          u,
+                          papeis.find((p) => p.id === u.papelId),
+                        ),
                     )?.label ?? "Todas"}
                   </Chip>
                   <Chip tone={statusTone[u.status]}>{statusLabel[u.status]}</Chip>
-                  {u.mfa ? (
-                    <Chip tone="blue">MFA</Chip>
-                  ) : (
-                    <Chip tone="alert">Sem MFA</Chip>
-                  )}
+                  {u.mfa ? <Chip tone="blue">MFA</Chip> : <Chip tone="alert">Sem MFA</Chip>}
                 </div>
                 <div className="ml-auto flex items-center gap-1.5">
                   <span className="hidden text-[11px] text-muted-foreground lg:block">
@@ -1211,7 +1337,7 @@ export function SecaoEquipe() {
 
       <Panel
         title="Papéis e permissões"
-        hint="Matriz de acesso aplicada a todos os módulos."
+        hint="Cada papel espelha um perfil da esteira (Operação & perfis). As permissões estão agrupadas pelas frentes do caso."
         bodyClassName="p-0"
         actions={
           <Btn variant="ghost" onClick={() => setNovoPapel(true)}>
@@ -1219,87 +1345,24 @@ export function SecaoEquipe() {
           </Btn>
         }
       >
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[880px] text-sm">
-            <thead className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="px-4 py-2 font-medium">Papel</th>
-                {permissoesDisponiveis.map((p) => (
-                  <th key={p.id} className="px-2 py-2 text-center font-medium">
-                    {p.label}
-                  </th>
-                ))}
-                <th className="px-4 py-2 font-medium">Visibilidade da fila</th>
-                <th className="px-4 py-2 text-right font-medium">Usuários</th>
-                <th className="px-2 py-2" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {papeis.map((papel) => (
-                <tr key={papel.id}>
-                  <td className="px-4 py-2">
-                    <p className="font-medium">{papel.nome}</p>
-                    <p className="text-[11px] text-muted-foreground">{papel.descricao}</p>
-                  </td>
-                  {permissoesDisponiveis.map((perm) => {
-                    const on = papel.permissoes.includes(perm.id);
-                    return (
-                      <td key={perm.id} className="px-2 py-2 text-center">
-                        <button
-                          type="button"
-                          aria-label={`${perm.label} para ${papel.nome}`}
-                          onClick={() => togglePerm(papel.id, perm.id)}
-                          className={cn(
-                            "grid size-6 place-items-center rounded border transition-colors",
-                            on
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-border text-transparent hover:border-border-strong",
-                          )}
-                        >
-                          <CheckCircle2 className="size-3.5" />
-                        </button>
-                      </td>
-                    );
-                  })}
-                  <td className="px-4 py-2">
-                    <SelectInput
-                      aria-label={`Visibilidade do papel ${papel.nome}`}
-                      value={papel.escopoVisibilidade}
-                      onChange={(e) =>
-                        replace(
-                          "papeis",
-                          papeis.map((x) =>
-                            x.id === papel.id
-                              ? { ...x, escopoVisibilidade: e.target.value as EscopoVisibilidade }
-                              : x,
-                          ) as PapelRule[],
-                        )
-                      }
-                      className="h-8 w-40"
-                    >
-                      {escoposVisibilidade.map((esc) => (
-                        <option key={esc.id} value={esc.id}>
-                          {esc.label}
-                        </option>
-                      ))}
-                    </SelectInput>
-                  </td>
-                  <td className="px-4 py-2 text-right tabular">{contarUsuarios(papel.id)}</td>
-                  <td className="px-2 py-2 text-right">
-                    <button
-                      type="button"
-                      aria-label={`Remover papel ${papel.nome}`}
-                      onClick={() => setRemoverPapel(papel.id)}
-                      className="text-muted-foreground transition-colors hover:text-alert"
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ul className="divide-y divide-border">
+          {papeis.map((papel) => (
+            <CartaoPapel
+              key={papel.id}
+              papel={papel}
+              usuarios={contarUsuarios(papel.id)}
+              etapas={etapasDoPerfil(papel.perfilOperacional)}
+              onTogglePerm={(perm) => togglePerm(papel.id, perm)}
+              onPatch={(patch) =>
+                replace(
+                  "papeis",
+                  papeis.map((x) => (x.id === papel.id ? { ...x, ...patch } : x)) as PapelRule[],
+                )
+              }
+              onRemover={() => setRemoverPapel(papel.id)}
+            />
+          ))}
+        </ul>
       </Panel>
 
       <Modal
@@ -1334,7 +1397,9 @@ export function SecaoEquipe() {
             <Btn variant="ghost" onClick={() => setEditando(null)}>
               Cancelar
             </Btn>
-            <Btn onClick={salvarUsuario}>{editando === "novo" ? "Criar usuário" : "Salvar alterações"}</Btn>
+            <Btn onClick={salvarUsuario}>
+              {editando === "novo" ? "Criar usuário" : "Salvar alterações"}
+            </Btn>
           </>
         }
       >
@@ -1388,7 +1453,9 @@ export function SecaoEquipe() {
             <Field label="Status inicial">
               <SelectInput
                 value={rascunho.status}
-                onChange={(e) => setRascunho({ ...rascunho, status: e.target.value as StatusUsuario })}
+                onChange={(e) =>
+                  setRascunho({ ...rascunho, status: e.target.value as StatusUsuario })
+                }
               >
                 <option value="convidado">Convite pendente</option>
                 <option value="ativo">Ativo</option>
@@ -1400,7 +1467,9 @@ export function SecaoEquipe() {
                 type="number"
                 min={1}
                 value={rascunho.limiteWip}
-                onChange={(e) => setRascunho({ ...rascunho, limiteWip: Number(e.target.value) || 1 })}
+                onChange={(e) =>
+                  setRascunho({ ...rascunho, limiteWip: Number(e.target.value) || 1 })
+                }
               />
             </Field>
             <Field
@@ -1409,10 +1478,13 @@ export function SecaoEquipe() {
                 rascunho.escopoVisibilidade === "herdado"
                   ? `Herda do papel: ${
                       escoposVisibilidade.find(
-                        (x) => x.id === papeis.find((p) => p.id === rascunho.papelId)?.escopoVisibilidade,
+                        (x) =>
+                          x.id ===
+                          papeis.find((p) => p.id === rascunho.papelId)?.escopoVisibilidade,
                       )?.label ?? "Todas"
                     }`
-                  : (escoposVisibilidade.find((x) => x.id === rascunho.escopoVisibilidade)?.hint ?? "")
+                  : (escoposVisibilidade.find((x) => x.id === rascunho.escopoVisibilidade)?.hint ??
+                    "")
               }
             >
               <SelectInput
@@ -1457,7 +1529,21 @@ export function SecaoEquipe() {
           </div>
 
           <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground">Permissões herdadas do papel</p>
+            <p className="font-medium text-foreground">Herdado do papel</p>
+            <p className="mt-1">
+              Perfil na esteira:{" "}
+              <span className="text-foreground">
+                {papeis.find((p) => p.id === rascunho.papelId)?.perfilOperacional ?? "—"}
+              </span>{" "}
+              · Etapas atribuídas:{" "}
+              <span className="tabular text-foreground">
+                {
+                  etapasDoPerfil(
+                    papeis.find((p) => p.id === rascunho.papelId)?.perfilOperacional ?? "—",
+                  ).length
+                }
+              </span>
+            </p>
             <p className="mt-1">
               {(papeis.find((p) => p.id === rascunho.papelId)?.permissoes ?? [])
                 .map((perm) => permissoesDisponiveis.find((x) => x.id === perm)?.label ?? perm)
@@ -1471,7 +1557,8 @@ export function SecaoEquipe() {
         open={novoPapel}
         onClose={() => setNovoPapel(false)}
         title="Novo papel"
-        hint="Depois marque as permissões diretamente na matriz."
+        hint="Depois marque as permissões no cartão do papel."
+
         width="max-w-md"
         footer={
           <>
@@ -1497,6 +1584,22 @@ export function SecaoEquipe() {
               placeholder="O que este papel pode fazer"
             />
           </Field>
+          <Field
+            label="Perfil na esteira"
+            hint="Liga o papel às etapas de Operação & perfis. Use “—” para papéis que não executam etapas."
+          >
+            <SelectInput
+              value={papelDraft.perfil}
+              onChange={(e) => setPapelDraft({ ...papelDraft, perfil: e.target.value })}
+            >
+              <option value="—">— Não executa etapas</option>
+              {PAPEIS_OPERACAO.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
         </div>
       </Modal>
 
@@ -1509,7 +1612,9 @@ export function SecaoEquipe() {
         onCancel={() => setRemover(null)}
         onConfirm={() => {
           setUsuarios(usuarios.filter((u) => u.id !== remover?.id));
-          toast.success("Usuário removido", { description: "Registro mantido na trilha de auditoria." });
+          toast.success("Usuário removido", {
+            description: "Registro mantido na trilha de auditoria.",
+          });
           setRemover(null);
         }}
       />
@@ -1530,7 +1635,10 @@ export function SecaoEquipe() {
             setRemoverPapel(null);
             return;
           }
-          replace("papeis", papeis.filter((p) => p.id !== removerPapel));
+          replace(
+            "papeis",
+            papeis.filter((p) => p.id !== removerPapel),
+          );
           toast.success("Papel removido");
           setRemoverPapel(null);
         }}
@@ -1539,6 +1647,173 @@ export function SecaoEquipe() {
   );
 }
 
+/** Cartão de um papel: perfil na esteira, visibilidade e permissões por frente. */
+function CartaoPapel({
+  papel,
+  usuarios,
+  etapas,
+  onTogglePerm,
+  onPatch,
+  onRemover,
+}: {
+  papel: PapelRule;
+  usuarios: number;
+  etapas: { id: string; nome: string; marco: string }[];
+  onTogglePerm: (perm: string) => void;
+  onPatch: (patch: Partial<PapelRule>) => void;
+  onRemover: () => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const conflito = conflitoSegregacao(papel);
+
+  return (
+    <li className="px-4 py-3">
+      <div className="flex flex-wrap items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="text-sm font-medium">{papel.nome}</p>
+            <Chip tone={papel.perfilOperacional === "—" ? "neutral" : "blue"}>
+              {papel.perfilOperacional === "—" ? "Fora da esteira" : papel.perfilOperacional}
+            </Chip>
+            <Chip tone="outline">{usuarios} usuários</Chip>
+            <Chip tone="outline">{papel.permissoes.length} permissões</Chip>
+            <Chip tone="outline">{etapas.length} etapas</Chip>
+          </div>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">{papel.descricao}</p>
+          {conflito && (
+            <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-alert">
+              <AlertTriangle className="size-3.5" /> Segregação de funções: este papel monta e
+              verifica o mesmo dossiê.
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Btn variant="ghost" onClick={() => setAberto((v) => !v)} aria-expanded={aberto}>
+            {aberto ? "Fechar" : "Configurar"}
+          </Btn>
+          <button
+            type="button"
+            aria-label={`Remover papel ${papel.nome}`}
+            onClick={onRemover}
+            className="grid size-8 place-items-center rounded text-muted-foreground transition-colors hover:text-alert"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        </div>
+      </div>
+
+      {aberto && (
+        <div className="mt-3 space-y-3 rounded-lg border border-border p-3">
+          <Grid>
+            <Field
+              label="Perfil na esteira"
+              hint="Define quais etapas de Operação & perfis chegam para este papel."
+            >
+              <SelectInput
+                value={papel.perfilOperacional}
+                onChange={(e) => onPatch({ perfilOperacional: e.target.value })}
+              >
+                <option value="—">— Não executa etapas</option>
+                {PAPEIS_OPERACAO.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+            <Field
+              label="Visibilidade da fila"
+              hint="Quais casos as pessoas deste papel enxergam por padrão."
+            >
+              <SelectInput
+                value={papel.escopoVisibilidade}
+                onChange={(e) =>
+                  onPatch({ escopoVisibilidade: e.target.value as EscopoVisibilidade })
+                }
+              >
+                {escoposVisibilidade.map((esc) => (
+                  <option key={esc.id} value={esc.id}>
+                    {esc.label}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+          </Grid>
+
+          <section className="rounded-md border border-border">
+            <header className="border-b border-border px-3 py-2">
+              <p className="text-xs font-semibold">Etapas sob responsabilidade deste papel</p>
+              <p className="text-[11px] text-muted-foreground">
+                Lista vinda do rascunho da esteira. Para alterar, use “Operação &amp; perfis”.
+              </p>
+            </header>
+            {etapas.length === 0 ? (
+              <p className="px-3 py-2 text-[11px] text-muted-foreground">
+                Nenhuma etapa da esteira aponta para este perfil.
+              </p>
+            ) : (
+              <ul className="flex flex-wrap gap-1.5 px-3 py-2">
+                {etapas.map((e) => (
+                  <li key={e.id}>
+                    <Chip tone="outline">{e.nome}</Chip>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {gruposPermissoes.map((grupo) => (
+            <section key={grupo.id} className="rounded-md border border-border">
+              <header className="border-b border-border px-3 py-2">
+                <p className="text-xs font-semibold">{grupo.label}</p>
+                <p className="text-[11px] text-muted-foreground">{grupo.hint}</p>
+              </header>
+              <div className="grid gap-1.5 p-3 sm:grid-cols-2">
+                {grupo.itens.map((perm) => {
+                  const on = papel.permissoes.includes(perm.id);
+                  return (
+                    <button
+                      key={perm.id}
+                      type="button"
+                      role="switch"
+                      aria-checked={on}
+                      onClick={() => onTogglePerm(perm.id)}
+                      className={cn(
+                        "flex items-start gap-2 rounded-md border px-2 py-1.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+                        on
+                          ? "border-primary bg-primary-soft"
+                          : "border-border hover:border-border-strong",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "mt-0.5 grid size-4 shrink-0 place-items-center rounded border",
+                          on
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border text-transparent",
+                        )}
+                      >
+                        <CheckCircle2 className="size-3" />
+                      </span>
+                      <span className="min-w-0">
+                        <span
+                          className={cn("block text-xs font-medium", on && "text-primary-deep")}
+                        >
+                          {perm.label}
+                        </span>
+                        <span className="block text-[11px] text-muted-foreground">{perm.hint}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </li>
+  );
+}
 
 /* ---------------------------------------------------------------- Segurança */
 
@@ -1549,7 +1824,9 @@ export function SecaoSeguranca() {
 
   const toggleMetodo = (m: string) =>
     update("seguranca", {
-      metodosMfa: s.metodosMfa.includes(m) ? s.metodosMfa.filter((x) => x !== m) : [...s.metodosMfa, m],
+      metodosMfa: s.metodosMfa.includes(m)
+        ? s.metodosMfa.filter((x) => x !== m)
+        : [...s.metodosMfa, m],
     });
 
   const metodos = [
@@ -1627,7 +1904,9 @@ export function SecaoSeguranca() {
               type="number"
               min={3}
               value={s.bloquearAposTentativas}
-              onChange={(e) => update("seguranca", { bloquearAposTentativas: Number(e.target.value) })}
+              onChange={(e) =>
+                update("seguranca", { bloquearAposTentativas: Number(e.target.value) })
+              }
             />
           </Field>
           <Field label="Expirar sessão inativa (min)">
@@ -1715,7 +1994,11 @@ export function SecaoSeguranca() {
         </ul>
       </Panel>
 
-      <Panel title="Últimos acessos" hint="Trilha de autenticação dos últimos dias." bodyClassName="p-0">
+      <Panel
+        title="Últimos acessos"
+        hint="Trilha de autenticação dos últimos dias."
+        bodyClassName="p-0"
+      >
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-sm">
             <thead className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -1810,7 +2093,11 @@ export function SecaoNotificacoes() {
 
   return (
     <div className="space-y-4">
-      <Panel title="Matriz de notificações" hint="Quais eventos disparam quais canais." bodyClassName="p-0">
+      <Panel
+        title="Matriz de notificações"
+        hint="Quais eventos disparam quais canais."
+        bodyClassName="p-0"
+      >
         <div className="overflow-x-auto">
           <table className="w-full min-w-[620px] text-sm">
             <thead className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -1854,10 +2141,16 @@ export function SecaoNotificacoes() {
       <Panel title="Remetente e janela de silêncio">
         <Grid>
           <Field label="Remetente padrão">
-            <TextInput value={n.remetente} onChange={(e) => update("notificacoes", { remetente: e.target.value })} />
+            <TextInput
+              value={n.remetente}
+              onChange={(e) => update("notificacoes", { remetente: e.target.value })}
+            />
           </Field>
           <Field label="Assinatura">
-            <TextInput value={n.assinatura} onChange={(e) => update("notificacoes", { assinatura: e.target.value })} />
+            <TextInput
+              value={n.assinatura}
+              onChange={(e) => update("notificacoes", { assinatura: e.target.value })}
+            />
           </Field>
           <Field label="Silêncio de" hint="Não enviar notificações ativas neste intervalo.">
             <TextInput
@@ -1905,12 +2198,16 @@ export function SecaoIntegracoes() {
                 <p className="text-[11px] text-muted-foreground">{c.descricao}</p>
               </div>
               <div className="ml-auto flex items-center gap-2">
-                <Chip tone={c.conectado ? "blue" : "outline"}>{c.conectado ? "Conectado" : "Desconectado"}</Chip>
+                <Chip tone={c.conectado ? "blue" : "outline"}>
+                  {c.conectado ? "Conectado" : "Desconectado"}
+                </Chip>
                 <Btn
                   variant="ghost"
                   onClick={() => {
                     update("integracoes", {
-                      conectores: i.conectores.map((x) => (x.id === c.id ? { ...x, conectado: !x.conectado } : x)),
+                      conectores: i.conectores.map((x) =>
+                        x.id === c.id ? { ...x, conectado: !x.conectado } : x,
+                      ),
                     });
                     toast.success(`${c.nome} ${c.conectado ? "desconectado" : "conectado"}`);
                   }}
@@ -1945,7 +2242,9 @@ export function SecaoIntegracoes() {
                   ...i.chaves,
                 ],
               });
-              toast.success("Chave gerada", { description: "Copie o segredo agora — ele não será exibido de novo." });
+              toast.success("Chave gerada", {
+                description: "Copie o segredo agora — ele não será exibido de novo.",
+              });
             }}
           >
             <KeyRound className="size-4" /> Gerar chave
@@ -1972,7 +2271,9 @@ export function SecaoIntegracoes() {
                   <td className="px-4 py-2 text-muted-foreground">{k.escopo}</td>
                   <td className="px-4 py-2 text-muted-foreground">{k.ultimoUso}</td>
                   <td className="px-4 py-2">
-                    <Chip tone={k.ativa ? "blue" : "outline"}>{k.ativa ? "Ativa" : "Revogada"}</Chip>
+                    <Chip tone={k.ativa ? "blue" : "outline"}>
+                      {k.ativa ? "Ativa" : "Revogada"}
+                    </Chip>
                   </td>
                   <td className="px-4 py-2 text-right">
                     {k.ativa && (
@@ -2007,7 +2308,9 @@ export function SecaoIntegracoes() {
                   variant="ghost"
                   onClick={() => {
                     update("integracoes", {
-                      webhooks: i.webhooks.map((x) => (x.id === w.id ? { ...x, ativo: !x.ativo } : x)),
+                      webhooks: i.webhooks.map((x) =>
+                        x.id === w.id ? { ...x, ativo: !x.ativo } : x,
+                      ),
                     });
                   }}
                 >
@@ -2052,7 +2355,9 @@ export function SecaoFinanceiro() {
               type="number"
               min={0}
               value={f.diasVencimentoPadrao}
-              onChange={(e) => update("financeiro", { diasVencimentoPadrao: Number(e.target.value) })}
+              onChange={(e) =>
+                update("financeiro", { diasVencimentoPadrao: Number(e.target.value) })
+              }
             />
           </Field>
           <Field label="Juros ao mês (%)">
@@ -2106,7 +2411,9 @@ export function SecaoFinanceiro() {
               type="number"
               step="0.5"
               value={f.comissaoPadraoPercent}
-              onChange={(e) => update("financeiro", { comissaoPadraoPercent: Number(e.target.value) })}
+              onChange={(e) =>
+                update("financeiro", { comissaoPadraoPercent: Number(e.target.value) })
+              }
             />
           </Field>
           <Field label="Dia de fechamento da comissão">
@@ -2115,7 +2422,9 @@ export function SecaoFinanceiro() {
               min={1}
               max={28}
               value={f.fechamentoComissaoDia}
-              onChange={(e) => update("financeiro", { fechamentoComissaoDia: Number(e.target.value) })}
+              onChange={(e) =>
+                update("financeiro", { fechamentoComissaoDia: Number(e.target.value) })
+              }
             />
           </Field>
         </Grid>
@@ -2135,7 +2444,9 @@ export function SecaoAparencia() {
         <Field label="Densidade padrão">
           <SelectInput
             value={a.densidade}
-            onChange={(e) => update("aparencia", { densidade: e.target.value as typeof a.densidade })}
+            onChange={(e) =>
+              update("aparencia", { densidade: e.target.value as typeof a.densidade })
+            }
           >
             <option value="confortavel">Confortável</option>
             <option value="compacta">Compacta</option>
@@ -2150,11 +2461,17 @@ export function SecaoAparencia() {
               onChange={(e) => update("aparencia", { corPrimaria: e.target.value })}
               className="h-9 w-12 cursor-pointer rounded-md border border-border bg-card"
             />
-            <TextInput value={a.corPrimaria} onChange={(e) => update("aparencia", { corPrimaria: e.target.value })} />
+            <TextInput
+              value={a.corPrimaria}
+              onChange={(e) => update("aparencia", { corPrimaria: e.target.value })}
+            />
           </div>
         </Field>
         <Field label="Formato de data">
-          <SelectInput value={a.formatoData} onChange={(e) => update("aparencia", { formatoData: e.target.value })}>
+          <SelectInput
+            value={a.formatoData}
+            onChange={(e) => update("aparencia", { formatoData: e.target.value })}
+          >
             <option>dd/MM/yyyy</option>
             <option>yyyy-MM-dd</option>
             <option>dd MMM yyyy</option>
@@ -2191,7 +2508,10 @@ export function SecaoDados({ onReset }: { onReset: () => void }) {
     <div className="space-y-4">
       <Panel title="Retenção e privacidade">
         <Grid>
-          <Field label="Retenção de documentos (meses)" hint="Mínimo regulatório ICP-Brasil: 72 meses.">
+          <Field
+            label="Retenção de documentos (meses)"
+            hint="Mínimo regulatório ICP-Brasil: 72 meses."
+          >
             <TextInput
               type="number"
               min={12}
@@ -2200,7 +2520,10 @@ export function SecaoDados({ onReset }: { onReset: () => void }) {
             />
           </Field>
           <Field label="Encarregado de dados (DPO)">
-            <TextInput value={d.encarregadoLgpd} onChange={(e) => update("dados", { encarregadoLgpd: e.target.value })} />
+            <TextInput
+              value={d.encarregadoLgpd}
+              onChange={(e) => update("dados", { encarregadoLgpd: e.target.value })}
+            />
           </Field>
         </Grid>
         <Rows>
