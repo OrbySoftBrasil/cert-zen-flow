@@ -2,9 +2,10 @@
 // Cada cenário traz um Request próprio + sobreposições determinísticas de
 // emissões, dossiê, prontidão e tarefa de fila, para que o protótipo possa ser
 // percorrido de ponta a ponta sem depender de dados aleatórios.
-import type { Appointment, ChecklistItem, Request, TimelineEvent } from "@/lib/mock-data";
+import type { Appointment, CertType, ChecklistItem, Request, TimelineEvent } from "@/lib/mock-data";
 import type { DetalheProntidao, Dossie, EmissaoCaso, TrilhaCaso } from "@/lib/caso-model";
 import type { PerfilId, TipoPendencia } from "@/lib/operacao-model";
+import type { CicloEmissao, RegistroEmissao } from "@/lib/emissao-model";
 
 const hoje = new Date();
 
@@ -49,6 +50,8 @@ export interface Cenario {
   visibilidadeRestrita?: string;
   evidencias?: { id: string; quando: string; por: string; texto: string }[];
   agendamentos?: Appointment[];
+  /** Registros de emissão manual já existentes (carregados no estado inicial). */
+  registros?: RegistroEmissao[];
 }
 
 const semRevogacao = { estado: "na" as const, detalhe: "Sem pedido de revogação" };
@@ -85,14 +88,14 @@ const c1: Cenario = {
       ["Pagamento confirmado", true],
       ["Documentos conferidos", true],
       ["Identificação por videoconferência", true],
-      ["Certificado entregue ao titular", true],
+      ["Instalação e funcionamento confirmados", true],
     ]),
     timeline: [
       ev("d1t1", dia(-2) + " 09:04", "Sistema", "Pedido criado pelo site", "sistema"),
       ev("d1t2", dia(-2) + " 09:11", "Financeiro", "Pagamento Pix confirmado", "sistema", "R$ 159,00 · conciliado automaticamente"),
       ev("d1t3", dia(-2) + " 10:32", "Marina Duarte", "Validação concluída", "humano", "Videoconferência de 12 min, biometria aprovada"),
       ev("d1t4", dia(-2) + " 10:40", "Marina Duarte", "Aprovação direta", "humano", "Dossiê suficiente, sem nova coleta"),
-      ev("d1t5", dia(-2) + " 10:52", "Sistema", "Certificado emitido e entregue", "sistema", "Série S-448120 · envio automático confirmado"),
+      ev("d1t5", dia(-2) + " 10:52", "Sistema", "Emissão confirmada e instruções enviadas", "sistema", "Série S-448120 · instruções de acesso enviadas pela AC"),
     ],
   },
   emissoes: [
@@ -115,7 +118,7 @@ const c1: Cenario = {
       principal: true,
     },
   ],
-  proximaAcao: "Confirmar funcionamento",
+  proximaAcao: "Confirmar instalação e funcionamento",
 };
 
 // ------------------------------------------------------ 2. pagamento pendente
@@ -527,7 +530,7 @@ const c6: Cenario = {
     ]),
     timeline: [
       ev("d6t1", dia(-2) + " 11:00", "Marina Duarte", "Certificado emitido", "humano", "Série S-771043"),
-      ev("d6t2", dia(-2) + " 11:02", "Sistema", "Falha no envio automático", "alerta", "Integração de e-mail retornou 550 — caixa do titular rejeitou o anexo"),
+      ev("d6t2", dia(-2) + " 11:02", "Sistema", "Falha no envio automático", "alerta", "Integração de e-mail retornou 550 — o endereço do titular recusou a mensagem de instruções"),
       ev("d6t3", dia(-2) + " 11:05", "Sistema", "Tarefa de envio manual criada", "sistema", "Atribuída ao suporte de entrega"),
     ],
   },
@@ -555,7 +558,7 @@ const c6: Cenario = {
   prontidao: {
     entrega: {
       estado: "bloqueado",
-      concluido: ["Certificado gerado e disponível no cofre"],
+      concluido: ["Emissão confirmada na conferência"],
       falta: ["Envio manual do certificado ao titular"],
       quemAge: "Suporte de entrega",
     },
@@ -736,7 +739,406 @@ const c8: Cenario = {
   ],
 };
 
-export const cenarios: Cenario[] = [c1, c2, c3, c4, c5, c6, c7, c8];
+
+// --------------------------------- 9 a 15 · ciclo da emissão ponto a ponto
+
+interface DemoInput {
+  n: number;
+  slug: string;
+  titulo: string;
+  resumo: string;
+  observar: string[];
+  clienteId: string;
+  cliente: string;
+  documento: string;
+  produto: CertType;
+  valor: number;
+  responsavelId: string;
+  ciclo: CicloEmissao;
+  proximaAcao: string;
+  bloqueio?: string;
+  registro?: Partial<RegistroEmissao>;
+  tarefa: TarefaCenario;
+  historico: [string, string, string, TimelineEvent["tipo"], string][];
+  extra?: EmissaoCaso[];
+}
+
+const autor = (id: string, nome: string, h: string) => ({ id, nome, quando: dia(-1) + " " + h });
+
+function demo(d: DemoInput): Cenario {
+  const id = `d${d.n}`;
+  const emissaoId = `${id}-e1`;
+  const entregue = ["entregue", "instalacao-confirmada", "em-uso"].includes(d.ciclo);
+  const confirmada = entregue || ["emitida-confirmada", "entrega-pendente"].includes(d.ciclo);
+  const emissao: EmissaoCaso = {
+    id: emissaoId,
+    produto: d.produto,
+    titular: d.cliente,
+    papelTitular: d.produto.includes("CNPJ") || d.produto.includes("PJ") ? "Representante legal" : "Titular",
+    ac: "AC Certus RFB",
+    modalidade: d.produto.endsWith("A3") ? "A3 · mídia criptográfica" : "A1 · arquivo",
+    condicaoComercial: `Tabela balcão · ${d.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
+    valor: d.valor,
+    pagamento: { estado: "concluido", detalhe: "Pagamento próprio desta emissão confirmado" },
+    validacao: "concluido",
+    dossie: "concluido",
+    emissao: confirmada ? "concluido" : "pendente",
+    entrega: d.ciclo === "em-uso" ? "concluido" : entregue ? "pronto" : "pendente",
+    instalacao: d.ciclo === "em-uso" ? "concluido" : "pendente",
+    revogacao: semRevogacao,
+    ciclo: d.ciclo,
+    principal: true,
+    ...(d.bloqueio ? { bloqueio: d.bloqueio } : {}),
+  };
+  const registro: RegistroEmissao | undefined = d.registro
+    ? ({
+        emissaoId,
+        requestId: id,
+        resultado: "emitida",
+        ac: "AC Certus RFB",
+        protocoloExterno: `AC-${9000 + d.n}`,
+        numeroSerie: `S-90${d.n}442`,
+        dataEmissao: dia(-1),
+        validade: dia(365),
+        comprovante: `comprovante-emissao-${id}.pdf`,
+        registradoPor: autor("a1", "Marina Duarte", "09:20"),
+        ...d.registro,
+      } as RegistroEmissao)
+    : undefined;
+
+  return {
+    id,
+    slug: d.slug,
+    titulo: `${d.n} · ${d.titulo}`,
+    resumo: d.resumo,
+    observar: d.observar,
+    request: {
+      id,
+      protocolo: `DEMO-90${d.n}`,
+      clienteId: d.clienteId,
+      cliente: d.cliente,
+      documento: d.documento,
+      tipo: d.produto,
+      valor: d.valor,
+      stage: "emissao",
+      responsavelId: d.responsavelId,
+      canal: "Telefone",
+      prioridade: "normal",
+      abertoEm: dia(-4),
+      slaHoras: 48,
+      slaRestanteHoras: 9,
+      tags: ["demonstração", "ciclo da emissão"],
+      checklist: ck([
+        ["Pagamento confirmado", true],
+        ["Documentos conferidos", true],
+        ["Identificação concluída", true],
+        ["Instalação e funcionamento confirmados", d.ciclo === "em-uso"],
+      ]),
+      timeline: d.historico.map(([tid, quando, a, tipo, detalhe]) =>
+        ev(`${id}${tid}`, dia(-1) + " " + quando, a, detalhe.split(" — ")[0]!, tipo, detalhe),
+      ),
+    },
+    emissoes: [emissao, ...(d.extra ?? [])],
+    tarefa: d.tarefa,
+    proximaAcao: d.proximaAcao,
+    ...(d.bloqueio ? { bloqueio: d.bloqueio } : {}),
+    ...(registro ? { registros: [registro] } : {}),
+  };
+}
+
+const c9 = demo({
+  n: 9,
+  slug: "aguardando-conferencia",
+  titulo: "Emissão manual aguardando conferência",
+  resumo: "Registro feito no portal da AC e salvo para conferência. A entrega continua bloqueada.",
+  observar: [
+    "Estado da emissão: Aguardando conferência",
+    "Quem registrou não consegue confirmar — troque o operador no topo da aba Emissões",
+    "Nenhuma ação de entrega fica disponível",
+  ],
+  clienteId: "c2",
+  cliente: "Ana Beatriz Cardoso",
+  documento: "342.118.907-30",
+  produto: "e-CPF A1",
+  valor: 159,
+  responsavelId: "a1",
+  ciclo: "aguardando-conferencia",
+  proximaAcao: "Conferir emissão manual",
+  bloqueio: "Emissão aguardando conferência de um segundo operador",
+  registro: {},
+  tarefa: {
+    acao: "Conferir emissão manual",
+    papel: "verificadora",
+    tipo: "conferencia",
+    motivo: "Registro manual pendente de conferência independente",
+    aguardando: "Segundo operador precisa conferir os dados e o comprovante",
+    proximoResponsavel: "Carolina Ito",
+  },
+  historico: [["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9009, série S-909442, aguardando conferência"]],
+});
+
+const c10 = demo({
+  n: 10,
+  slug: "emissao-devolvida",
+  titulo: "Emissão devolvida pelo segundo operador",
+  resumo: "A conferência apontou divergência entre o número de série e o comprovante e devolveu o registro.",
+  observar: [
+    "Motivo da devolução visível no registro e na trilha",
+    "Entrega continua bloqueada",
+    "Quem registrou precisa corrigir e registrar de novo",
+  ],
+  clienteId: "c1",
+  cliente: "Construtora Vale Norte LTDA",
+  documento: "12.884.301/0001-45",
+  produto: "e-CNPJ A1",
+  valor: 289,
+  responsavelId: "a1",
+  ciclo: "devolvida",
+  proximaAcao: "Registrar emissão manual",
+  bloqueio: "Registro devolvido na conferência — corrigir série e comprovante",
+  registro: {
+    conferencia: {
+      decisao: "devolvida",
+      motivo: "Série informada não confere com o comprovante anexado.",
+      por: autor("a3", "Carolina Ito", "10:05"),
+    },
+  },
+  tarefa: {
+    acao: "Corrigir e registrar novamente",
+    papel: "agr",
+    tipo: "conferencia",
+    motivo: "Série divergente do comprovante",
+    aguardando: "Agente de registro precisa refazer o registro",
+    proximoResponsavel: "Marina Duarte",
+  },
+  historico: [
+    ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — série S-9010442"],
+    ["t2", "10:05", "Carolina Ito", "alerta", "Emissão devolvida na conferência — série não confere com o comprovante"],
+  ],
+});
+
+const c11 = demo({
+  n: 11,
+  slug: "entrega-pela-ac",
+  titulo: "AC responsável pelo envio",
+  resumo: "Emissão confirmada e entrega definida como responsabilidade da AC, que comunica o titular pelos canais dela.",
+  observar: [
+    "Forma de entrega registrada: a AC enviará as instruções",
+    "A AR acompanha a confirmação, sem transportar o certificado",
+    "Instalação ainda não confirmada",
+  ],
+  clienteId: "c4",
+  cliente: "Transportes Aurora S/A",
+  documento: "08.552.119/0001-77",
+  produto: "Nuvem PJ",
+  valor: 429,
+  responsavelId: "a2",
+  ciclo: "entrega-pendente",
+  proximaAcao: "Confirmar instalação e funcionamento",
+  registro: {
+    conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "10:10") },
+    entrega: { modo: "ac-envia", referencia: "AC-ENV-3391", por: autor("a2", "Rafael Bastos", "10:20") },
+  },
+  tarefa: {
+    acao: "Acompanhar comunicação da AC",
+    papel: "entrega",
+    tipo: "entrega",
+    motivo: "AC assumiu o envio das instruções ao titular",
+    aguardando: "Titular precisa acessar as instruções enviadas pela AC",
+    proximoResponsavel: "Rafael Bastos",
+  },
+  historico: [
+    ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9011"],
+    ["t2", "10:10", "Carolina Ito", "humano", "Emissão conferida e confirmada — entrega liberada"],
+    ["t3", "10:20", "Rafael Bastos", "humano", "Entrega definida — a AC enviará as instruções ao titular"],
+  ],
+});
+
+const c12 = demo({
+  n: 12,
+  slug: "entrega-link-certus",
+  titulo: "Instruções por link seguro da Certus",
+  resumo: "Entrega pelo canal homologado da Certus: apenas instruções e link seguro, nunca o arquivo do certificado.",
+  observar: [
+    "Forma de entrega: Certus envia instruções e link seguro aprovado",
+    "Nenhum campo pede senha, PIN ou arquivo do certificado",
+    "Entrega registrada, instalação pendente",
+  ],
+  clienteId: "c3",
+  cliente: "Mercado Ponto Certo ME",
+  documento: "27.441.882/0001-02",
+  produto: "e-CNPJ A1",
+  valor: 289,
+  responsavelId: "a2",
+  ciclo: "entrega-pendente",
+  proximaAcao: "Confirmar entrega ao titular",
+  registro: {
+    conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "11:02") },
+    entrega: { modo: "certus-link", referencia: "ENV-2026-4471", por: autor("a2", "Rafael Bastos", "11:14") },
+  },
+  tarefa: {
+    acao: "Confirmar recebimento com o titular",
+    papel: "entrega",
+    tipo: "entrega",
+    motivo: "Link seguro enviado, sem confirmação de acesso",
+    aguardando: "Titular precisa acessar o link e confirmar",
+    proximoResponsavel: "Rafael Bastos",
+  },
+  historico: [
+    ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9012"],
+    ["t2", "11:02", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
+    ["t3", "11:14", "Rafael Bastos", "humano", "Instruções e link seguro enviados pelo canal Certus"],
+  ],
+});
+
+const c13 = demo({
+  n: 13,
+  slug: "falha-envio-tarefa-manual",
+  titulo: "Falha de envio com tarefa manual",
+  resumo: "O disparo no portal da AC falhou e a operação abriu tarefa manual de reenvio para o suporte.",
+  observar: [
+    "Falha registrada dentro do ciclo da emissão",
+    "Emissão segue confirmada; apenas a entrega está pendente",
+    "Tarefa manual visível na fila do Suporte de entrega",
+  ],
+  clienteId: "c1",
+  cliente: "Construtora Vale Norte LTDA",
+  documento: "12.884.301/0001-45",
+  produto: "e-CNPJ A3",
+  valor: 389,
+  responsavelId: "a2",
+  ciclo: "entrega-pendente",
+  proximaAcao: "Confirmar entrega ao titular",
+  bloqueio: "Disparo de instruções falhou — reenvio manual pendente",
+  registro: {
+    conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "08:40") },
+    entrega: {
+      modo: "portal-ac-manual",
+      referencia: "AC-DISP-7712",
+      por: autor("a2", "Rafael Bastos", "08:55"),
+      falha: "Portal da AC retornou erro 550 no disparo das instruções.",
+    },
+  },
+  tarefa: {
+    acao: "Reenviar instruções manualmente",
+    papel: "entrega",
+    tipo: "entrega",
+    motivo: "Erro 550 no disparo do portal da AC",
+    aguardando: "Suporte precisa de canal alternativo do titular",
+    proximoResponsavel: "Rafael Bastos",
+  },
+  historico: [
+    ["t1", "08:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9013"],
+    ["t2", "08:40", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
+    ["t3", "08:55", "Sistema", "alerta", "Falha no disparo das instruções — erro 550 no portal da AC"],
+  ],
+});
+
+const c14 = demo({
+  n: 14,
+  slug: "emitido-nao-instalado",
+  titulo: "Emitido, entregue e ainda não instalado",
+  resumo: "O titular recebeu as instruções, mas ainda não confirmou instalação e funcionamento. O caso não conclui.",
+  observar: [
+    "Estado da emissão: Entregue",
+    "Caso permanece aberto — conclusão exige todas as emissões em uso",
+    "Ação disponível: confirmar instalação e funcionamento",
+  ],
+  clienteId: "c2",
+  cliente: "Ana Beatriz Cardoso",
+  documento: "342.118.907-30",
+  produto: "e-CPF A1",
+  valor: 159,
+  responsavelId: "a2",
+  ciclo: "entregue",
+  proximaAcao: "Confirmar instalação e funcionamento",
+  registro: {
+    conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "14:05") },
+    entrega: { modo: "certus-link", referencia: "ENV-2026-4480", por: autor("a2", "Rafael Bastos", "14:20") },
+    entregue: autor("a2", "Rafael Bastos", "15:02"),
+  },
+  tarefa: {
+    acao: "Confirmar instalação e funcionamento",
+    papel: "entrega",
+    tipo: "entrega",
+    motivo: "Titular ainda não fez o teste de assinatura",
+    aguardando: "Suporte aguarda janela do titular para o teste",
+    proximoResponsavel: "Rafael Bastos",
+  },
+  historico: [
+    ["t1", "13:40", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9014"],
+    ["t2", "14:05", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
+    ["t3", "15:02", "Rafael Bastos", "humano", "Entrega confirmada — instruções acessadas pelo titular"],
+  ],
+});
+
+const c15 = demo({
+  n: 15,
+  slug: "duas-emissoes-estados-diferentes",
+  titulo: "Duas emissões no mesmo caso em estados diferentes",
+  resumo: "A emissão do e-CNPJ já está em uso; a segunda, criada por elegibilidade, está travada no próprio pagamento.",
+  observar: [
+    "Cada emissão mostra o próprio ciclo, pagamento e bloqueio",
+    "O caso não conclui enquanto a segunda emissão não estiver em uso",
+    "Nada do que foi liberado na primeira libera a segunda",
+  ],
+  clienteId: "c3",
+  cliente: "Mercado Ponto Certo ME",
+  documento: "27.441.882/0001-02",
+  produto: "e-CNPJ A1",
+  valor: 289,
+  responsavelId: "a1",
+  ciclo: "em-uso",
+  proximaAcao: "Confirmar pagamento",
+  bloqueio: "Segunda emissão parada no próprio pagamento",
+  registro: {
+    conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "09:50") },
+    entrega: { modo: "ac-envia", referencia: "AC-ENV-3400", por: autor("a2", "Rafael Bastos", "10:00") },
+    entregue: autor("a2", "Rafael Bastos", "10:30"),
+    instalacao: { ...autor("a2", "Rafael Bastos", "11:00"), observacao: "Assinatura de teste validada com o titular." },
+    emUso: autor("a2", "Rafael Bastos", "11:05"),
+  },
+  tarefa: {
+    acao: "Confirmar pagamento da segunda emissão",
+    papel: "financeiro",
+    tipo: "pagamento",
+    motivo: "Boleto da emissão do sócio ainda em aberto",
+    aguardando: "Financeiro aguarda compensação",
+    proximoResponsavel: "Helena Prado",
+  },
+  historico: [
+    ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — e-CNPJ A1"],
+    ["t2", "09:50", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
+    ["t3", "11:05", "Rafael Bastos", "humano", "Certificado em uso pelo titular"],
+    ["t4", "11:30", "Helena Prado", "alerta", "Segunda emissão criada por elegibilidade — pagamento próprio em aberto"],
+  ],
+  extra: [
+    {
+      id: "d15-e2",
+      produto: "e-CPF A1 do sócio",
+      titular: "Paulo Ricardo Menezes",
+      papelTitular: "Sócio administrador",
+      ac: "AC Certus RFB",
+      modalidade: "A1 · arquivo",
+      condicaoComercial: "Tabela balcão · R$ 159,00",
+      valor: 159,
+      pagamento: { estado: "pendente", detalhe: "Boleto em aberto — pagamento próprio desta emissão" },
+      validacao: "pendente",
+      dossie: "pendente",
+      emissao: "bloqueado",
+      entrega: "na",
+      instalacao: "na",
+      revogacao: semRevogacao,
+      ciclo: "planejada",
+      motivoElegibilidade: "Sócio administrador solicitou certificado próprio no mesmo atendimento",
+      bloqueio: "Pagamento desta emissão não compensado",
+    },
+  ],
+});
+
+export const cenarios: Cenario[] = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15];
+
+export const cenarioRegistros = cenarios.flatMap((c) => c.registros ?? []);
 
 export const cenarioRequests: Request[] = cenarios.map((c) => c.request);
 
