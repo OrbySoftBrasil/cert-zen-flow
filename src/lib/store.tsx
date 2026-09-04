@@ -22,10 +22,12 @@ import {
   type TicketCategoria,
   type TimelineEvent,
 } from "@/lib/mock-data";
+import { cenarioAppointments, cenarioRequests } from "@/lib/cenarios";
 import {
   contadores as seedContadores,
   type Contador,
 } from "@/lib/contadores-data";
+
 import {
   pagar as seedPagar,
   receber as seedReceber,
@@ -41,7 +43,7 @@ import {
   type RegraComissao,
 } from "@/lib/finance-data";
 
-const STORAGE_KEY = "certus-ac-estado-v1";
+const STORAGE_KEY = "certus-ac-estado-v2";
 
 export const USUARIO_ATUAL = { id: "a1", nome: "Marina Duarte", papel: "Agente de Registro" };
 
@@ -62,9 +64,10 @@ export interface AppState {
 function seed(): AppState {
   return {
     clients: seedClients,
-    requests: seedRequests,
+    requests: [...cenarioRequests, ...seedRequests],
     tickets: seedTickets,
-    appointments: seedAppointments,
+    appointments: [...cenarioAppointments, ...seedAppointments],
+
     contadores: seedContadores,
     pagar: seedPagar,
     receber: seedReceber,

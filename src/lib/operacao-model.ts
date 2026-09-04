@@ -9,6 +9,8 @@ import {
   type StageId,
 } from "@/lib/mock-data";
 import { contadorDoCliente } from "@/lib/contadores-data";
+import { cenarioDe } from "@/lib/cenarios";
+
 
 export type MarcoId = "captacao" | "preparacao" | "validacao" | "emissao" | "entrega" | "emuso";
 
@@ -157,6 +159,9 @@ export function impedimentoDe(r: Request, acao: AcaoCaso): string | null {
 }
 
 export function bloqueioPrincipal(r: Request): string {
+  const cen = cenarioDe(r.id);
+  if (cen?.bloqueioAbsoluto) return cen.bloqueioAbsoluto;
+  if (cen?.bloqueio) return cen.bloqueio;
   if (r.stage === "bloqueado") return "Impedimento operacional registrado";
   const pendentes = pendenciasDe(r);
   if (pendentes.length === 0) return "Sem bloqueio — pronto para avançar";
@@ -164,9 +169,12 @@ export function bloqueioPrincipal(r: Request): string {
 }
 
 export function proximaAcaoLabel(r: Request): string {
+  const cen = cenarioDe(r.id);
+  if (cen?.proximaAcao) return cen.proximaAcao;
   const acoes = acoesDe(r);
   return acoes[0]?.label ?? "Acompanhar";
 }
+
 
 // ------------------------------------------------------------------- perfis
 
@@ -241,32 +249,37 @@ export function origemDe(r: Request): string {
 }
 
 export function tarefaDe(r: Request): Tarefa {
-  const papel = papelEsperado(r);
+  const cen = cenarioDe(r.id);
+  const papel = cen?.tarefa?.papel ?? papelEsperado(r);
   const responsavel = agentById(r.responsavelId);
   const perfil = perfilById(papel);
   const esperado = agentById(perfil.agenteId);
   return {
     id: `tk-${r.id}`,
     request: r,
-    acao: proximaAcaoLabel(r),
+    acao: cen?.tarefa?.acao ?? proximaAcaoLabel(r),
     papel,
-    tipo: tipoPorPapel[papel],
-    motivo: bloqueioPrincipal(r),
+    tipo: cen?.tarefa?.tipo ?? tipoPorPapel[papel],
+    motivo: cen?.tarefa?.motivo ?? bloqueioPrincipal(r),
     aguardando:
-      r.stage === "bloqueado"
+      cen?.tarefa?.aguardando ??
+      (r.stage === "bloqueado"
         ? "Operação aguarda o cliente regularizar"
-        : `${perfil.nome} aguarda ${r.stage === "novo" ? "o cliente" : "a etapa anterior"}`,
-    proximoResponsavel: esperado.nome,
+        : `${perfil.nome} aguarda ${r.stage === "novo" ? "o cliente" : "a etapa anterior"}`),
+    proximoResponsavel: cen?.tarefa?.proximoResponsavel ?? esperado.nome,
     prazoHoras: r.slaRestanteHoras,
     prioridade: r.prioridade,
     origem: origemDe(r),
-    atribuida: responsavel.id === perfil.agenteId,
+    atribuida: cen?.tarefa ? true : responsavel.id === perfil.agenteId,
   };
 }
 
 export function tarefasDe(requests: Request[]): Tarefa[] {
-  return requests.filter((r) => r.stage !== "concluido").map(tarefaDe);
+  // Casos concluídos só entram na fila quando têm tarefa aberta (ex.: envio
+  // manual após falha de entrega ou revogação posterior).
+  return requests.filter((r) => r.stage !== "concluido" || !!cenarioDe(r.id)?.tarefa).map(tarefaDe);
 }
+
 
 export const unidades = ["Matriz São Paulo", "Filial Campinas", "Filial Belo Horizonte", "Remoto"] as const;
 

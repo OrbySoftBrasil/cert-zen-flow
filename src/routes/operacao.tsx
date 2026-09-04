@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   AlertTriangle,
   ArrowRight,
@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Rows3,
   Save,
+  Sparkles,
   Users,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -29,6 +30,7 @@ import {
 } from "@/components/operacao-kit";
 import { Paginacao, usePaginacao } from "@/components/pagination";
 import { Chip, Panel, SlaBadge } from "@/components/ui-kit";
+import { cenarios } from "@/lib/cenarios";
 import { agentById, brl, stages, type Request } from "@/lib/mock-data";
 import {
   acoesDe,
@@ -73,7 +75,7 @@ export const Route = createFileRoute("/operacao")({
   component: Operacao,
 });
 
-type Aba = "visao" | "fila" | "casos";
+type Aba = "visao" | "fila" | "casos" | "demo";
 
 const tiposPendencia: { id: TipoPendencia; nome: string }[] = [
   { id: "contato", nome: "Contato comercial" },
@@ -154,23 +156,30 @@ function Operacao() {
       subtitle={`${requests.length} casos na base · marcos operacionais, fila por papel e base completa`}
       actions={<NovaSolicitacaoButton />}
     >
-      <div className="mb-4 flex flex-wrap items-center gap-1 rounded-lg border border-border bg-card p-1">
+      <div
+        role="tablist"
+        aria-label="Visões da operação"
+        className="mb-4 flex flex-wrap items-center gap-1 rounded-lg border border-border bg-card p-1"
+      >
         {(
           [
             ["visao", "Visão geral", LayoutGrid],
             ["fila", "Minha fila", Rows3],
             ["casos", "Todos os casos", List],
+            ["demo", "Casos demonstrativos", Sparkles],
           ] as const
         ).map(([id, label, Icon]) => (
           <button
             key={id}
+            role="tab"
+            aria-selected={aba === id}
             onClick={() => setAba(id)}
             className={cn(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors",
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
               aba === id ? "bg-primary-soft font-medium text-primary-deep" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Icon className="size-4" /> {label}
+            <Icon className="size-4" aria-hidden="true" /> {label}
           </button>
         ))}
       </div>
@@ -198,6 +207,9 @@ function Operacao() {
       {aba === "fila" && <MinhaFila requests={requests} onOpen={setCaso} />}
 
       {aba === "casos" && <TodosOsCasos requests={requests} onOpen={setCaso} />}
+
+      {aba === "demo" && <CasosDemonstrativos />}
+
 
       <CasoDrawer
         r={casoAberto}
@@ -933,5 +945,65 @@ function CasoDrawer({
         </div>
       </div>
     </Modal>
+  );
+}
+
+
+// -------------------------------------------------- casos demonstrativos
+function CasosDemonstrativos() {
+  return (
+    <Panel
+      title="Casos demonstrativos"
+      hint="Oito situações que cobrem o modelo completo — abra cada uma para ver a regra em ação"
+      bodyClassName="p-0"
+    >
+      <ul className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-3">
+        {cenarios.map((c) => (
+          <li key={c.id} className="bg-card p-3">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h3 className="text-sm font-medium">{c.titulo}</h3>
+              <Chip tone={c.bloqueioAbsoluto ? "alert" : c.bloqueio ? "deep" : "blue"}>
+                {c.bloqueioAbsoluto ? "Bloqueio de conformidade" : c.bloqueio ? "Bloqueado" : "Em curso"}
+              </Chip>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{c.resumo}</p>
+            <ul className="mt-2 space-y-1">
+              {c.observar.slice(0, 3).map((o) => (
+                <li key={o} className="flex gap-1.5 text-[11px] text-muted-foreground">
+                  <ArrowRight className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+                  <span>{o}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <Link
+                to="/solicitacoes/$id"
+                params={{ id: c.request.id }}
+                search={{ aba: "visao" }}
+                className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                Abrir caso
+              </Link>
+              <Link
+                to="/solicitacoes/$id"
+                params={{ id: c.request.id }}
+                search={{ aba: "emissoes" }}
+                className="rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+              >
+                Emissões
+              </Link>
+              <Link
+                to="/solicitacoes/$id"
+                params={{ id: c.request.id }}
+                search={{ aba: "dossie" }}
+                className="rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+              >
+                Dossiê
+              </Link>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </Panel>
   );
 }

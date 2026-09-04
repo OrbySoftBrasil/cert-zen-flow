@@ -4,7 +4,9 @@
 // Tudo derivado de forma determinística — protótipo sem backend.
 import { agentById, brl, type CertType, type Client, type Request } from "@/lib/mock-data";
 import { contadorDoCliente } from "@/lib/contadores-data";
+import { cenarioDe } from "@/lib/cenarios";
 import { origemDe, papelEsperado, pendenciasDe, perfilById, unidadeDe } from "@/lib/operacao-model";
+
 
 const hash = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0);
 
@@ -50,10 +52,13 @@ function modalidadeDe(tipo: CertType) {
 }
 
 export function emissoesDoCaso(r: Request): EmissaoCaso[] {
+  const cen = cenarioDe(r.id);
+  if (cen) return cen.emissoes;
   const h = hash(r.id);
   const idx = pendenciasDe(r).length;
   const pago = h % 3 !== 0;
   const principalOk = r.stage === "concluido";
+
 
   const principal: EmissaoCaso = {
     id: `${r.id}-e1`,
@@ -242,8 +247,15 @@ export function prontidaoCaso(r: Request, cliente?: Client): DetalheProntidao[] 
       ? { falta: [...p.falta, ...docsPend.map((d) => `Documento ${d.nome} (${d.status})`)] }
       : {}),
     quemAge: p.id === "regulatoria" ? `${perfil.nome} · ${agentById(perfilById(papelEsperado(r)).agenteId).nome}` : p.quemAge,
+    ...((cenarioDe(r.id)?.prontidao?.[p.id as TrilhaCaso] ?? {}) as Partial<DetalheProntidao>),
   })) as DetalheProntidao[];
 }
+
+/** Bloqueio que nenhuma exceção comercial supera (ex.: suspeita de fraude). */
+export function bloqueioAbsolutoDe(r: Request): string | null {
+  return cenarioDe(r.id)?.bloqueioAbsoluto ?? null;
+}
+
 
 // ------------------------------------------------------------------ frentes
 
@@ -356,7 +368,7 @@ export function dossieDe(r: Request, cliente?: Client): Dossie {
   // irregulares — o workspace sinaliza o bloqueio quando isso acontece.
   const verificadora = agentById(h % 5 === 0 ? "a3" : h % 2 === 0 ? "a1" : "a2").nome;
 
-  return {
+  const base2: Dossie = {
     produto: r.tipo,
     motivo: r.tags[0] ? `Motivo: ${r.tags[0]}` : "Motivo: primeira emissão",
     montadora,
@@ -372,7 +384,10 @@ export function dossieDe(r: Request, cliente?: Client): Dossie {
       })),
     segregacaoOk: montadora !== verificadora,
   };
+
+  return { ...base2, ...(cenarioDe(r.id)?.dossie ?? {}) };
 }
+
 
 export function dossieBloqueado(d: Dossie) {
   const faltando = d.itens.filter((i) => i.obrigatorio && i.status !== "aprovado");
