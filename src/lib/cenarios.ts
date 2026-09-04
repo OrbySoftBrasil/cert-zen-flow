@@ -2,7 +2,7 @@
 // Cada cenário traz um Request próprio + sobreposições determinísticas de
 // emissões, dossiê, prontidão e tarefa de fila, para que o protótipo possa ser
 // percorrido de ponta a ponta sem depender de dados aleatórios.
-import type { Appointment, ChecklistItem, Request, TimelineEvent } from "@/lib/mock-data";
+import type { Appointment, CertType, ChecklistItem, Request, TimelineEvent } from "@/lib/mock-data";
 import type { DetalheProntidao, Dossie, EmissaoCaso, TrilhaCaso } from "@/lib/caso-model";
 import type { PerfilId, TipoPendencia } from "@/lib/operacao-model";
 import type { CicloEmissao, RegistroEmissao } from "@/lib/emissao-model";
@@ -751,7 +751,7 @@ interface DemoInput {
   clienteId: string;
   cliente: string;
   documento: string;
-  produto: string;
+  produto: CertType;
   valor: number;
   responsavelId: string;
   ciclo: CicloEmissao;
@@ -822,7 +822,7 @@ function demo(d: DemoInput): Cenario {
       valor: d.valor,
       stage: "emissao",
       responsavelId: d.responsavelId,
-      canal: "Balcão",
+      canal: "Telefone",
       prioridade: "normal",
       abertoEm: dia(-4),
       slaHoras: 48,
