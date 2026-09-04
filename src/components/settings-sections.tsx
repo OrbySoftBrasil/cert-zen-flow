@@ -1113,10 +1113,9 @@ export function SecaoEquipe() {
         p.perfilOperacional === renomeando.antigo ? { ...p, perfilOperacional: nome } : p,
       ) as PapelRule[],
     );
-    opcfg.mutar((r) => ({
-      ...r,
-      etapas: r.etapas.map((e) => (e.papel === renomeando.antigo ? { ...e, papel: nome } : e)),
-    }));
+    opcfg.patchEtapas((etapas) =>
+      etapas.map((e) => (e.papel === renomeando.antigo ? { ...e, papel: nome } : e)),
+    );
     setRenomeando(null);
     toast.success("Perfil renomeado", { description: "Etapas e papéis foram atualizados." });
   };
@@ -1698,7 +1697,7 @@ export function SecaoEquipe() {
               onChange={(e) => setPapelDraft({ ...papelDraft, perfil: e.target.value })}
             >
               <option value="—">— Não executa etapas</option>
-              {PAPEIS_OPERACAO.map((p) => (
+              {settings.perfisEsteira.map((p) => (
                 <option key={p} value={p}>
                   {p}
                 </option>
