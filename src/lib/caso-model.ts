@@ -6,7 +6,13 @@ import { agentById, brl, type CertType, type Client, type Request } from "@/lib/
 import { contadorDoCliente } from "@/lib/contadores-data";
 import { cenarioDe } from "@/lib/cenarios";
 import { origemDe, papelEsperado, pendenciasDe, perfilById, unidadeDe } from "@/lib/operacao-model";
-
+import {
+  cicloConcluido,
+  cicloDoRegistro,
+  type CicloEmissao,
+  type EmissaoRelacionada,
+  type RegistroEmissao,
+} from "@/lib/emissao-model";
 
 const hash = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0);
 
@@ -42,6 +48,9 @@ export interface EmissaoCaso {
   revogacao: { estado: EstadoItem; detalhe: string };
   bloqueio?: string;
   principal?: boolean;
+  /** Ciclo declarado (cenários demonstrativos). Sem registro operacional, é o estado atual. */
+  ciclo?: CicloEmissao;
+  motivoElegibilidade?: string;
 }
 
 const acs = ["AC Certus RFB", "AC Soluti Multipla", "AC Serasa RFB"];
@@ -51,20 +60,48 @@ function modalidadeDe(tipo: CertType) {
   return tipo.endsWith("A3") ? "A3 · token/cartão" : "A1 · arquivo";
 }
 
-export function emissoesDoCaso(r: Request): EmissaoCaso[] {
+export function emissoesDoCaso(r: Request, extras: EmissaoRelacionada[] = []): EmissaoCaso[] {
   const cen = cenarioDe(r.id);
-  if (cen) return cen.emissoes;
+  const relacionadas: EmissaoCaso[] = extras.map((x) => ({
+    id: x.id,
+    produto: x.produto,
+    titular: x.titular,
+    papelTitular: x.papelTitular,
+    ac: x.ac,
+    modalidade: x.modalidade,
+    condicaoComercial: x.condicaoComercial,
+    valor: x.valor,
+    pagamento: {
+      estado: "pendente",
+      detalhe: "Pagamento próprio — não herda nada da emissão original",
+    },
+    validacao: "pendente",
+    dossie: "pendente",
+    emissao: "bloqueado",
+    entrega: "na",
+    instalacao: "na",
+    revogacao: { estado: "na", detalhe: "—" },
+    ciclo: "planejada",
+    motivoElegibilidade: x.motivoElegibilidade,
+    bloqueio:
+      "Emissão relacionada com ciclo próprio — precisa de pagamento, dossiê e validação próprios",
+  }));
+
+  if (cen) return [...cen.emissoes, ...relacionadas];
+
   const h = hash(r.id);
   const idx = pendenciasDe(r).length;
   const pago = h % 3 !== 0;
   const principalOk = r.stage === "concluido";
 
-
+  // Um caso comum nasce com UMA emissão. Emissões adicionais só existem por
+  // ação explícita de elegibilidade (ver criarEmissaoRelacionada).
   const principal: EmissaoCaso = {
     id: `${r.id}-e1`,
     produto: r.tipo,
     titular: r.cliente,
-    papelTitular: r.tipo.includes("CNPJ") || r.tipo === "Nuvem PJ" ? "Representante legal" : "Titular",
+    papelTitular:
+      r.tipo.includes("CNPJ") || r.tipo === "Nuvem PJ" ? "Representante legal" : "Titular",
     ac: acs[h % acs.length]!,
     modalidade: modalidadeDe(r.tipo),
     condicaoComercial: `Tabela balcão · ${brl(r.valor)}`,
@@ -76,65 +113,53 @@ export function emissoesDoCaso(r: Request): EmissaoCaso[] {
     dossie: idx === 0 ? "concluido" : "pendente",
     emissao: principalOk ? "concluido" : pago && idx === 0 ? "pronto" : "bloqueado",
     entrega: principalOk ? "concluido" : "na",
-    instalacao: principalOk ? "pronto" : "na",
+    instalacao: principalOk ? "concluido" : "na",
     revogacao: { estado: "na", detalhe: "Sem pedido de revogação" },
     principal: true,
+    ciclo: principalOk ? "em-uso" : pago && idx === 0 ? "pronta-para-emissao" : "planejada",
     ...(pago ? {} : { bloqueio: "Pagamento desta emissão não compensado" }),
   };
 
-  const bird: EmissaoCaso = {
-    id: `${r.id}-e2`,
-    produto: "BIRD ID (assinatura em nuvem)",
-    titular: r.cliente,
-    papelTitular: "Titular",
-    ac: "AC Certus RFB",
-    modalidade: "Nuvem · app autorizador",
-    condicaoComercial: "Cortesia vinculada ao contrato",
-    valor: 0,
-    pagamento: { estado: "concluido", detalhe: "Valor zero — cortesia autorizada" },
-    validacao: "concluido",
-    dossie: "concluido",
-    emissao: "concluido",
-    entrega: "concluido",
-    instalacao: "concluido",
-    revogacao: { estado: "na", detalhe: "Ativo" },
-  };
+  return [principal, ...relacionadas];
+}
 
-  const lista = [principal, bird];
+/** Estado atual do ciclo: registro operacional tem precedência sobre o mock. */
+export function cicloDaEmissao(e: EmissaoCaso, reg?: RegistroEmissao): CicloEmissao {
+  if (reg) return cicloDoRegistro(reg);
+  if (e.ciclo) return e.ciclo;
+  if (e.revogacao.estado === "concluido") return "revogada";
+  if (e.bloqueio || e.emissao === "bloqueado") return "bloqueada";
+  if (e.instalacao === "concluido") return "em-uso";
+  if (e.entrega === "concluido") return "entregue";
+  if (e.emissao === "concluido") return "entrega-pendente";
+  if (e.emissao === "pronto") return "pronta-para-emissao";
+  return "planejada";
+}
 
-  if (r.tipo.includes("CPF")) {
-    lista.push({
-      id: `${r.id}-e3`,
-      produto: "e-CNPJ A1",
-      titular: `${r.cliente} · empresa vinculada`,
-      papelTitular: "Responsável técnico",
-      ac: "AC Soluti Multipla",
-      modalidade: "A1 · arquivo",
-      condicaoComercial: "Proposta comercial em aprovação",
-      valor: 289,
-      pagamento: { estado: "bloqueado", detalhe: "Aguardando liberação comercial (VD)" },
-      validacao: "na",
-      dossie: "pendente",
-      emissao: "bloqueado",
-      entrega: "na",
-      instalacao: "na",
-      revogacao: { estado: "na", detalhe: "—" },
-      bloqueio: "Liberação comercial pendente — não herda o pagamento da 1ª emissão",
-    });
-  }
-
-  return lista;
+/** O caso só conclui quando todas as emissões planejadas estão em uso. */
+export function conclusaoDoCaso(
+  emissoes: EmissaoCaso[],
+  registros: Record<string, RegistroEmissao>,
+  pendentesObrigatorios: string[],
+): { pode: boolean; motivo: string | null } {
+  const abertas = emissoes.filter((e) => !cicloConcluido(cicloDaEmissao(e, registros[e.id])));
+  if (abertas.length)
+    return {
+      pode: false,
+      motivo: `${abertas.length} emissão(ões) ainda não estão em uso: ${abertas.map((e) => e.produto).join(", ")}`,
+    };
+  if (pendentesObrigatorios.length)
+    return {
+      pode: false,
+      motivo: `Tarefas obrigatórias em aberto: ${pendentesObrigatorios.join(", ")}`,
+    };
+  return { pode: true, motivo: null };
 }
 
 // --------------------------------------------------------------- prontidão
 
 export type TrilhaCaso =
-  | "comercial"
-  | "atendimento"
-  | "regulatoria"
-  | "emissao"
-  | "entrega"
-  | "financeira";
+  "comercial" | "atendimento" | "regulatoria" | "emissao" | "entrega" | "financeira";
 
 export interface DetalheProntidao {
   id: TrilhaCaso;
@@ -159,6 +184,14 @@ export function prontidaoCaso(r: Request, cliente?: Client): DetalheProntidao[] 
   const docsPend = cliente?.documentos.filter((d) => d.status !== "aprovado") ?? [];
   const travado = r.stage === "bloqueado";
   const concluido = r.stage === "concluido";
+  const ciclos = emissoes.map((e) => cicloDaEmissao(e));
+  const todasEmUso = ciclos.length > 0 && ciclos.every((c) => cicloConcluido(c));
+  const emEntrega = ciclos.filter((c) =>
+    ["emitida-confirmada", "entrega-pendente", "entregue", "instalacao-confirmada"].includes(c),
+  );
+  const aguardandoConferencia = ciclos.filter(
+    (c) => c === "aguardando-conferencia" || c === "devolvida",
+  ).length;
 
   return [
     {
@@ -189,9 +222,15 @@ export function prontidaoCaso(r: Request, cliente?: Client): DetalheProntidao[] 
       id: "regulatoria",
       nome: "Prontidão regulatória",
       curto: "Regulatória",
-      estado: concluido ? "concluido" : travado ? "bloqueado" : faltam.length ? "pendente" : "pronto",
+      estado: todasEmUso
+        ? "concluido"
+        : travado
+          ? "bloqueado"
+          : faltam.length
+            ? "pendente"
+            : "pronto",
       concluido: feitos.length ? feitos : ["Nenhum requisito concluído ainda"],
-      falta: faltam,
+      falta: todasEmUso ? [] : faltam,
       quemAge: "Agente de Registro (AGR) e Verificadora",
       acaoBloqueada: "Registrar resultado da validação",
       regra: "Quem verifica precisa ser diferente de quem identificou ou montou o dossiê.",
@@ -201,12 +240,28 @@ export function prontidaoCaso(r: Request, cliente?: Client): DetalheProntidao[] 
       id: "emissao",
       nome: "Prontidão para emissão",
       curto: "Emissão",
-      estado: concluido ? "concluido" : faltam.length || !pagosOk ? "bloqueado" : "pronto",
-      concluido: pagosOk ? ["Pagamentos das emissões liberadas"] : [],
-      falta: [
-        ...(faltam.length ? ["Requisitos regulatórios pendentes"] : []),
-        ...(pagosOk ? [] : ["Pagamento de emissão pendente"]),
+      estado: todasEmUso
+        ? "concluido"
+        : aguardandoConferencia
+          ? "pendente"
+          : faltam.length || !pagosOk
+            ? "bloqueado"
+            : "pronto",
+      concluido: [
+        ...(pagosOk ? ["Pagamentos das emissões liberadas"] : []),
+        ...emEntrega.map(
+          (_, i) => `Emissão confirmada: ${emissoes[ciclos.indexOf(emEntrega[i]!)]?.produto ?? ""}`,
+        ),
       ],
+      falta: todasEmUso
+        ? []
+        : [
+            ...(aguardandoConferencia
+              ? [`${aguardandoConferencia} emissão(ões) aguardando conferência de outro operador`]
+              : []),
+            ...(faltam.length ? ["Requisitos regulatórios pendentes"] : []),
+            ...(pagosOk ? [] : ["Pagamento de emissão pendente"]),
+          ],
       quemAge: "Agente de Registro (AGR)",
       acaoBloqueada: "Registrar emissão manual",
       regra: "Emissão exige dossiê aprovado e pagamento da própria emissão.",
@@ -216,12 +271,22 @@ export function prontidaoCaso(r: Request, cliente?: Client): DetalheProntidao[] 
       id: "entrega",
       nome: "Prontidão para entrega",
       curto: "Entrega",
-      estado: concluido ? "pronto" : "na",
-      concluido: concluido ? ["Certificado gerado"] : [],
-      falta: concluido ? ["Confirmar funcionamento com o titular"] : ["Aguardando emissão"],
+      estado: todasEmUso ? "concluido" : emEntrega.length ? "pendente" : "na",
+      concluido: ciclos
+        .map((c, i) => ({ c, e: emissoes[i]! }))
+        .filter((x) => ["entregue", "instalacao-confirmada", "em-uso"].includes(x.c))
+        .map((x) => `${x.e.produto} · ${x.c === "em-uso" ? "em uso" : "entregue"}`),
+      falta: todasEmUso
+        ? []
+        : emEntrega.length
+          ? emEntrega.map(
+              (_, i) =>
+                `Concluir entrega e instalação de ${emissoes[ciclos.indexOf(emEntrega[i]!)]?.produto ?? ""}`,
+            )
+          : ["Aguardando emissão confirmada por um segundo operador"],
       quemAge: "Suporte de entrega",
-      acaoBloqueada: "Enviar ao cliente",
-      regra: "Entrega só é liberada por emissão concluída.",
+      acaoBloqueada: "Definir entrega",
+      regra: "A entrega só abre após a emissão ser confirmada na conferência.",
     },
     {
       id: "financeira",
@@ -246,7 +311,10 @@ export function prontidaoCaso(r: Request, cliente?: Client): DetalheProntidao[] 
     ...(docsPend.length && p.id === "regulatoria"
       ? { falta: [...p.falta, ...docsPend.map((d) => `Documento ${d.nome} (${d.status})`)] }
       : {}),
-    quemAge: p.id === "regulatoria" ? `${perfil.nome} · ${agentById(perfilById(papelEsperado(r)).agenteId).nome}` : p.quemAge,
+    quemAge:
+      p.id === "regulatoria"
+        ? `${perfil.nome} · ${agentById(perfilById(papelEsperado(r)).agenteId).nome}`
+        : p.quemAge,
     ...((cenarioDe(r.id)?.prontidao?.[p.id as TrilhaCaso] ?? {}) as Partial<DetalheProntidao>),
   })) as DetalheProntidao[];
 }
@@ -255,7 +323,6 @@ export function prontidaoCaso(r: Request, cliente?: Client): DetalheProntidao[] 
 export function bloqueioAbsolutoDe(r: Request): string | null {
   return cenarioDe(r.id)?.bloqueioAbsoluto ?? null;
 }
-
 
 // ------------------------------------------------------------------ frentes
 
@@ -335,7 +402,13 @@ export function dossieDe(r: Request, cliente?: Client): Dossie {
   const h = hash(r.id);
   const pj = r.tipo.includes("CNPJ") || r.tipo === "Nuvem PJ";
   const base = pj
-    ? ["Contrato social consolidado", "Documento de identidade do representante", "CPF do representante", "Cartão CNPJ", "Procuração (se aplicável)"]
+    ? [
+        "Contrato social consolidado",
+        "Documento de identidade do representante",
+        "CPF do representante",
+        "Cartão CNPJ",
+        "Procuração (se aplicável)",
+      ]
     : ["Documento de identidade", "CPF", "Comprovante de endereço", "Selfie de prova de vida"];
 
   const docs = cliente?.documentos ?? [];
@@ -359,7 +432,9 @@ export function dossieDe(r: Request, cliente?: Client): Dossie {
       versao: ((h + i) % 3) + 1,
       origem: origens[(h + i) % origens.length]!,
       status,
-      ...(status === "divergente" ? { divergencia: doc?.motivo ?? "Imagem ilegível na conferência" } : {}),
+      ...(status === "divergente"
+        ? { divergencia: doc?.motivo ?? "Imagem ilegível na conferência" }
+        : {}),
     };
   });
 
@@ -396,9 +471,7 @@ export function dossieDe(r: Request, cliente?: Client): Dossie {
     }
   }
   return { ...base2, ...(cen?.dossie ?? {}) };
-
 }
-
 
 export function dossieBloqueado(d: Dossie) {
   const faltando = d.itens.filter((i) => i.obrigatorio && i.status !== "aprovado");
@@ -408,7 +481,8 @@ export function dossieBloqueado(d: Dossie) {
 
 // -------------------------------------------------------------- ações do caso
 
-export type GrupoAcao = "Atendimento" | "Validação" | "Dossiê" | "Comercial" | "Emissão" | "Entrega" | "Conformidade";
+export type GrupoAcao =
+  "Atendimento" | "Validação" | "Dossiê" | "Comercial" | "Emissão" | "Entrega" | "Conformidade";
 
 export interface AcaoWorkspace {
   id: string;
@@ -422,6 +496,8 @@ export interface AcaoWorkspace {
   motivoObrigatorio?: boolean;
   destrutiva?: boolean;
   regulatoria?: boolean;
+  /** Ação que só existe dentro de uma emissão específica — vive na aba Emissões. */
+  porEmissao?: boolean;
 }
 
 export const acoesWorkspace: AcaoWorkspace[] = [
@@ -535,6 +611,7 @@ export const acoesWorkspace: AcaoWorkspace[] = [
   },
   {
     id: "confirmar-pagamento",
+    porEmissao: true,
     label: "Confirmar pagamento",
     grupo: "Comercial",
     oQueAcontece: "Confirma o pagamento de uma emissão específica do caso.",
@@ -545,6 +622,7 @@ export const acoesWorkspace: AcaoWorkspace[] = [
   },
   {
     id: "excecao-comercial",
+    porEmissao: true,
     label: "Autorizar exceção comercial",
     grupo: "Comercial",
     oQueAcontece: "Libera a emissão com condição especial (cortesia, dispensa ou desconto).",
@@ -556,17 +634,20 @@ export const acoesWorkspace: AcaoWorkspace[] = [
   },
   {
     id: "emissao-manual",
+    porEmissao: true,
     label: "Registrar emissão manual",
     grupo: "Emissão",
-    oQueAcontece: "Registra a emissão feita diretamente no portal da AC.",
-    evidencia: "Série, AC, data e agente responsável.",
-    proximoResponsavel: "Suporte de entrega",
-    liberadas: ["Enviar ao cliente", "Agendar instalação"],
+    oQueAcontece:
+      "Registra a emissão feita no portal da AC e deixa a emissão Aguardando conferência.",
+    evidencia: "Resultado, AC, protocolo externo, série, datas e comprovante.",
+    proximoResponsavel: "Segundo operador (conferência)",
+    liberadas: ["Conferir emissão manual"],
     bloqueadas: ["Registrar resultado da validação"],
     regulatoria: true,
   },
   {
     id: "reprocessar",
+    porEmissao: true,
     label: "Reprocessar integração",
     grupo: "Emissão",
     oQueAcontece: "Reenvia o pedido à integração da AC após falha técnica.",
@@ -577,16 +658,19 @@ export const acoesWorkspace: AcaoWorkspace[] = [
   },
   {
     id: "enviar-cliente",
-    label: "Enviar ao cliente",
+    porEmissao: true,
+    label: "Definir entrega",
     grupo: "Entrega",
-    oQueAcontece: "Disponibiliza o certificado e as instruções ao titular.",
-    evidencia: "Registro de envio com canal e horário.",
+    oQueAcontece:
+      "Define quem envia as instruções de acesso ao titular — a AR nunca transporta o certificado.",
+    evidencia: "Forma de entrega, referência do envio, canal e horário.",
     proximoResponsavel: "Cliente",
     liberadas: ["Confirmar funcionamento"],
     bloqueadas: [],
   },
   {
     id: "envio-manual",
+    porEmissao: true,
     label: "Abrir envio manual",
     grupo: "Entrega",
     oQueAcontece: "Cria tarefa de envio manual quando a entrega automática falha.",
@@ -598,6 +682,7 @@ export const acoesWorkspace: AcaoWorkspace[] = [
   },
   {
     id: "agendar-instalacao",
+    porEmissao: true,
     label: "Agendar instalação",
     grupo: "Entrega",
     oQueAcontece: "Marca suporte remoto para instalação do certificado.",
@@ -608,16 +693,19 @@ export const acoesWorkspace: AcaoWorkspace[] = [
   },
   {
     id: "confirmar-funcionamento",
-    label: "Confirmar funcionamento",
+    porEmissao: true,
+    label: "Confirmar instalação e funcionamento",
     grupo: "Entrega",
-    oQueAcontece: "Encerra o caso confirmando o certificado em uso pelo titular.",
+    oQueAcontece:
+      "Confirma instalação e funcionamento desta emissão. O caso segue aberto até todas as emissões ficarem em uso.",
     evidencia: "Confirmação do titular e teste de assinatura.",
-    proximoResponsavel: "Ninguém — caso concluído",
+    proximoResponsavel: "Suporte de entrega",
     liberadas: ["Solicitar revogação"],
     bloqueadas: ["Enviar ao cliente"],
   },
   {
     id: "solicitar-revogacao",
+    porEmissao: true,
     label: "Solicitar revogação",
     grupo: "Conformidade",
     oQueAcontece: "Abre pedido de revogação do certificado emitido.",
@@ -629,6 +717,7 @@ export const acoesWorkspace: AcaoWorkspace[] = [
   },
   {
     id: "autorizar-revogacao",
+    porEmissao: true,
     label: "Autorizar revogação",
     grupo: "Conformidade",
     oQueAcontece: "Confirma a revogação junto à AC e encerra o ciclo do certificado.",
@@ -648,7 +737,7 @@ export const acoesWorkspace: AcaoWorkspace[] = [
     evidencia: "Alerta de fraude com indícios e responsável.",
     proximoResponsavel: "Conformidade",
     liberadas: [],
-    bloqueadas: ["Registrar emissão manual", "Enviar ao cliente"],
+    bloqueadas: ["Registrar emissão manual", "Definir entrega"],
     destrutiva: true,
     motivoObrigatorio: true,
     regulatoria: true,

@@ -146,7 +146,7 @@ function Operacao() {
   const [pendente, setPendente] = useState<{ acao: AcaoCaso; requestId: string } | null>(null);
   const [selecao, setSelecao] = useState<string[]>([]);
   const [lote, setLote] = useState<
-    null | "avancar" | "assumir" | "priorizar" | "bloquear" | "reatribuir"
+    null | "assumir" | "priorizar" | "bloquear" | "reatribuir"
   >(null);
   const [ordemVisivel, setOrdemVisivel] = useState<string[]>([]);
 
@@ -198,37 +198,8 @@ function Operacao() {
     setPendente({ acao, requestId });
   }
 
-  // ---- ações em lote: sempre reportam o que passou e o que foi barrado.
-  const previaLote = useMemo(() => {
-    if (lote !== "avancar")
-      return { liberados: [] as Request[], barrados: [] as { r: Request; motivo: string }[] };
-    const liberados: Request[] = [];
-    const barrados: { r: Request; motivo: string }[] = [];
-    for (const r of selecionados) {
-      const acao = acoesDe(r).find((a) => a.destino && a.id === "avancar");
-      if (!acao) {
-        barrados.push({ r, motivo: "Não há avanço previsto para a etapa atual." });
-        continue;
-      }
-      const imp = impedimentoDe(r, acao);
-      if (imp) barrados.push({ r, motivo: imp });
-      else liberados.push(r);
-    }
-    return { liberados, barrados };
-  }, [lote, selecionados]);
-
   function aplicarLote(agenteId?: string, motivo?: string) {
-    if (lote === "avancar") {
-      for (const r of previaLote.liberados) {
-        const acao = acoesDe(r).find((a) => a.destino && a.id === "avancar");
-        if (acao?.destino) moveRequest(r.id, acao.destino, `${acao.label} (ação em lote)`);
-      }
-      toast.success(`${previaLote.liberados.length} caso(s) avançaram`, {
-        description: previaLote.barrados.length
-          ? `${previaLote.barrados.length} permaneceram na etapa por requisito pendente.`
-          : "Nenhum caso ficou para trás.",
-      });
-    } else if (lote === "assumir") {
+    if (lote === "assumir") {
       for (const r of selecionados) {
         updateRequest(r.id, { responsavelId: USUARIO_ATUAL.id });
         logRequest(
@@ -333,18 +304,11 @@ function Operacao() {
             const acao = r && acoesDe(r).find((a) => a.id === acaoId);
             if (r && acao) pedirConfirmacao(acao, id);
           }}
-          onSolicitarTransicao={(id, marco) => {
-            const r = requests.find((x) => x.id === id);
-            if (!r) return;
-            const acao = acoesDe(r).find((a) => a.destino && marcoDestinoValido(a, marco));
-            if (!acao) {
-              toast.error("Transição não permitida", {
-                description:
-                  "Arraste apenas para o próximo marco previsto ou abra o caso para ver as ações.",
-              });
-              return;
-            }
-            pedirConfirmacao(acao, id);
+          onSolicitarTransicao={() => {
+            toast.info("O quadro é uma visão de carteira", {
+              description:
+                "Arrastar não muda o estado regulado. Abra o caso e use o comando específico (validação, emissão, entrega).",
+            });
           }}
         />
       )}
@@ -391,9 +355,6 @@ function Operacao() {
         <Btn variant="ghost" onClick={() => setLote("priorizar")}>
           <AlertTriangle className="size-3.5" /> Elevar prioridade
         </Btn>
-        <Btn onClick={() => setLote("avancar")}>
-          <ArrowRight className="size-3.5" /> Avançar etapa
-        </Btn>
         <Btn variant="danger" onClick={() => setLote("bloquear")}>
           <Lock className="size-3.5" /> Registrar bloqueio
         </Btn>
@@ -435,9 +396,7 @@ function Operacao() {
       <ConfirmDialog
         open={!!lote && lote !== "reatribuir"}
         title={
-          lote === "avancar"
-            ? "Avançar etapa em lote"
-            : lote === "assumir"
+          lote === "assumir"
               ? "Assumir casos selecionados"
               : lote === "priorizar"
                 ? "Elevar prioridade para crítica"
@@ -450,31 +409,11 @@ function Operacao() {
         onConfirm={() => aplicarLote()}
       >
         <div className="space-y-2 text-sm">
-          {lote === "avancar" ? (
-            <>
-              <p className="text-muted-foreground">
-                <span className="font-medium text-foreground">{previaLote.liberados.length}</span>{" "}
-                caso(s) atendem aos requisitos e vão avançar.{" "}
-                <span className="font-medium text-foreground">{previaLote.barrados.length}</span>{" "}
-                ficarão parados.
-              </p>
-              {previaLote.barrados.length > 0 && (
-                <ul className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-border p-2">
-                  {previaLote.barrados.map(({ r, motivo }) => (
-                    <li key={r.id} className="text-[11px] text-muted-foreground">
-                      <span className="tabular font-medium text-alert">{r.protocolo}</span> —{" "}
-                      {motivo}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          ) : (
-            <p className="text-muted-foreground">
-              A ação será aplicada a todos os casos selecionados e registrada individualmente na
-              trilha de auditoria.
-            </p>
-          )}
+          <p className="text-muted-foreground">
+            A ação será aplicada a todos os casos selecionados e registrada individualmente na
+            trilha de auditoria. Transições reguladas (validação, emissão, entrega) não acontecem em
+            lote — cada uma exige o comando próprio dentro do caso.
+          </p>
         </div>
       </ConfirmDialog>
 
@@ -771,7 +710,7 @@ function VisaoGeral({
                       />
                       <div className="mt-1 flex flex-wrap gap-1">
                         {acoesDe(r)
-                          .filter((a) => a.id === "avancar" || a.id === "assumir")
+                          .filter((a) => a.id === "assumir" || a.id === "retomar")
                           .map((a) => {
                             const imp = impedimentoDe(r, a);
                             return (
@@ -787,11 +726,7 @@ function VisaoGeral({
                                     : "border-border-strong text-muted-foreground hover:border-primary hover:text-primary-deep",
                                 )}
                               >
-                                {a.id === "assumir"
-                                  ? "Assumir"
-                                  : imp
-                                    ? "Avanço bloqueado"
-                                    : "Avançar"}
+                                {a.id === "assumir" ? "Assumir" : "Retomar"}
                               </button>
                             );
                           })}

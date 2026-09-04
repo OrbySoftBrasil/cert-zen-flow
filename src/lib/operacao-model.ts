@@ -111,16 +111,10 @@ export function acoesDe(r: Request): AcaoCaso[] {
       descricao: "Devolve o caso para a preparação do dossiê.",
       destino: "documentacao",
     });
-  } else if (destino) {
-    const nome = stages.find((s) => s.id === destino)?.nome ?? destino;
-    lista.push({
-      id: "avancar",
-      label: `Avançar para ${nome}`,
-      descricao: "Conclui a etapa atual e transfere a responsabilidade.",
-      destino,
-      regulatoria: destino === "videoconferencia" || destino === "emissao",
-    });
   }
+  // Não existe "avançar etapa" genérico: cada transição regulada acontece por um
+  // comando específico e auditável dentro do caso (validação, emissão, entrega…).
+  void destino;
   lista.push({
     id: "assumir",
     label: "Assumir o caso",

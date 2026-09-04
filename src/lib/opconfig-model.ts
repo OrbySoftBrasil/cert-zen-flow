@@ -24,7 +24,7 @@ export const MARCOS: MarcoCanonico[] = [
   {
     id: "preparacao",
     nome: "Preparação",
-    proposito: "Dossiê, agendamento e pré-requisitos antes da validação.",
+    proposito: "Dossiê, agendamento e pré-requisitos. Subfluxo condicional: pode correr em paralelo à validação quando o perfil homologado permitir.",
     invariante: "Precede obrigatoriamente a Validação.",
   },
   {
@@ -275,7 +275,7 @@ function seedEtapas(): EtapaConfig[] {
       origem: "plataforma",
       segregacaoObrigatoria: true,
       papelVerificador: "AGR — Agente de registro",
-      criterioEntrada: "Dossiê enviado para verificação.",
+      criterioEntrada: "Dossiê enviado para verificação, ou perfil homologado que dispensa dossiê completo nesta etapa.",
       criterioSaida: "Dossiê aprovado sem divergência aberta.",
       instrucoes: "Quem montou o dossiê não pode conferir o mesmo dossiê.",
       checklist: [ck("Itens obrigatórios presentes"), ck("Legibilidade e validade conferidas"), ck("Divergências tratadas")],
@@ -321,14 +321,15 @@ function seedEtapas(): EtapaConfig[] {
     }),
     etapa({
       marco: "em-uso",
-      nome: "Acompanhamento e renovação",
+      nome: "Confirmação de instalação e funcionamento",
       papel: "Suporte de entrega",
       slaHoras: 48,
       obrigatoria: true,
       removivel: false,
-      criterioSaida: "Certificado renovado, revogado ou expirado.",
-      instrucoes: "Abra a renovação 45 dias antes do vencimento.",
-      checklist: [ck("Aviso de vencimento enviado", false)],
+      criterioSaida: "Instalação e funcionamento confirmados com o titular.",
+      instrucoes:
+        "Confirme o teste de assinatura ou acesso com o titular. Revogação e suporte continuam ligados a esta emissão; renovação abre um caso novo relacionado.",
+      checklist: [ck("Teste de funcionamento confirmado com o titular"), ck("Canal de suporte informado", false)],
     }),
   ];
 }

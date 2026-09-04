@@ -9,7 +9,6 @@ import {
   MessageSquarePlus,
   Paperclip,
   ShieldAlert,
-
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -17,11 +16,19 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { NovoAgendamentoDialog } from "@/components/dialogs";
 import { Btn, Field, Modal, SelectInput, TextArea } from "@/components/forms";
-import { AvisoBloqueio, BotaoAcao, EstadoChip, LinhaDado, RegraObrigatoria } from "@/components/caso-kit";
+import {
+  AvisoBloqueio,
+  BotaoAcao,
+  EstadoChip,
+  LinhaDado,
+  RegraObrigatoria,
+} from "@/components/caso-kit";
+import { PainelEmissoes } from "@/components/emissoes-caso";
 import { RequisitosEtapa } from "@/components/requisitos-etapa";
 import { Chip, Panel, SlaBadge } from "@/components/ui-kit";
 import {
   acoesWorkspace,
+  conclusaoDoCaso,
   bloqueioAbsolutoDe,
   cabecalhoDe,
   dossieBloqueado,
@@ -55,15 +62,20 @@ export const Route = createFileRoute("/solicitacoes/$id")({
         content:
           "Workspace do caso: prontidão por frente, emissões independentes, dossiê auditável e ações operacionais explícitas.",
       },
-      { property: "og:title", content: loaderData ? `${loaderData.protocolo} — Workspace do Caso` : "Workspace do Caso" },
-      { property: "og:description", content: "Prontidão, emissões, dossiê e trilha de auditoria do caso." },
+      {
+        property: "og:title",
+        content: loaderData ? `${loaderData.protocolo} — Workspace do Caso` : "Workspace do Caso",
+      },
+      {
+        property: "og:description",
+        content: "Prontidão, emissões, dossiê e trilha de auditoria do caso.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Workspace,
 });
-
 
 const abas = [
   { id: "visao", label: "Visão geral" },
@@ -99,22 +111,35 @@ function Workspace() {
   // Mantém a aba sincronizada com a URL para que links externos abram direto na
   // aba certa (Emissões, Dossiê…) e o botão voltar funcione.
   useEffect(() => {
-    if (abaUrl && abas.some((a) => a.id === abaUrl) && abaUrl !== aba) setAbaEstado(abaUrl as AbaId);
+    if (abaUrl && abas.some((a) => a.id === abaUrl) && abaUrl !== aba)
+      setAbaEstado(abaUrl as AbaId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abaUrl]);
 
   function setAba(proxima: AbaId) {
     setAbaEstado(proxima);
-    void navigate({ to: "/solicitacoes/$id", params: { id }, search: { aba: proxima }, replace: true });
+    void navigate({
+      to: "/solicitacoes/$id",
+      params: { id },
+      search: { aba: proxima },
+      replace: true,
+    });
   }
 
   const prontidao = useMemo(() => (caso ? prontidaoCaso(caso, cliente) : []), [caso, cliente]);
-  const emissoes = useMemo(() => (caso ? emissoesDoCaso(caso) : []), [caso]);
+  const extrasMap = store.emissoesExtras;
+  const emissoes = useMemo(
+    () => (caso ? emissoesDoCaso(caso, extrasMap[id] ?? []) : []),
+    [caso, extrasMap, id],
+  );
   const dossie = useMemo(() => (caso ? dossieDe(caso, cliente) : null), [caso, cliente]);
 
   if (!caso || !dossie) {
     return (
-      <AppShell title="Caso não encontrado" subtitle="O protocolo pode ter sido removido do protótipo">
+      <AppShell
+        title="Caso não encontrado"
+        subtitle="O protocolo pode ter sido removido do protótipo"
+      >
         <Panel>
           <p className="text-sm text-muted-foreground">
             Não localizamos este caso.{" "}
@@ -137,14 +162,17 @@ function Workspace() {
     cenario?.proximaAcao && acoesWorkspace.some((a) => a.label === cenario.proximaAcao)
       ? cenario.proximaAcao
       : caso.stage === "concluido"
-        ? "Confirmar funcionamento"
+        ? "Confirmar instalação e funcionamento"
         : travaDossie
           ? "Abrir montagem de dossiê"
           : pendentes.length
             ? "Enviar para verificação"
             : "Registrar resultado da validação";
   const bloqueioAtual =
-    bloqueioAbsoluto ?? cenario?.bloqueio ?? travaDossie ?? (pendentes[0]?.label ? `Pendência: ${pendentes[0].label}` : null);
+    bloqueioAbsoluto ??
+    cenario?.bloqueio ??
+    travaDossie ??
+    (pendentes[0]?.label ? `Pendência: ${pendentes[0].label}` : null);
 
   const agendamentos = store.appointments.filter((a) => a.clienteId === caso.clienteId);
   const chamados = store.tickets.filter((t) => t.clienteId === caso.clienteId);
@@ -154,18 +182,13 @@ function Workspace() {
     // liberação comercial, emissão ou entrega.
     if (bloqueioAbsoluto && a.id !== "fraude" && a.grupo !== "Atendimento") return bloqueioAbsoluto;
     if (a.id === "enviar-verificacao" && travaDossie) return travaDossie;
-    if (a.id === "resultado-validacao" && travaDossie) return "Dossiê incompleto — verifique os itens obrigatórios.";
-    if (a.id === "emissao-manual") {
-      const p = prontidao.find((x) => x.id === "emissao")!;
-      if (p.estado === "bloqueado") return `Emissão bloqueada: ${p.falta.join(" · ")}`;
-    }
-    if ((a.id === "enviar-cliente" || a.id === "agendar-instalacao") && caso!.stage !== "concluido")
-      return "Nenhuma emissão concluída para entregar.";
-    if (a.id === "autorizar-revogacao" && !cliente?.certificados.some((c) => c.status === "ativo"))
-      return "Não há certificado ativo para revogar.";
+    if (a.id === "resultado-validacao" && travaDossie)
+      return "Dossiê incompleto — verifique os itens obrigatórios.";
+    // Caso concluído não aceita nova emissão, pagamento, validação ou dossiê.
+    if (caso!.stage === "concluido" && (a.grupo === "Dossiê" || a.grupo === "Validação"))
+      return "Caso concluído — reabra o caso ou crie um caso relacionado.";
     return null;
   }
-
 
   function abrir(a: AcaoWorkspace) {
     setMotivo("");
@@ -181,7 +204,9 @@ function Workspace() {
     const a = acao;
     if (!a) return;
     if (a.motivoObrigatorio && motivo.trim().length < 4) {
-      setErroMotivo("Descreva o motivo com pelo menos 4 caracteres — ele fica registrado na auditoria.");
+      setErroMotivo(
+        "Descreva o motivo com pelo menos 4 caracteres — ele fica registrado na auditoria.",
+      );
       document.getElementById("campo-motivo")?.focus();
       return;
     }
@@ -191,7 +216,6 @@ function Workspace() {
       toast.error("Ação bloqueada", { description: bloqueio });
       return;
     }
-
 
     switch (a.id) {
       case "no-show":
@@ -210,19 +234,6 @@ function Workspace() {
       case "aprovar-direto":
         store.moveRequest(caso!.id, "emissao", "Validação concluída");
         break;
-      case "emissao-manual": {
-        const cert = store.issueCertificate(caso!.id);
-        if (cert) toast.success("Emissão registrada", { description: `Série ${cert.serie}` });
-        break;
-      }
-      case "confirmar-funcionamento":
-        store.moveRequest(caso!.id, "concluido", "Funcionamento confirmado pelo titular");
-        break;
-      case "autorizar-revogacao": {
-        const cert = cliente?.certificados.find((c) => c.status === "ativo");
-        if (cliente && cert) store.revokeCertificate(cliente.id, cert.id, motivo);
-        break;
-      }
       case "fraude":
         store.updateRequest(caso!.id, { responsavelId: "a5", prioridade: "critica" });
         store.moveRequest(caso!.id, "bloqueado", `Suspeita de fraude: ${motivo}`);
@@ -242,7 +253,13 @@ function Workspace() {
     setMotivo("");
   }
 
-  const grupos = [...new Set(acoesWorkspace.map((a) => a.grupo))];
+  const acoesGerais = acoesWorkspace.filter((a) => !a.porEmissao);
+  const grupos = [...new Set(acoesGerais.map((a) => a.grupo))];
+  const conclusao = conclusaoDoCaso(
+    emissoes,
+    store.emissoes,
+    pendentes.map((p) => p.label),
+  );
 
   // Contadores nas abas: o usuário vê onde há trabalho antes de clicar.
   const contagens: Record<AbaId, number> = {
@@ -285,7 +302,8 @@ function Workspace() {
             <Chip tone="blue">Cenário {cenario.titulo}</Chip>
             {cenario.visibilidadeRestrita && (
               <Chip tone="alert">
-                <ShieldAlert className="size-3" aria-hidden="true" /> Visibilidade restrita — conformidade
+                <ShieldAlert className="size-3" aria-hidden="true" /> Visibilidade restrita —
+                conformidade
               </Chip>
             )}
           </div>
@@ -308,10 +326,10 @@ function Workspace() {
               <ul className="mt-1 space-y-1">
                 {cenario.evidencias.map((e) => (
                   <li key={e.id} className="text-xs text-foreground">
-                    <span className="tabular text-muted-foreground">{e.quando}</span> · {e.por}: {e.texto}
+                    <span className="tabular text-muted-foreground">{e.quando}</span> · {e.por}:{" "}
+                    {e.texto}
                   </li>
                 ))}
-
               </ul>
             </div>
           ) : null}
@@ -320,7 +338,6 @@ function Workspace() {
 
       {/* ---------------------------------------------------------- cabeçalho */}
       <section className="rounded-lg border border-border bg-card">
-
         <div className="grid grid-cols-2 divide-y divide-border sm:grid-cols-3 xl:grid-cols-6 xl:divide-y-0">
           <LinhaDado rotulo="Caso">
             <span className="tabular font-medium">{cab.numero}</span>
@@ -332,7 +349,15 @@ function Workspace() {
           <LinhaDado rotulo="VI responsável">{cab.vi}</LinhaDado>
         </div>
         <div className="flex flex-wrap items-center gap-2 border-t border-border px-3 py-2.5">
-          <Chip tone={caso.prioridade === "critica" ? "alert" : caso.prioridade === "alta" ? "deep" : "outline"}>
+          <Chip
+            tone={
+              caso.prioridade === "critica"
+                ? "alert"
+                : caso.prioridade === "alta"
+                  ? "deep"
+                  : "outline"
+            }
+          >
             Prioridade {caso.prioridade}
           </Chip>
           <SlaBadge horas={caso.slaRestanteHoras} />
@@ -407,7 +432,9 @@ function Workspace() {
               <span
                 className={cn(
                   "tabular rounded px-1 text-[10px] font-semibold",
-                  aba === a.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                  aba === a.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground",
                 )}
               >
                 {contagens[a.id]}
@@ -417,13 +444,15 @@ function Workspace() {
         ))}
       </div>
 
-
       <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div id="painel-caso" role="tabpanel" aria-labelledby={`aba-${aba}`} className="space-y-4">
-
           {aba === "visao" && (
             <>
-              <Panel title="Frentes de trabalho" hint="Quem está com a bola em cada frente" bodyClassName="p-0">
+              <Panel
+                title="Frentes de trabalho"
+                hint="Quem está com a bola em cada frente"
+                bodyClassName="p-0"
+              >
                 <div className="grid gap-px bg-border sm:grid-cols-2">
                   {frentes.map((f) => (
                     <div key={f.id} className="bg-card px-3 py-3">
@@ -438,7 +467,12 @@ function Workspace() {
                   ))}
                 </div>
               </Panel>
-              <EmissoesPanel emissoes={emissoes} resumido />
+              <PainelEmissoes
+                requestId={caso.id}
+                emissoes={emissoes}
+                resumido
+                bloqueioAbsoluto={bloqueioAbsoluto}
+              />
               <Panel
                 title="Requisitos da etapa atual"
                 hint={`${pendentes.length} pendência(s) — cada item exige a ação registrada no sistema`}
@@ -448,7 +482,16 @@ function Workspace() {
             </>
           )}
 
-          {aba === "emissoes" && <EmissoesPanel emissoes={emissoes} />}
+          {aba === "emissoes" && (
+            <div className="space-y-3">
+              <PainelEmissoes
+                requestId={caso.id}
+                emissoes={emissoes}
+                bloqueioAbsoluto={bloqueioAbsoluto}
+              />
+              <NovaEmissaoRelacionada requestId={caso.id} titular={caso.cliente} />
+            </div>
+          )}
 
           {aba === "atendimento" && (
             <>
@@ -464,17 +507,30 @@ function Workspace() {
               >
                 <ul className="divide-y divide-border text-sm">
                   {agendamentos.length === 0 && (
-                    <li className="px-4 py-3 text-xs text-muted-foreground">Nenhum agendamento para este titular.</li>
+                    <li className="px-4 py-3 text-xs text-muted-foreground">
+                      Nenhum agendamento para este titular.
+                    </li>
                   )}
                   {agendamentos.map((a) => (
-                    <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+                    <li
+                      key={a.id}
+                      className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5"
+                    >
                       <span className="tabular">
                         {a.dia} · {a.hora} · {a.duracaoMin}min
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {agentById(a.agenteId).nome} · {a.sala}
                       </span>
-                      <Chip tone={a.status === "no-show" ? "alert" : a.status === "confirmado" ? "blue" : "outline"}>
+                      <Chip
+                        tone={
+                          a.status === "no-show"
+                            ? "alert"
+                            : a.status === "confirmado"
+                              ? "blue"
+                              : "outline"
+                        }
+                      >
                         {a.status}
                       </Chip>
                     </li>
@@ -484,11 +540,17 @@ function Workspace() {
               <Panel title="Chamados relacionados" bodyClassName="p-0">
                 <ul className="divide-y divide-border text-sm">
                   {chamados.length === 0 && (
-                    <li className="px-4 py-3 text-xs text-muted-foreground">Sem chamados abertos.</li>
+                    <li className="px-4 py-3 text-xs text-muted-foreground">
+                      Sem chamados abertos.
+                    </li>
                   )}
                   {chamados.map((t) => (
                     <li key={t.id} className="flex items-center justify-between gap-2 px-4 py-2.5">
-                      <Link to="/chamados/$id" params={{ id: t.id }} className="min-w-0 truncate text-primary hover:underline">
+                      <Link
+                        to="/chamados/$id"
+                        params={{ id: t.id }}
+                        className="min-w-0 truncate text-primary hover:underline"
+                      >
                         {t.numero} · {t.assunto}
                       </Link>
                       <Chip tone="outline">{t.status}</Chip>
@@ -507,7 +569,9 @@ function Workspace() {
                 actions={
                   <Btn
                     variant="ghost"
-                    onClick={() => abrir(acoesWorkspace.find((a) => a.id === "enviar-verificacao")!)}
+                    onClick={() =>
+                      abrir(acoesWorkspace.find((a) => a.id === "enviar-verificacao")!)
+                    }
                   >
                     <FileStack className="size-3.5" /> Enviar para verificação
                   </Btn>
@@ -515,11 +579,15 @@ function Workspace() {
               >
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="rounded-md border border-border px-3 py-2">
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Montadora</p>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                      Montadora
+                    </p>
                     <p className="text-sm">{dossie.montadora}</p>
                   </div>
                   <div className="rounded-md border border-border px-3 py-2">
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Verificadora</p>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                      Verificadora
+                    </p>
                     <p className="text-sm">{dossie.verificadora}</p>
                   </div>
                 </div>
@@ -549,9 +617,13 @@ function Workspace() {
                         <tr key={i.id}>
                           <td className="px-3 py-2">
                             {i.nome}
-                            {i.divergencia && <p className="text-[11px] text-alert">{i.divergencia}</p>}
+                            {i.divergencia && (
+                              <p className="text-[11px] text-alert">{i.divergencia}</p>
+                            )}
                           </td>
-                          <td className="px-3 py-2 text-xs text-muted-foreground">{i.obrigatorio ? "Sim" : "Opcional"}</td>
+                          <td className="px-3 py-2 text-xs text-muted-foreground">
+                            {i.obrigatorio ? "Sim" : "Opcional"}
+                          </td>
                           <td className="px-3 py-2 tabular text-xs">v{i.versao}</td>
                           <td className="px-3 py-2 text-xs text-muted-foreground">{i.origem}</td>
                           <td className="px-3 py-2">
@@ -578,7 +650,9 @@ function Workspace() {
               <Panel title="Histórico de devoluções" bodyClassName="p-0">
                 <ul className="divide-y divide-border text-sm">
                   {dossie.devolucoes.length === 0 && (
-                    <li className="px-4 py-3 text-xs text-muted-foreground">Nenhuma devolução registrada.</li>
+                    <li className="px-4 py-3 text-xs text-muted-foreground">
+                      Nenhuma devolução registrada.
+                    </li>
                   )}
                   {dossie.devolucoes.map((d) => (
                     <li key={d.id} className="px-4 py-2.5">
@@ -598,10 +672,15 @@ function Workspace() {
               <Panel title="Condições comerciais por emissão" bodyClassName="p-0">
                 <ul className="divide-y divide-border text-sm">
                   {emissoes.map((e) => (
-                    <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+                    <li
+                      key={e.id}
+                      className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5"
+                    >
                       <span className="min-w-0">
                         <span className="font-medium">{e.produto}</span>
-                        <span className="block text-[11px] text-muted-foreground">{e.condicaoComercial}</span>
+                        <span className="block text-[11px] text-muted-foreground">
+                          {e.condicaoComercial}
+                        </span>
                       </span>
                       <span className="tabular">{brl(e.valor)}</span>
                       <EstadoChip estado={e.pagamento.estado} label={e.pagamento.detalhe} />
@@ -618,7 +697,15 @@ function Workspace() {
                     <li key={f.id} className="flex items-center justify-between gap-2 px-4 py-2.5">
                       <span className="min-w-0 truncate">{f.descricao}</span>
                       <span className="tabular">{brl(f.valor)}</span>
-                      <Chip tone={f.status === "vencido" ? "alert" : f.status === "pago" ? "blue" : "outline"}>
+                      <Chip
+                        tone={
+                          f.status === "vencido"
+                            ? "alert"
+                            : f.status === "pago"
+                              ? "blue"
+                              : "outline"
+                        }
+                      >
                         {f.status}
                       </Chip>
                     </li>
@@ -630,10 +717,16 @@ function Workspace() {
 
           {aba === "mensagens" && (
             <>
-              <Panel title="Documentos do titular" bodyClassName="p-0" hint="Versões e status de análise">
+              <Panel
+                title="Documentos do titular"
+                bodyClassName="p-0"
+                hint="Versões e status de análise"
+              >
                 <ul className="divide-y divide-border text-sm">
                   {(cliente?.documentos ?? []).length === 0 && (
-                    <li className="px-4 py-3 text-xs text-muted-foreground">Nenhum documento enviado.</li>
+                    <li className="px-4 py-3 text-xs text-muted-foreground">
+                      Nenhum documento enviado.
+                    </li>
                   )}
                   {cliente?.documentos.map((d) => (
                     <li key={d.id} className="flex items-center justify-between gap-2 px-4 py-2.5">
@@ -641,7 +734,15 @@ function Workspace() {
                         <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
                         <span className="truncate">{d.nome}</span>
                       </span>
-                      <Chip tone={d.status === "aprovado" ? "blue" : d.status === "reprovado" ? "alert" : "outline"}>
+                      <Chip
+                        tone={
+                          d.status === "aprovado"
+                            ? "blue"
+                            : d.status === "reprovado"
+                              ? "alert"
+                              : "outline"
+                        }
+                      >
                         {d.status}
                       </Chip>
                     </li>
@@ -665,22 +766,39 @@ function Workspace() {
                   </Btn>
                 }
               >
-                <TextArea value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Contexto, combinado com o cliente, orientação para a próxima frente…" />
+                <TextArea
+                  value={nota}
+                  onChange={(e) => setNota(e.target.value)}
+                  placeholder="Contexto, combinado com o cliente, orientação para a próxima frente…"
+                />
               </Panel>
             </>
           )}
 
           {aba === "entrega" && (
-            <Panel title="Entrega e suporte" hint="Uma emissão só é entregue pelo próprio ciclo" bodyClassName="p-0">
+            <Panel
+              title="Entrega e suporte"
+              hint="Uma emissão só é entregue pelo próprio ciclo"
+              bodyClassName="p-0"
+            >
               <ul className="divide-y divide-border text-sm">
                 {emissoes.map((e) => (
                   <li key={e.id} className="space-y-1.5 px-4 py-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="font-medium">{e.produto}</span>
                       <span className="flex flex-wrap gap-1.5">
-                        <EstadoChip estado={e.emissao} label={`Emissão: ${rotuloEstado[e.emissao]}`} />
-                        <EstadoChip estado={e.entrega} label={`Entrega: ${rotuloEstado[e.entrega]}`} />
-                        <EstadoChip estado={e.instalacao} label={`Instalação: ${rotuloEstado[e.instalacao]}`} />
+                        <EstadoChip
+                          estado={e.emissao}
+                          label={`Emissão: ${rotuloEstado[e.emissao]}`}
+                        />
+                        <EstadoChip
+                          estado={e.entrega}
+                          label={`Entrega: ${rotuloEstado[e.entrega]}`}
+                        />
+                        <EstadoChip
+                          estado={e.instalacao}
+                          label={`Instalação: ${rotuloEstado[e.instalacao]}`}
+                        />
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -693,7 +811,11 @@ function Workspace() {
           )}
 
           {aba === "historico" && (
-            <Panel title="Histórico auditável" hint="Quem fez, quando e com qual evidência" bodyClassName="p-0">
+            <Panel
+              title="Histórico auditável"
+              hint="Quem fez, quando e com qual evidência"
+              bodyClassName="p-0"
+            >
               <ol className="space-y-0">
                 {caso.timeline.map((e, i) => (
                   <li key={e.id} className="flex gap-3 px-4 py-3">
@@ -701,10 +823,16 @@ function Workspace() {
                       <span
                         className={cn(
                           "mt-1 size-2.5 rounded-full",
-                          e.tipo === "alerta" ? "bg-alert" : e.tipo === "cliente" ? "bg-primary-soft" : "bg-primary",
+                          e.tipo === "alerta"
+                            ? "bg-alert"
+                            : e.tipo === "cliente"
+                              ? "bg-primary-soft"
+                              : "bg-primary",
                         )}
                       />
-                      {i < caso.timeline.length - 1 && <span className="mt-1 w-px flex-1 bg-border" />}
+                      {i < caso.timeline.length - 1 && (
+                        <span className="mt-1 w-px flex-1 bg-border" />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1 pb-1">
                       <p className="text-sm font-medium">{e.titulo}</p>
@@ -728,7 +856,10 @@ function Workspace() {
                 value={caso.responsavelId}
                 onChange={(e) => {
                   store.updateRequest(caso.id, { responsavelId: e.target.value });
-                  store.logRequest(caso.id, `Responsável alterado para ${agentById(e.target.value).nome}`);
+                  store.logRequest(
+                    caso.id,
+                    `Responsável alterado para ${agentById(e.target.value).nome}`,
+                  );
                   toast.success("Responsável atualizado");
                 }}
                 className="py-1.5 text-xs"
@@ -742,7 +873,9 @@ function Workspace() {
               <SelectInput
                 value={caso.prioridade}
                 onChange={(e) => {
-                  store.updateRequest(caso.id, { prioridade: e.target.value as typeof caso.prioridade });
+                  store.updateRequest(caso.id, {
+                    prioridade: e.target.value as typeof caso.prioridade,
+                  });
                   toast.success("Prioridade atualizada");
                 }}
                 className="py-1.5 text-xs"
@@ -755,7 +888,11 @@ function Workspace() {
             </div>
           </Panel>
 
-          <Panel title="Ações do caso" hint="Toda ação registra evidência e define o próximo responsável" bodyClassName="p-3">
+          <Panel
+            title="Ações do caso"
+            hint="Toda ação registra evidência e define o próximo responsável"
+            bodyClassName="p-3"
+          >
             <div className="space-y-3">
               {(() => {
                 const recomendada = acoesWorkspace.find((a) => a.label === proximaAcao);
@@ -778,10 +915,42 @@ function Workspace() {
                   </div>
                 );
               })()}
+              <div className="rounded-md border border-border bg-muted/30 p-2 text-[11px] text-muted-foreground">
+                <p className="mb-1 font-medium text-foreground">
+                  Pagamento, emissão, entrega e revogação
+                </p>
+                <p>São ações de uma emissão específica — cada uma tem ciclo próprio.</p>
+                <button
+                  type="button"
+                  onClick={() => setAba("emissoes")}
+                  className="mt-1.5 text-primary underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                >
+                  Abrir aba Emissões ({emissoes.length})
+                </button>
+              </div>
+              <div className="rounded-md border border-border p-2">
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Encerramento
+                </p>
+                <BotaoAcao
+                  label="Concluir caso"
+                  onClick={() => {
+                    store.moveRequest(
+                      caso.id,
+                      "concluido",
+                      "Todas as emissões em uso e tarefas resolvidas",
+                    );
+                    toast.success("Caso concluído");
+                  }}
+                  bloqueio={caso.stage === "concluido" ? "Caso já concluído." : conclusao.motivo}
+                />
+              </div>
               {grupos.map((g) => (
                 <div key={g} className="space-y-1.5">
-                  <p className="px-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{g}</p>
-                  {acoesWorkspace
+                  <p className="px-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {g}
+                  </p>
+                  {acoesGerais
                     .filter((a) => a.grupo === g)
                     .map((a) => (
                       <BotaoAcao
@@ -816,9 +985,13 @@ function Workspace() {
         {trilha && (
           <div className="space-y-3 text-sm">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Já concluído</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Já concluído
+              </p>
               <ul className="mt-1 space-y-1">
-                {trilha.concluido.length === 0 && <li className="text-xs text-muted-foreground">Nada concluído ainda.</li>}
+                {trilha.concluido.length === 0 && (
+                  <li className="text-xs text-muted-foreground">Nada concluído ainda.</li>
+                )}
                 {trilha.concluido.map((c) => (
                   <li key={c} className="flex items-start gap-2">
                     <EstadoChip estado="concluido" label="OK" />
@@ -828,9 +1001,13 @@ function Workspace() {
               </ul>
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">O que falta</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                O que falta
+              </p>
               <ul className="mt-1 space-y-1">
-                {trilha.falta.length === 0 && <li className="text-xs text-muted-foreground">Nenhuma pendência.</li>}
+                {trilha.falta.length === 0 && (
+                  <li className="text-xs text-muted-foreground">Nenhuma pendência.</li>
+                )}
                 {trilha.falta.map((c) => (
                   <li key={c} className="flex items-start gap-2">
                     <EstadoChip estado="pendente" label="Falta" />
@@ -841,11 +1018,15 @@ function Workspace() {
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="rounded-md border border-border px-3 py-2">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Quem precisa agir</p>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Quem precisa agir
+                </p>
                 <p className="text-sm">{trilha.quemAge}</p>
               </div>
               <div className="rounded-md border border-border px-3 py-2">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Ação bloqueada</p>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Ação bloqueada
+                </p>
                 <p className="text-sm">{trilha.acaoBloqueada}</p>
               </div>
             </div>
@@ -880,19 +1061,27 @@ function Workspace() {
             {bloqueioDaAcao(acao) && <AvisoBloqueio texto={bloqueioDaAcao(acao)!} />}
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="rounded-md border border-border px-3 py-2">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Evidência registrada</p>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Evidência registrada
+                </p>
                 <p>{acao.evidencia}</p>
               </div>
               <div className="rounded-md border border-border px-3 py-2">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Próximo responsável</p>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Próximo responsável
+                </p>
                 <p>{acao.proximoResponsavel}</p>
               </div>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Ficam disponíveis</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Ficam disponíveis
+                </p>
                 <ul className="mt-1 space-y-1">
-                  {acao.liberadas.length === 0 && <li className="text-xs text-muted-foreground">Nenhuma nova ação.</li>}
+                  {acao.liberadas.length === 0 && (
+                    <li className="text-xs text-muted-foreground">Nenhuma nova ação.</li>
+                  )}
                   {acao.liberadas.map((l) => (
                     <li key={l} className="text-xs">
                       • {l}
@@ -901,9 +1090,13 @@ function Workspace() {
                 </ul>
               </div>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Ficam bloqueadas</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Ficam bloqueadas
+                </p>
                 <ul className="mt-1 space-y-1">
-                  {acao.bloqueadas.length === 0 && <li className="text-xs text-muted-foreground">Nenhuma.</li>}
+                  {acao.bloqueadas.length === 0 && (
+                    <li className="text-xs text-muted-foreground">Nenhuma.</li>
+                  )}
                   {acao.bloqueadas.map((l) => (
                     <li key={l} className="text-xs">
                       • {l}
@@ -927,7 +1120,6 @@ function Workspace() {
                   placeholder="Descreva o motivo que será registrado na auditoria"
                 />
               </Field>
-
             )}
           </div>
         )}
@@ -946,48 +1138,83 @@ function Workspace() {
   );
 }
 
-function EmissoesPanel({ emissoes, resumido }: { emissoes: EmissaoCaso[]; resumido?: boolean }) {
+function NovaEmissaoRelacionada({ requestId, titular }: { requestId: string; titular: string }) {
+  const store = useStore();
+  const [aberto, setAberto] = useState(false);
+  const [produto, setProduto] = useState("e-CNPJ A1");
+  const [motivo, setMotivo] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+
   return (
     <Panel
-      title="Emissões deste caso"
-      hint="Cada emissão tem ciclo próprio — pagamento, documento ou validação de uma nunca libera outra"
-      bodyClassName="p-0"
+      title="Criar emissão relacionada"
+      hint="Só por ação explícita de elegibilidade — nenhum produto é adicionado automaticamente ao caso"
     >
-      <ul className="divide-y divide-border">
-        {emissoes.map((e) => (
-          <li key={e.id} className="space-y-2 px-4 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-sm font-medium">
-                  {e.produto}
-                  {e.principal && <Chip className="ml-2" tone="blue">Principal</Chip>}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {e.papelTitular}: {e.titular} · {e.ac} · {e.modalidade}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="tabular text-sm">{brl(e.valor)}</p>
-                <p className="text-[11px] text-muted-foreground">{e.condicaoComercial}</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              <EstadoChip estado={e.pagamento.estado} label={`Pagamento: ${e.pagamento.detalhe}`} />
-              <EstadoChip estado={e.validacao} label={`Validação: ${rotuloEstado[e.validacao]}`} />
-              <EstadoChip estado={e.dossie} label={`Dossiê: ${rotuloEstado[e.dossie]}`} />
-              <EstadoChip estado={e.emissao} label={`Emissão: ${rotuloEstado[e.emissao]}`} />
-              {!resumido && (
-                <>
-                  <EstadoChip estado={e.entrega} label={`Entrega: ${rotuloEstado[e.entrega]}`} />
-                  <EstadoChip estado={e.instalacao} label={`Instalação: ${rotuloEstado[e.instalacao]}`} />
-                  <EstadoChip estado={e.revogacao.estado} label={`Revogação: ${e.revogacao.detalhe}`} />
-                </>
-              )}
-            </div>
-            {e.bloqueio && <AvisoBloqueio texto={e.bloqueio} />}
-          </li>
-        ))}
-      </ul>
+      {!aberto ? (
+        <Btn variant="ghost" onClick={() => setAberto(true)}>
+          Avaliar elegibilidade de nova emissão
+        </Btn>
+      ) : (
+        <div className="space-y-3">
+          <Field label="Produto">
+            <SelectInput value={produto} onChange={(e) => setProduto(e.target.value)}>
+              {["e-CNPJ A1", "e-CNPJ A3", "e-CPF A1", "BIRD", "Nuvem PJ"].map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </SelectInput>
+          </Field>
+          <Field label="Motivo da elegibilidade (obrigatório)" {...(erro ? { error: erro } : {})}>
+            <TextArea
+              value={motivo}
+              onChange={(e) => {
+                setMotivo(e.target.value);
+                if (erro) setErro(null);
+              }}
+              placeholder="Ex.: titular solicitou produto adicional e a AC homologou o perfil"
+            />
+          </Field>
+          <p className="text-[11px] text-muted-foreground">
+            A nova emissão nasce com pagamento, dossiê e validação próprios. Nada é herdado da
+            emissão original.
+          </p>
+          <div className="flex gap-2">
+            <Btn
+              variant="ghost"
+              onClick={() => {
+                setAberto(false);
+                setMotivo("");
+              }}
+            >
+              Cancelar
+            </Btn>
+            <Btn
+              onClick={() => {
+                if (motivo.trim().length < 4) {
+                  setErro("Descreva a elegibilidade com pelo menos 4 caracteres.");
+                  return;
+                }
+                store.criarEmissaoRelacionada(requestId, {
+                  produto,
+                  titular,
+                  papelTitular: produto.includes("CNPJ") ? "Representante legal" : "Titular",
+                  ac: "AC Certus RFB",
+                  modalidade: produto.endsWith("A3") ? "Presencial" : "Videoconferência",
+                  condicaoComercial: "A definir com o comercial",
+                  valor: 0,
+                  motivoElegibilidade: motivo.trim(),
+                });
+                toast.success("Emissão relacionada criada", {
+                  description: `${produto} com ciclo próprio`,
+                });
+                setAberto(false);
+                setMotivo("");
+              }}
+            >
+              Criar emissão
+            </Btn>
+          </div>
+        </div>
+      )}
     </Panel>
   );
 }
