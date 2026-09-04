@@ -872,7 +872,7 @@ const c9 = demo({
     tipo: "conferencia",
     motivo: "Registro manual pendente de conferência independente",
     aguardando: "Segundo operador precisa conferir os dados e o comprovante",
-    proximoResponsavel: "Camila Rocha",
+    proximoResponsavel: "Carolina Ito",
   },
   historico: [["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9009, série S-909442, aguardando conferência"]],
 });
@@ -900,7 +900,7 @@ const c10 = demo({
     conferencia: {
       decisao: "devolvida",
       motivo: "Série informada não confere com o comprovante anexado.",
-      por: autor("a3", "Camila Rocha", "10:05"),
+      por: autor("a3", "Carolina Ito", "10:05"),
     },
   },
   tarefa: {
@@ -913,7 +913,7 @@ const c10 = demo({
   },
   historico: [
     ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — série S-9010442"],
-    ["t2", "10:05", "Camila Rocha", "alerta", "Emissão devolvida na conferência — série não confere com o comprovante"],
+    ["t2", "10:05", "Carolina Ito", "alerta", "Emissão devolvida na conferência — série não confere com o comprovante"],
   ],
 });
 
@@ -936,7 +936,7 @@ const c11 = demo({
   ciclo: "entrega-pendente",
   proximaAcao: "Confirmar instalação e funcionamento",
   registro: {
-    conferencia: { decisao: "confirmada", por: autor("a3", "Camila Rocha", "10:10") },
+    conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "10:10") },
     entrega: { modo: "ac-envia", referencia: "AC-ENV-3391", por: autor("a2", "Rafael Bastos", "10:20") },
   },
   tarefa: {
@@ -949,7 +949,7 @@ const c11 = demo({
   },
   historico: [
     ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9011"],
-    ["t2", "10:10", "Camila Rocha", "humano", "Emissão conferida e confirmada — entrega liberada"],
+    ["t2", "10:10", "Carolina Ito", "humano", "Emissão conferida e confirmada — entrega liberada"],
     ["t3", "10:20", "Rafael Bastos", "humano", "Entrega definida — a AC enviará as instruções ao titular"],
   ],
 });
@@ -973,7 +973,7 @@ const c12 = demo({
   ciclo: "entrega-pendente",
   proximaAcao: "Confirmar entrega ao titular",
   registro: {
-    conferencia: { decisao: "confirmada", por: autor("a3", "Camila Rocha", "11:02") },
+    conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "11:02") },
     entrega: { modo: "certus-link", referencia: "ENV-2026-4471", por: autor("a2", "Rafael Bastos", "11:14") },
   },
   tarefa: {
@@ -986,7 +986,7 @@ const c12 = demo({
   },
   historico: [
     ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9012"],
-    ["t2", "11:02", "Camila Rocha", "humano", "Emissão conferida e confirmada"],
+    ["t2", "11:02", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
     ["t3", "11:14", "Rafael Bastos", "humano", "Instruções e link seguro enviados pelo canal Certus"],
   ],
 });
@@ -1011,7 +1011,7 @@ const c13 = demo({
   proximaAcao: "Confirmar entrega ao titular",
   bloqueio: "Disparo de instruções falhou — reenvio manual pendente",
   registro: {
-    conferencia: { decisao: "confirmada", por: autor("a3", "Camila Rocha", "08:40") },
+    conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "08:40") },
     entrega: {
       modo: "portal-ac-manual",
       referencia: "AC-DISP-7712",
@@ -1029,7 +1029,7 @@ const c13 = demo({
   },
   historico: [
     ["t1", "08:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9013"],
-    ["t2", "08:40", "Camila Rocha", "humano", "Emissão conferida e confirmada"],
+    ["t2", "08:40", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
     ["t3", "08:55", "Sistema", "alerta", "Falha no disparo das instruções — erro 550 no portal da AC"],
   ],
 });
@@ -1053,7 +1053,7 @@ const c14 = demo({
   ciclo: "entregue",
   proximaAcao: "Confirmar instalação e funcionamento",
   registro: {
-    conferencia: { decisao: "confirmada", por: autor("a3", "Camila Rocha", "14:05") },
+    conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "14:05") },
     entrega: { modo: "certus-link", referencia: "ENV-2026-4480", por: autor("a2", "Rafael Bastos", "14:20") },
     entregue: autor("a2", "Rafael Bastos", "15:02"),
   },
@@ -1067,7 +1067,7 @@ const c14 = demo({
   },
   historico: [
     ["t1", "13:40", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9014"],
-    ["t2", "14:05", "Camila Rocha", "humano", "Emissão conferida e confirmada"],
+    ["t2", "14:05", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
     ["t3", "15:02", "Rafael Bastos", "humano", "Entrega confirmada — instruções acessadas pelo titular"],
   ],
 });
@@ -1092,7 +1092,7 @@ const c15 = demo({
   proximaAcao: "Confirmar pagamento",
   bloqueio: "Segunda emissão parada no próprio pagamento",
   registro: {
-    conferencia: { decisao: "confirmada", por: autor("a3", "Camila Rocha", "09:50") },
+    conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "09:50") },
     entrega: { modo: "ac-envia", referencia: "AC-ENV-3400", por: autor("a2", "Rafael Bastos", "10:00") },
     entregue: autor("a2", "Rafael Bastos", "10:30"),
     instalacao: { ...autor("a2", "Rafael Bastos", "11:00"), observacao: "Assinatura de teste validada com o titular." },
@@ -1108,7 +1108,7 @@ const c15 = demo({
   },
   historico: [
     ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — e-CNPJ A1"],
-    ["t2", "09:50", "Camila Rocha", "humano", "Emissão conferida e confirmada"],
+    ["t2", "09:50", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
     ["t3", "11:05", "Rafael Bastos", "humano", "Certificado em uso pelo titular"],
     ["t4", "11:30", "Helena Prado", "alerta", "Segunda emissão criada por elegibilidade — pagamento próprio em aberto"],
   ],
