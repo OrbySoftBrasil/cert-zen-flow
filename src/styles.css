@@ -175,3 +175,38 @@
     transparent 4px 8px
   );
 }
+
+/*
+ * Modo compacto — pensado para telas de notebook (13"–15").
+ * Reduz a escala base (todas as medidas em rem acompanham) e aperta
+ * espaçamentos estruturais sem mudar a linguagem visual.
+ */
+:root[data-densidade="compacto"] {
+  font-size: 87.5%;
+  --radius: 0.45rem;
+}
+
+:root[data-densidade="compacto"] body {
+  line-height: 1.4;
+}
+
+/* Cabeçalhos fixos e barras laterais ficam mais baixos para liberar altura útil. */
+:root[data-densidade="compacto"] .densidade-topo {
+  height: 3rem;
+}
+
+:root[data-densidade="compacto"] .densidade-titulo {
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+
+:root[data-densidade="compacto"] .densidade-conteudo {
+  padding-top: 0.85rem;
+  padding-bottom: 1.25rem;
+}
+
+/* Tabelas e listas densas: menos respiro vertical por linha. */
+:root[data-densidade="compacto"] table :is(th, td) {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
