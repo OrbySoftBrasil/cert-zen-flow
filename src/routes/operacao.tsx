@@ -1051,6 +1051,11 @@ function MinhaFila({
 
   const pag = usePaginacao(lista, 10);
 
+  useEffect(() => {
+    onOrdemVisivel(lista.map((t) => t.request.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lista]);
+
   // Contagem por escopo: o usuário vê onde há trabalho antes de trocar de aba.
   const contagemEscopo = {
     minhas: tarefas.filter((t) => t.papel === perfil && t.atribuida).length,
@@ -1232,7 +1237,14 @@ function MinhaFila({
           <>
             <ul className="divide-y divide-border">
               {pag.visiveis.map((t) => (
-                <TarefaLinha key={t.id} t={t} onOpen={() => onOpen(t.request.id)} />
+                <TarefaLinha
+                  key={t.id}
+                  t={t}
+                  onOpen={() => onOpen(t.request.id)}
+                  marcada={selecao.includes(t.request.id)}
+                  onSelecionar={(v) => onSelecionar(t.request.id, v)}
+                  onAssumir={() => onAssumir(t.request.id)}
+                />
               ))}
             </ul>
             <Paginacao {...pag} rotulo="tarefas" />
@@ -1288,10 +1300,37 @@ function SelectFiltro({
   );
 }
 
-function TarefaLinha({ t, onOpen }: { t: Tarefa; onOpen: () => void }) {
+function TarefaLinha({
+  t,
+  onOpen,
+  marcada,
+  onSelecionar,
+  onAssumir,
+}: {
+  t: Tarefa;
+  onOpen: () => void;
+  marcada: boolean;
+  onSelecionar: (v: boolean) => void;
+  onAssumir: () => void;
+}) {
   return (
-    <li>
-      <button onClick={onOpen} className="w-full px-4 py-3 text-left transition-colors hover:bg-muted/50">
+    <li className={cn("relative", marcada && "bg-primary-soft/40")}>
+      <div className="absolute left-3 top-3.5 z-10 flex items-center gap-2">
+        <CaixaSelecao
+          marcada={marcada}
+          rotulo={`Selecionar tarefa ${t.request.protocolo}`}
+          onChange={onSelecionar}
+        />
+      </div>
+      {!t.atribuida && (
+        <button
+          onClick={onAssumir}
+          className="absolute right-4 top-3 z-10 inline-flex items-center gap-1 rounded-md border border-border-strong px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+        >
+          <Hand className="size-3" /> Puxar para mim
+        </button>
+      )}
+      <button onClick={onOpen} className="w-full py-3 pl-10 pr-4 text-left transition-colors hover:bg-muted/50">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-display text-sm font-semibold">{t.acao}</span>
           <Chip tone={prioridadeTone[t.prioridade]}>{t.prioridade}</Chip>
