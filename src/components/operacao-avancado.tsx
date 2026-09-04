@@ -187,7 +187,9 @@ export function ReatribuirDialog({
         <Field
           label="Motivo da transferência"
           hint="Obrigatório: fica visível no histórico do caso."
-          error={motivo.trim().length > 0 && motivo.trim().length < 3 ? "Descreva o motivo com ao menos 3 caracteres." : undefined}
+          {...(motivo.trim().length > 0 && motivo.trim().length < 3
+            ? { error: "Descreva o motivo com ao menos 3 caracteres." }
+            : {})}
         >
           <textarea
             value={motivo}
