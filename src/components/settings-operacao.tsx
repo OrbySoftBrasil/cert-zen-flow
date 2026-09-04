@@ -38,6 +38,8 @@ import {
   type OrigemRegra,
 } from "@/lib/opconfig-model";
 import { useOpConfig } from "@/lib/opconfig-store";
+import { useSettings } from "@/lib/settings-store";
+import { useIrParaSecao } from "@/components/settings-workspace";
 import { cn } from "@/lib/utils";
 
 
@@ -52,6 +54,55 @@ const abas = [
 
 
 type AbaId = (typeof abas)[number]["id"];
+
+
+/** Papéis disponíveis: perfis do produto + papéis criados em "Equipe & usuários". */
+function usePapeisDisponiveis(): string[] {
+  const { settings } = useSettings();
+  return useMemo(() => {
+    const daEquipe = settings.papeis
+      .map((p) => p.perfilOperacional)
+      .filter((p) => p && p !== "—");
+    return [...new Set<string>([...PAPEIS_OPERACAO, ...daEquipe])];
+  }, [settings.papeis]);
+}
+
+/** Seletor de papel com atalho para criar/editar papéis em Equipe & usuários. */
+function PapelSelect({
+  value,
+  onChange,
+  disabled,
+  placeholder,
+  hint = true,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  hint?: boolean;
+}) {
+  const papeis = usePapeisDisponiveis();
+  const irPara = useIrParaSecao();
+  return (
+    <div className="space-y-1">
+      <SelectInput value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
+        {placeholder !== undefined && <option value="">{placeholder}</option>}
+        {papeis.map((p) => (
+          <option key={p}>{p}</option>
+        ))}
+      </SelectInput>
+      {hint && irPara && (
+        <button
+          type="button"
+          onClick={() => irPara("equipe")}
+          className="text-[11px] text-primary underline-offset-2 hover:underline"
+        >
+          Criar ou editar papéis em Equipe & usuários
+        </button>
+      )}
+    </div>
+  );
+}
 
 function OrigemChip({ origem }: { origem: OrigemRegra }) {
   const o = ORIGENS[origem];
@@ -284,11 +335,7 @@ function AbaMarcos() {
             <TextInput value={draft.nome} onChange={(e) => setDraft({ ...draft, nome: e.target.value })} placeholder="Ex.: Conferência jurídica" />
           </Field>
           <Field label="Papel responsável">
-            <SelectInput value={draft.papel} onChange={(e) => setDraft({ ...draft, papel: e.target.value })}>
-              {PAPEIS_OPERACAO.map((p) => (
-                <option key={p}>{p}</option>
-              ))}
-            </SelectInput>
+            <PapelSelect value={draft.papel} onChange={(papel) => setDraft({ ...draft, papel })} />
           </Field>
         </div>
       </Modal>
@@ -366,11 +413,7 @@ function EditorEtapaOperacao({
           <TextInput value={etapa.nome} disabled={bloqueado} onChange={(e) => updateEtapa(etapa.id, { nome: e.target.value })} />
         </Field>
         <Field label="Papel responsável">
-          <SelectInput value={etapa.papel} disabled={bloqueado} onChange={(e) => updateEtapa(etapa.id, { papel: e.target.value })}>
-            {PAPEIS_OPERACAO.map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </SelectInput>
+          <PapelSelect value={etapa.papel} disabled={bloqueado} onChange={(papel) => updateEtapa(etapa.id, { papel })} />
         </Field>
         <Field label="SLA da etapa (horas)">
           <TextInput
@@ -463,16 +506,13 @@ function EditorEtapaOperacao({
           {etapa.segregacaoObrigatoria && (
             <div className="mt-3">
               <Field label="Papel verificador">
-                <SelectInput
+                <PapelSelect
                   value={etapa.papelVerificador}
                   disabled={bloqueado}
-                  onChange={(e) => updateEtapa(etapa.id, { papelVerificador: e.target.value })}
-                >
-                  <option value="">Selecionar…</option>
-                  {PAPEIS_OPERACAO.map((p) => (
-                    <option key={p}>{p}</option>
-                  ))}
-                </SelectInput>
+                  placeholder="Selecionar…"
+                  hint={false}
+                  onChange={(papelVerificador) => updateEtapa(etapa.id, { papelVerificador })}
+                />
               </Field>
             </div>
           )}
@@ -483,16 +523,13 @@ function EditorEtapaOperacao({
               <p className="text-xs text-muted-foreground">Exige: {etapa.portao.exige}</p>
               <div className="mt-2">
                 <Field label="Autorizador do portão">
-                  <SelectInput
+                  <PapelSelect
                     value={etapa.portao.autorizador}
                     disabled={somenteLeitura}
-                    onChange={(e) => updateEtapa(etapa.id, { portao: { ...etapa.portao!, autorizador: e.target.value } })}
-                  >
-                    <option value="">Sem autorizador</option>
-                    {PAPEIS_OPERACAO.map((p) => (
-                      <option key={p}>{p}</option>
-                    ))}
-                  </SelectInput>
+                    placeholder="Sem autorizador"
+                    hint={false}
+                    onChange={(autorizador) => updateEtapa(etapa.id, { portao: { ...etapa.portao!, autorizador } })}
+                  />
                 </Field>
               </div>
             </div>
@@ -625,16 +662,12 @@ function AbaSubfluxos() {
             </p>
             <Grid cols={3}>
               <Field label="Responsável">
-                <SelectInput
+                <PapelSelect
                   value={aberto.responsavel}
                   disabled={somenteLeitura}
-                  onChange={(e) => updateSubfluxo(aberto.id, { responsavel: e.target.value })}
-                >
-                  <option value="">Selecionar…</option>
-                  {PAPEIS_OPERACAO.map((p) => (
-                    <option key={p}>{p}</option>
-                  ))}
-                </SelectInput>
+                  placeholder="Selecionar…"
+                  onChange={(responsavel) => updateSubfluxo(aberto.id, { responsavel })}
+                />
               </Field>
               <Field label="SLA (horas)">
                 <TextInput
