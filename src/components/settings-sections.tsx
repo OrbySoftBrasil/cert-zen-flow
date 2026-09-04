@@ -1126,7 +1126,10 @@ export function SecaoEquipe() {
       });
       return;
     }
-    replace("perfisEsteira", perfis.filter((p) => p !== nome));
+    replace(
+      "perfisEsteira",
+      perfis.filter((p) => p !== nome),
+    );
     replace(
       "papeis",
       papeis.map((p) =>
@@ -1392,6 +1395,28 @@ export function SecaoEquipe() {
         )}
       </Panel>
 
+      <Modal
+        open={renomeando !== null}
+        onClose={() => setRenomeando(null)}
+        title="Renomear perfil da esteira"
+        hint="As etapas e os papéis que usam este perfil são atualizados junto."
+        footer={
+          <>
+            <Btn onClick={() => setRenomeando(null)}>Cancelar</Btn>
+            <Btn variant="primary" onClick={confirmarRenome}>
+              Salvar
+            </Btn>
+          </>
+        }
+      >
+        <Field label="Nome do perfil">
+          <TextInput
+            value={renomeando?.novo ?? ""}
+            onChange={(e) => setRenomeando((r) => (r ? { ...r, novo: e.target.value } : r))}
+          />
+        </Field>
+      </Modal>
+
       <Panel
         title="Perfis na esteira"
         hint="São as opções de “Papel responsável” das etapas em Operação & perfis. Os oito primeiros vêm prontos com o produto; você pode renomear, excluir os que não usa e criar novos."
@@ -1407,7 +1432,10 @@ export function SecaoEquipe() {
                 <span className="text-xs text-muted-foreground">
                   {etapas} etapa(s) · {papeisDoPerfil} papel(is)
                 </span>
-                <Btn variant="ghost" onClick={() => setRenomeando({ antigo: perfil, novo: perfil })}>
+                <Btn
+                  variant="ghost"
+                  onClick={() => setRenomeando({ antigo: perfil, novo: perfil })}
+                >
                   Renomear
                 </Btn>
                 <Btn variant="ghost" onClick={() => excluirPerfil(perfil)}>
@@ -1456,6 +1484,7 @@ export function SecaoEquipe() {
               papel={papel}
               usuarios={contarUsuarios(papel.id)}
               etapas={etapasDoPerfil(papel.perfilOperacional)}
+              perfis={perfis}
               onTogglePerm={(perm) => togglePerm(papel.id, perm)}
               onPatch={(patch) =>
                 replace(
@@ -1756,12 +1785,14 @@ function CartaoPapel({
   papel,
   usuarios,
   etapas,
+  perfis,
   onTogglePerm,
   onPatch,
   onRemover,
 }: {
   papel: PapelRule;
   usuarios: number;
+  perfis: string[];
   etapas: { id: string; nome: string; marco: string }[];
   onTogglePerm: (perm: string) => void;
   onPatch: (patch: Partial<PapelRule>) => void;
@@ -1818,7 +1849,7 @@ function CartaoPapel({
                 onChange={(e) => onPatch({ perfilOperacional: e.target.value })}
               >
                 <option value="—">— Não executa etapas</option>
-                {PAPEIS_OPERACAO.map((p) => (
+                {perfis.map((p) => (
                   <option key={p} value={p}>
                     {p}
                   </option>

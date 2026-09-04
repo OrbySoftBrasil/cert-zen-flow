@@ -1204,8 +1204,7 @@ function normalizar(s: Settings): Settings {
         },
       })),
     },
-    perfisEsteira:
-      s.perfisEsteira && s.perfisEsteira.length ? s.perfisEsteira : base.perfisEsteira,
+    perfisEsteira: s.perfisEsteira && s.perfisEsteira.length ? s.perfisEsteira : base.perfisEsteira,
     // Papéis anteriores ao modelo de perfis operacionais são substituídos pelo seed novo.
     papeis: (s.papeis ?? base.papeis).some((p) => !p.perfilOperacional)
       ? base.papeis
