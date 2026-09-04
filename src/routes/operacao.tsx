@@ -4,7 +4,10 @@ import {
   ArrowRight,
   Bookmark,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Filter,
+  Hand,
   LayoutGrid,
   List,
   Lock,
@@ -12,6 +15,7 @@ import {
   Rows3,
   Save,
   Sparkles,
+  UserCog,
   Users,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -19,7 +23,16 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { NovaSolicitacaoButton } from "@/components/dialogs";
-import { Btn, ConfirmDialog, EmptyState, Field, Modal, SelectInput } from "@/components/forms";
+import { Btn, ConfirmDialog, EmptyState, Field, Modal } from "@/components/forms";
+import {
+  BarraLote,
+  CaixaSelecao,
+  ChecklistCaso,
+  PainelCarga,
+  ReatribuirDialog,
+  ResponsavelCaso,
+  TimelineRecente,
+} from "@/components/operacao-avancado";
 import {
   AvisoRegulatorio,
   CasoCard,
@@ -54,7 +67,7 @@ import {
   type Tarefa,
   type TipoPendencia,
 } from "@/lib/operacao-model";
-import { useStore } from "@/lib/store";
+import { USUARIO_ATUAL, useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/operacao")({
