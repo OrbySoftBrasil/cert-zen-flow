@@ -1,6 +1,6 @@
 // Camadas de profundidade da área Operação: carga da equipe, ações em lote,
 // checklist operável e trilha de auditoria — tudo sobre o estado global.
-import { ArrowRight, CheckCircle2, Circle, ClipboardList, History, UserCog, X } from "lucide-react";
+import { ArrowRight, History, UserCog, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { Btn, Field, Modal, SelectInput } from "@/components/forms";
@@ -197,54 +197,6 @@ export function ReatribuirDialog({
 }
 
 // ---------------------------------------------------------------- checklist
-
-export function ChecklistCaso({ r, onToggle }: { r: Request; onToggle: (itemId: string) => void }) {
-  const feitos = r.checklist.filter((c) => c.done).length;
-  const total = r.checklist.length;
-  const pct = total ? Math.round((feitos / total) * 100) : 100;
-  return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-          <ClipboardList className="size-3.5" /> Requisitos da etapa
-        </p>
-        <span className="tabular text-[11px] text-muted-foreground">
-          {feitos}/{total} concluídos · {pct}%
-        </span>
-      </div>
-      <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-        <div
-          className="h-full rounded-full bg-primary transition-all"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      {total === 0 ? (
-        <p className="text-xs text-muted-foreground">Nenhum requisito pendente nesta etapa.</p>
-      ) : (
-        <ul className="space-y-1">
-          {r.checklist.map((c) => (
-            <li key={c.id}>
-              <button
-                onClick={() => onToggle(c.id)}
-                aria-pressed={c.done}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-              >
-                {c.done ? (
-                  <CheckCircle2 className="size-4 shrink-0 text-primary" />
-                ) : (
-                  <Circle className="size-4 shrink-0 text-muted-foreground" />
-                )}
-                <span className={cn(c.done && "text-muted-foreground line-through")}>
-                  {c.label}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
 
 // ------------------------------------------------------------- auditoria
 
