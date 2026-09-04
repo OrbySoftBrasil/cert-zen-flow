@@ -12,7 +12,6 @@ import {
   Pencil,
   Play,
   Plus,
-
   ShieldCheck,
   Trash2,
   XCircle,
@@ -20,7 +19,15 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { Btn, ConfirmDialog, Field, Modal, SelectInput, TextArea, TextInput } from "@/components/forms";
+import {
+  Btn,
+  ConfirmDialog,
+  Field,
+  Modal,
+  SelectInput,
+  TextArea,
+  TextInput,
+} from "@/components/forms";
 import { CANAIS, CanaisPicker, ChecklistEditor } from "@/components/opconfig-kit";
 import { Grid, Rows, Toggle } from "@/components/settings-kit";
 import { Chip, Panel } from "@/components/ui-kit";
@@ -38,8 +45,9 @@ import {
   type OrigemRegra,
 } from "@/lib/opconfig-model";
 import { useOpConfig } from "@/lib/opconfig-store";
+import { useSettings } from "@/lib/settings-store";
+import { useIrParaSecao } from "@/lib/settings-nav";
 import { cn } from "@/lib/utils";
-
 
 const abas = [
   { id: "marcos", label: "1. Esteira & etapas" },
@@ -50,8 +58,53 @@ const abas = [
   { id: "versoes", label: "6. Versões" },
 ] as const;
 
-
 type AbaId = (typeof abas)[number]["id"];
+
+/** Papéis disponíveis: perfis do produto + papéis criados em "Equipe & usuários". */
+function usePapeisDisponiveis(): string[] {
+  const { settings } = useSettings();
+  return useMemo(() => {
+    const daEquipe = settings.papeis.map((p) => p.perfilOperacional).filter((p) => p && p !== "—");
+    return [...new Set<string>([...PAPEIS_OPERACAO, ...daEquipe])];
+  }, [settings.papeis]);
+}
+
+/** Seletor de papel com atalho para criar/editar papéis em Equipe & usuários. */
+function PapelSelect({
+  value,
+  onChange,
+  disabled,
+  placeholder,
+  hint = true,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  hint?: boolean;
+}) {
+  const papeis = usePapeisDisponiveis();
+  const irPara = useIrParaSecao();
+  return (
+    <div className="space-y-1">
+      <SelectInput value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
+        {placeholder !== undefined && <option value="">{placeholder}</option>}
+        {papeis.map((p) => (
+          <option key={p}>{p}</option>
+        ))}
+      </SelectInput>
+      {hint && irPara && (
+        <button
+          type="button"
+          onClick={() => irPara("equipe")}
+          className="text-[11px] text-primary underline-offset-2 hover:underline"
+        >
+          Criar ou editar papéis em Equipe & usuários
+        </button>
+      )}
+    </div>
+  );
+}
 
 function OrigemChip({ origem }: { origem: OrigemRegra }) {
   const o = ORIGENS[origem];
@@ -65,7 +118,13 @@ function OrigemChip({ origem }: { origem: OrigemRegra }) {
 
 function formatarData(iso: string) {
   const d = new Date(iso);
-  return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 /* ------------------------------------------------------------------ Raiz */
@@ -83,21 +142,27 @@ export function SecaoOperacaoPerfis() {
       >
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <Chip tone="deep">Publicada {publicada.numero}</Chip>
-          {dirty ? <Chip tone="alert">Rascunho com alterações</Chip> : <Chip tone="blue">Rascunho igual à publicada</Chip>}
+          {dirty ? (
+            <Chip tone="alert">Rascunho com alterações</Chip>
+          ) : (
+            <Chip tone="blue">Rascunho igual à publicada</Chip>
+          )}
           <Chip tone={erros ? "alert" : "outline"}>
             {erros ? `${erros} bloqueio(s) de publicação` : "Sem bloqueios de publicação"}
           </Chip>
           <Chip tone="outline">
-            Escopo: {ESCOPOS.find((e) => e.tipo === rascunho.escopo.tipo)?.label} · {rascunho.escopo.alvo}
+            Escopo: {ESCOPOS.find((e) => e.tipo === rascunho.escopo.tipo)?.label} ·{" "}
+            {rascunho.escopo.alvo}
           </Chip>
           {!permissoes.publicar && <Chip tone="outline">Você só pode editar rascunho</Chip>}
         </div>
         <p className="mt-3 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-          Esta versão será aplicada aos novos casos. Casos em andamento continuam usando a versão com que foram criados.
+          Esta versão será aplicada aos novos casos. Casos em andamento continuam usando a versão
+          com que foram criados.
           <br />
           <span className="text-foreground">
-            Regras legais, controles de segurança, capabilities revogadas e bloqueios emergenciais continuam prevalecendo
-            sobre versões antigas.
+            Regras legais, controles de segurança, capabilities revogadas e bloqueios emergenciais
+            continuam prevalecendo sobre versões antigas.
           </span>
         </p>
       </Panel>
@@ -110,11 +175,15 @@ export function SecaoOperacaoPerfis() {
             onClick={() => setAba(a.id)}
             className={cn(
               "shrink-0 rounded-md px-3 py-1.5 text-sm transition-colors",
-              aba === a.id ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              aba === a.id
+                ? "bg-primary text-primary-foreground font-medium"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             {a.label}
-            {a.id === "validacoes" && erros > 0 && <span className="ml-1.5 tabular text-[11px]">({erros})</span>}
+            {a.id === "validacoes" && erros > 0 && (
+              <span className="ml-1.5 tabular text-[11px]">({erros})</span>
+            )}
           </button>
         ))}
       </div>
@@ -196,7 +265,9 @@ function AbaMarcos() {
 
                   <div className="mt-2 space-y-1">
                     {etapas.length === 0 && (
-                      <span className="text-xs text-alert">Nenhuma etapa — o marco não pode ficar vazio.</span>
+                      <span className="text-xs text-alert">
+                        Nenhuma etapa — o marco não pode ficar vazio.
+                      </span>
                     )}
                     {etapas.map((e, i) => {
                       const obrigatorios = e.checklist.filter((c) => c.obrigatorio).length;
@@ -215,7 +286,9 @@ function AbaMarcos() {
                                 : "border-dashed border-border text-muted-foreground/60",
                           )}
                         >
-                          <span className="tabular w-4 shrink-0 opacity-60">{idx + 1}.{i + 1}</span>
+                          <span className="tabular w-4 shrink-0 opacity-60">
+                            {idx + 1}.{i + 1}
+                          </span>
                           {!ORIGENS[e.origem].editavel && <Lock className="size-3 shrink-0" />}
                           <span className="min-w-0 flex-1 truncate font-medium">{e.nome}</span>
                           <span className="tabular shrink-0 opacity-70">{e.slaHoras}h</span>
@@ -232,7 +305,8 @@ function AbaMarcos() {
             })}
           </div>
           <p className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
-            Cada etapa mostra <span className="tabular">itens/obrigatórios</span> do checklist e o SLA em horas.
+            Cada etapa mostra <span className="tabular">itens/obrigatórios</span> do checklist e o
+            SLA em horas.
           </p>
         </Panel>
 
@@ -240,7 +314,10 @@ function AbaMarcos() {
           {atual ? (
             <EditorEtapaOperacao etapa={atual} onMover={mover} somenteLeitura={somenteLeitura} />
           ) : (
-            <Panel title="Nenhuma etapa selecionada" hint="Escolha uma etapa à esquerda para configurá-la.">
+            <Panel
+              title="Nenhuma etapa selecionada"
+              hint="Escolha uma etapa à esquerda para configurá-la."
+            >
               <p className="text-xs text-muted-foreground">
                 Você também pode criar uma nova etapa dentro de qualquer marco pelo botão “Etapa”.
               </p>
@@ -248,7 +325,6 @@ function AbaMarcos() {
           )}
         </div>
       </div>
-
 
       <Modal
         open={criando !== null}
@@ -271,7 +347,9 @@ function AbaMarcos() {
                 patchEtapas((l) => [...l, nova]);
                 setSel(nova.id);
                 setCriando(null);
-                toast.success("Etapa adicionada ao rascunho", { description: "Publique para valer nos novos casos." });
+                toast.success("Etapa adicionada ao rascunho", {
+                  description: "Publique para valer nos novos casos.",
+                });
               }}
             >
               Adicionar etapa
@@ -281,14 +359,14 @@ function AbaMarcos() {
       >
         <div className="space-y-3">
           <Field label="Nome exibido">
-            <TextInput value={draft.nome} onChange={(e) => setDraft({ ...draft, nome: e.target.value })} placeholder="Ex.: Conferência jurídica" />
+            <TextInput
+              value={draft.nome}
+              onChange={(e) => setDraft({ ...draft, nome: e.target.value })}
+              placeholder="Ex.: Conferência jurídica"
+            />
           </Field>
           <Field label="Papel responsável">
-            <SelectInput value={draft.papel} onChange={(e) => setDraft({ ...draft, papel: e.target.value })}>
-              {PAPEIS_OPERACAO.map((p) => (
-                <option key={p}>{p}</option>
-              ))}
-            </SelectInput>
+            <PapelSelect value={draft.papel} onChange={(papel) => setDraft({ ...draft, papel })} />
           </Field>
         </div>
       </Modal>
@@ -357,20 +435,25 @@ function EditorEtapaOperacao({
       {travada && (
         <p className="mb-3 flex items-start gap-2 rounded-md border border-border bg-muted/40 p-2.5 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-primary" />
-          {ORIGENS[etapa.origem].hint} Você pode ajustar apenas checklist complementar, instruções e notificações.
+          {ORIGENS[etapa.origem].hint} Você pode ajustar apenas checklist complementar, instruções e
+          notificações.
         </p>
       )}
 
       <Grid>
         <Field label="Nome exibido">
-          <TextInput value={etapa.nome} disabled={bloqueado} onChange={(e) => updateEtapa(etapa.id, { nome: e.target.value })} />
+          <TextInput
+            value={etapa.nome}
+            disabled={bloqueado}
+            onChange={(e) => updateEtapa(etapa.id, { nome: e.target.value })}
+          />
         </Field>
         <Field label="Papel responsável">
-          <SelectInput value={etapa.papel} disabled={bloqueado} onChange={(e) => updateEtapa(etapa.id, { papel: e.target.value })}>
-            {PAPEIS_OPERACAO.map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </SelectInput>
+          <PapelSelect
+            value={etapa.papel}
+            disabled={bloqueado}
+            onChange={(papel) => updateEtapa(etapa.id, { papel })}
+          />
         </Field>
         <Field label="SLA da etapa (horas)">
           <TextInput
@@ -393,10 +476,18 @@ function EditorEtapaOperacao({
           </SelectInput>
         </Field>
         <Field label="Critério de entrada">
-          <TextInput value={etapa.criterioEntrada} disabled={bloqueado} onChange={(e) => updateEtapa(etapa.id, { criterioEntrada: e.target.value })} />
+          <TextInput
+            value={etapa.criterioEntrada}
+            disabled={bloqueado}
+            onChange={(e) => updateEtapa(etapa.id, { criterioEntrada: e.target.value })}
+          />
         </Field>
         <Field label="Critério de saída">
-          <TextInput value={etapa.criterioSaida} disabled={bloqueado} onChange={(e) => updateEtapa(etapa.id, { criterioSaida: e.target.value })} />
+          <TextInput
+            value={etapa.criterioSaida}
+            disabled={bloqueado}
+            onChange={(e) => updateEtapa(etapa.id, { criterioSaida: e.target.value })}
+          />
         </Field>
       </Grid>
 
@@ -421,7 +512,9 @@ function EditorEtapaOperacao({
         />
 
         <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Notificações e controles</p>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Notificações e controles
+          </p>
           <Rows>
             <Toggle
               label="Avisar o papel responsável na chegada"
@@ -437,7 +530,9 @@ function EditorEtapaOperacao({
             />
             <Toggle
               label="Etapa ativa"
-              hint={etapa.obrigatoria ? "Etapa obrigatória do produto — não pode ser desativada." : ""}
+              hint={
+                etapa.obrigatoria ? "Etapa obrigatória do produto — não pode ser desativada." : ""
+              }
               checked={etapa.ativa}
               disabled={somenteLeitura || etapa.obrigatoria}
               onChange={(v) => updateEtapa(etapa.id, { ativa: v })}
@@ -459,20 +554,16 @@ function EditorEtapaOperacao({
             />
           </div>
 
-
           {etapa.segregacaoObrigatoria && (
             <div className="mt-3">
               <Field label="Papel verificador">
-                <SelectInput
+                <PapelSelect
                   value={etapa.papelVerificador}
                   disabled={bloqueado}
-                  onChange={(e) => updateEtapa(etapa.id, { papelVerificador: e.target.value })}
-                >
-                  <option value="">Selecionar…</option>
-                  {PAPEIS_OPERACAO.map((p) => (
-                    <option key={p}>{p}</option>
-                  ))}
-                </SelectInput>
+                  placeholder="Selecionar…"
+                  hint={false}
+                  onChange={(papelVerificador) => updateEtapa(etapa.id, { papelVerificador })}
+                />
               </Field>
             </div>
           )}
@@ -483,16 +574,15 @@ function EditorEtapaOperacao({
               <p className="text-xs text-muted-foreground">Exige: {etapa.portao.exige}</p>
               <div className="mt-2">
                 <Field label="Autorizador do portão">
-                  <SelectInput
+                  <PapelSelect
                     value={etapa.portao.autorizador}
                     disabled={somenteLeitura}
-                    onChange={(e) => updateEtapa(etapa.id, { portao: { ...etapa.portao!, autorizador: e.target.value } })}
-                  >
-                    <option value="">Sem autorizador</option>
-                    {PAPEIS_OPERACAO.map((p) => (
-                      <option key={p}>{p}</option>
-                    ))}
-                  </SelectInput>
+                    placeholder="Sem autorizador"
+                    hint={false}
+                    onChange={(autorizador) =>
+                      updateEtapa(etapa.id, { portao: { ...etapa.portao!, autorizador } })
+                    }
+                  />
                 </Field>
               </div>
             </div>
@@ -525,7 +615,9 @@ function AbaSubfluxos() {
   const [busca, setBusca] = useState("");
 
   const lista = rascunho.subfluxos.filter((s) =>
-    `${s.nome} ${s.descricao} ${s.gatilho} ${s.responsavel}`.toLowerCase().includes(busca.trim().toLowerCase()),
+    `${s.nome} ${s.descricao} ${s.gatilho} ${s.responsavel}`
+      .toLowerCase()
+      .includes(busca.trim().toLowerCase()),
   );
   const aberto = rascunho.subfluxos.find((s) => s.id === abrindo);
   const ativos = rascunho.subfluxos.filter((s) => s.ativo).length;
@@ -554,7 +646,9 @@ function AbaSubfluxos() {
       >
         <ul className="divide-y divide-border">
           {lista.length === 0 && (
-            <li className="px-4 py-6 text-center text-xs text-muted-foreground">Nenhum subfluxo com esse termo.</li>
+            <li className="px-4 py-6 text-center text-xs text-muted-foreground">
+              Nenhum subfluxo com esse termo.
+            </li>
           )}
           {lista.map((s) => {
             const dependente = s.dependeHomologacao && !s.homologado;
@@ -570,7 +664,9 @@ function AbaSubfluxos() {
                     {!s.ativo && <Chip tone="outline">Desligado</Chip>}
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">{s.descricao}</p>
-                  <p className="text-[11px] text-muted-foreground/80">Dispara quando: {s.gatilho}</p>
+                  <p className="text-[11px] text-muted-foreground/80">
+                    Dispara quando: {s.gatilho}
+                  </p>
                   {s.ativo && (
                     <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
                       <span>Responsável: {s.responsavel || "— não definido"}</span>
@@ -578,7 +674,12 @@ function AbaSubfluxos() {
                       <span className="tabular">
                         {s.checklist.length} itens no checklist ({obrigatorios} obrigatórios)
                       </span>
-                      <span>Avisos: {s.canais.length ? s.canais.map((c) => CANAIS.find((x) => x.id === c)?.label).join(", ") : "nenhum"}</span>
+                      <span>
+                        Avisos:{" "}
+                        {s.canais.length
+                          ? s.canais.map((c) => CANAIS.find((x) => x.id === c)?.label).join(", ")
+                          : "nenhum"}
+                      </span>
                     </p>
                   )}
                 </div>
@@ -594,7 +695,8 @@ function AbaSubfluxos() {
                       onChange={(v) => {
                         if (v && dependente) {
                           toast.error("Capability não confirmada pela AC", {
-                            description: "Este subfluxo só pode valer após homologação. A ativação fica registrada como pendência de publicação.",
+                            description:
+                              "Este subfluxo só pode valer após homologação. A ativação fica registrada como pendência de publicação.",
                           });
                         }
                         updateSubfluxo(s.id, { ativo: v });
@@ -614,27 +716,22 @@ function AbaSubfluxos() {
         title={aberto ? `Subfluxo: ${aberto.nome}` : ""}
         {...(aberto ? { hint: aberto.descricao } : {})}
         width="max-w-2xl"
-        footer={
-          <Btn onClick={() => setAbrindo(null)}>Concluir</Btn>
-        }
+        footer={<Btn onClick={() => setAbrindo(null)}>Concluir</Btn>}
       >
         {aberto && (
           <div className="space-y-4">
             <p className="rounded-md border border-border bg-muted/40 p-2.5 text-xs text-muted-foreground">
-              Dispara quando: <span className="text-foreground">{aberto.gatilho}</span>. Origem da regra: {ORIGENS[aberto.origem].label} — {ORIGENS[aberto.origem].hint}
+              Dispara quando: <span className="text-foreground">{aberto.gatilho}</span>. Origem da
+              regra: {ORIGENS[aberto.origem].label} — {ORIGENS[aberto.origem].hint}
             </p>
             <Grid cols={3}>
               <Field label="Responsável">
-                <SelectInput
+                <PapelSelect
                   value={aberto.responsavel}
                   disabled={somenteLeitura}
-                  onChange={(e) => updateSubfluxo(aberto.id, { responsavel: e.target.value })}
-                >
-                  <option value="">Selecionar…</option>
-                  {PAPEIS_OPERACAO.map((p) => (
-                    <option key={p}>{p}</option>
-                  ))}
-                </SelectInput>
+                  placeholder="Selecionar…"
+                  onChange={(responsavel) => updateSubfluxo(aberto.id, { responsavel })}
+                />
               </Field>
               <Field label="SLA (horas)">
                 <TextInput
@@ -670,7 +767,6 @@ function AbaSubfluxos() {
   );
 }
 
-
 /* ----------------------------------------------------- Escopo & precedência */
 
 function AbaEscopo() {
@@ -680,7 +776,10 @@ function AbaEscopo() {
 
   return (
     <div className="space-y-4">
-      <Panel title="Escopo desta configuração" hint="O rascunho é editado dentro de um escopo. Escopos mais específicos herdam do padrão do tenant.">
+      <Panel
+        title="Escopo desta configuração"
+        hint="O rascunho é editado dentro de um escopo. Escopos mais específicos herdam do padrão do tenant."
+      >
         <Grid>
           <Field label="Nível">
             <SelectInput
@@ -714,13 +813,18 @@ function AbaEscopo() {
         <p className="mt-2 text-xs text-muted-foreground">{escopoAtual.hint}</p>
       </Panel>
 
-      <Panel title="Precedência das regras" hint="Da mais forte para a mais fraca. A origem aparece em cada regra efetiva.">
+      <Panel
+        title="Precedência das regras"
+        hint="Da mais forte para a mais fraca. A origem aparece em cada regra efetiva."
+      >
         <ol className="space-y-2">
           {(Object.keys(ORIGENS) as OrigemRegra[])
             .sort((a, b) => ORIGENS[b].peso - ORIGENS[a].peso)
             .map((o, i) => (
               <li key={o} className="flex items-start gap-3 rounded-md border border-border p-2.5">
-                <span className="grid size-6 shrink-0 place-items-center rounded bg-muted text-[11px] font-semibold tabular">{i + 1}</span>
+                <span className="grid size-6 shrink-0 place-items-center rounded bg-muted text-[11px] font-semibold tabular">
+                  {i + 1}
+                </span>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium">{ORIGENS[o].label}</p>
@@ -732,14 +836,30 @@ function AbaEscopo() {
             ))}
         </ol>
         <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
-          <li className="flex gap-2"><ShieldCheck className="size-3.5 shrink-0 text-primary" /> Regra legal e de segurança sempre prevalece.</li>
-          <li className="flex gap-2"><ShieldCheck className="size-3.5 shrink-0 text-primary" /> Capability da AC não pode ser ligada manualmente.</li>
-          <li className="flex gap-2"><ShieldCheck className="size-3.5 shrink-0 text-primary" /> Regra comercial não remove requisito regulatório.</li>
-          <li className="flex gap-2"><AlertTriangle className="size-3.5 shrink-0 text-alert" /> Conflitos impedem a publicação.</li>
+          <li className="flex gap-2">
+            <ShieldCheck className="size-3.5 shrink-0 text-primary" /> Regra legal e de segurança
+            sempre prevalece.
+          </li>
+          <li className="flex gap-2">
+            <ShieldCheck className="size-3.5 shrink-0 text-primary" /> Capability da AC não pode ser
+            ligada manualmente.
+          </li>
+          <li className="flex gap-2">
+            <ShieldCheck className="size-3.5 shrink-0 text-primary" /> Regra comercial não remove
+            requisito regulatório.
+          </li>
+          <li className="flex gap-2">
+            <AlertTriangle className="size-3.5 shrink-0 text-alert" /> Conflitos impedem a
+            publicação.
+          </li>
         </ul>
       </Panel>
 
-      <Panel title="Regras efetivas neste escopo" hint="Cada etapa mostra de onde veio a regra que está valendo." bodyClassName="p-0">
+      <Panel
+        title="Regras efetivas neste escopo"
+        hint="Cada etapa mostra de onde veio a regra que está valendo."
+        bodyClassName="p-0"
+      >
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">
             <thead className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -755,7 +875,9 @@ function AbaEscopo() {
               {rascunho.etapas.map((e) => (
                 <tr key={e.id}>
                   <td className="px-4 py-2">{e.nome}</td>
-                  <td className="px-4 py-2 text-muted-foreground">{MARCOS.find((m) => m.id === e.marco)?.nome}</td>
+                  <td className="px-4 py-2 text-muted-foreground">
+                    {MARCOS.find((m) => m.id === e.marco)?.nome}
+                  </td>
                   <td className="px-4 py-2 text-muted-foreground">{e.papel}</td>
                   <td className="px-4 py-2 tabular">{e.slaHoras}h</td>
                   <td className="px-4 py-2">
@@ -774,7 +896,17 @@ function AbaEscopo() {
 /* ----------------------------------------------------------------- Versões */
 
 function AbaVersoes() {
-  const { publicada, historico, dirty, diff, achados, permissoes, setPermissoes, descartarRascunho, publicar } = useOpConfig();
+  const {
+    publicada,
+    historico,
+    dirty,
+    diff,
+    achados,
+    permissoes,
+    setPermissoes,
+    descartarRascunho,
+    publicar,
+  } = useOpConfig();
   const [comparando, setComparando] = useState(false);
   const [publicando, setPublicando] = useState(false);
   const [nota, setNota] = useState("");
@@ -794,11 +926,15 @@ function AbaVersoes() {
             <p className="text-sm">{publicada.autor}</p>
           </div>
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Publicada em</p>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Publicada em
+            </p>
             <p className="text-sm tabular">{formatarData(publicada.data)}</p>
           </div>
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Casos usando</p>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Casos usando
+            </p>
             <p className="text-sm tabular">{publicada.casos}</p>
           </div>
           <div>
@@ -811,23 +947,35 @@ function AbaVersoes() {
 
       <Panel
         title="Rascunho em edição"
-        hint={dirty ? `${diff.length} diferença(s) em relação à versão publicada.` : "Idêntico à versão publicada."}
+        hint={
+          dirty
+            ? `${diff.length} diferença(s) em relação à versão publicada.`
+            : "Idêntico à versão publicada."
+        }
         actions={
           <div className="flex flex-wrap gap-2">
             <Btn variant="ghost" onClick={() => setComparando(true)} disabled={diff.length === 0}>
               <GitCompare className="size-4" /> Comparar
             </Btn>
-            <Btn variant="ghost" onClick={() => setDescartando(true)} disabled={!dirty || !permissoes.editarRascunho}>
+            <Btn
+              variant="ghost"
+              onClick={() => setDescartando(true)}
+              disabled={!dirty || !permissoes.editarRascunho}
+            >
               Descartar rascunho
             </Btn>
             <Btn
               onClick={() => {
                 if (!permissoes.publicar) {
-                  toast.error("Sem permissão para publicar", { description: "Seu perfil pode editar o rascunho, mas não publicar." });
+                  toast.error("Sem permissão para publicar", {
+                    description: "Seu perfil pode editar o rascunho, mas não publicar.",
+                  });
                   return;
                 }
                 if (erros.length) {
-                  toast.error("Publicação bloqueada", { description: `${erros.length} conflito(s) precisam ser resolvidos na aba Validações.` });
+                  toast.error("Publicação bloqueada", {
+                    description: `${erros.length} conflito(s) precisam ser resolvidos na aba Validações.`,
+                  });
                   return;
                 }
                 setPublicando(true);
@@ -840,9 +988,9 @@ function AbaVersoes() {
         }
       >
         <p className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-          Esta versão será aplicada aos novos casos. Casos em andamento continuam usando a versão com que foram criados.
-          Regras legais, controles de segurança, capabilities revogadas e bloqueios emergenciais continuam prevalecendo sobre
-          versões antigas.
+          Esta versão será aplicada aos novos casos. Casos em andamento continuam usando a versão
+          com que foram criados. Regras legais, controles de segurança, capabilities revogadas e
+          bloqueios emergenciais continuam prevalecendo sobre versões antigas.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <Rows>
@@ -884,7 +1032,9 @@ function AbaVersoes() {
                     {i === 0 && <Chip tone="blue">Publicada</Chip>}
                   </td>
                   <td className="px-4 py-2 text-muted-foreground">{v.autor}</td>
-                  <td className="px-4 py-2 tabular text-muted-foreground">{formatarData(v.data)}</td>
+                  <td className="px-4 py-2 tabular text-muted-foreground">
+                    {formatarData(v.data)}
+                  </td>
                   <td className="px-4 py-2 tabular">{v.casos}</td>
                   <td className="px-4 py-2 text-muted-foreground">{v.nota}</td>
                 </tr>
@@ -894,7 +1044,12 @@ function AbaVersoes() {
         </div>
       </Panel>
 
-      <Modal open={comparando} onClose={() => setComparando(false)} title="Publicada × rascunho" width="max-w-3xl">
+      <Modal
+        open={comparando}
+        onClose={() => setComparando(false)}
+        title="Publicada × rascunho"
+        width="max-w-3xl"
+      >
         <div className="divide-y divide-border rounded-md border border-border">
           {diff.map((l) => (
             <div key={l.chave} className="grid gap-2 p-3 sm:grid-cols-[1fr_1fr_1fr]">
@@ -927,7 +1082,8 @@ function AbaVersoes() {
                 setNota("");
                 setPublicando(false);
                 toast.success("Versão publicada", {
-                  description: "Aplicada aos novos casos. Casos em andamento seguem na versão anterior.",
+                  description:
+                    "Aplicada aos novos casos. Casos em andamento seguem na versão anterior.",
                 });
               }}
             >
@@ -937,7 +1093,12 @@ function AbaVersoes() {
         }
       >
         <Field label="Nota da publicação">
-          <TextArea rows={3} value={nota} onChange={(e) => setNota(e.target.value)} placeholder="O que muda nesta versão." />
+          <TextArea
+            rows={3}
+            value={nota}
+            onChange={(e) => setNota(e.target.value)}
+            placeholder="O que muda nesta versão."
+          />
         </Field>
       </Modal>
 
@@ -967,7 +1128,10 @@ function AbaSimulador() {
 
   return (
     <div className="space-y-4">
-      <Panel title="Simular um cenário" hint="A simulação usa o rascunho atual, não a versão publicada.">
+      <Panel
+        title="Simular um cenário"
+        hint="A simulação usa o rascunho atual, não a versão publicada."
+      >
         <div className="flex flex-wrap gap-1.5">
           {CENARIOS.map((c) => (
             <button
@@ -994,7 +1158,10 @@ function AbaSimulador() {
         <Panel title="Etapas geradas" bodyClassName="p-0">
           <ol className="divide-y divide-border">
             {resultado.etapas.map((e, i) => (
-              <li key={`${e.nome}-${i}`} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm">
+              <li
+                key={`${e.nome}-${i}`}
+                className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm"
+              >
                 <div className="min-w-0">
                   <p className="font-medium">
                     {i + 1}. {e.nome}
@@ -1026,7 +1193,11 @@ function AbaSimulador() {
 
           <Panel title="Portões aplicados" bodyClassName="p-0">
             <ul className="divide-y divide-border">
-              {resultado.portoes.length === 0 && <li className="px-4 py-2 text-sm text-muted-foreground">Nenhum portão neste cenário.</li>}
+              {resultado.portoes.length === 0 && (
+                <li className="px-4 py-2 text-sm text-muted-foreground">
+                  Nenhum portão neste cenário.
+                </li>
+              )}
               {resultado.portoes.map((p) => (
                 <li key={p.etapa} className="px-4 py-2 text-sm">
                   <p className="font-medium">{p.etapa}</p>
@@ -1054,16 +1225,33 @@ function AbaSimulador() {
 
         <Panel title="Subfluxos acionados" bodyClassName="p-0">
           <ul className="divide-y divide-border">
-            {resultado.subfluxos.length === 0 && <li className="px-4 py-2 text-sm text-muted-foreground">Nenhum subfluxo neste cenário.</li>}
+            {resultado.subfluxos.length === 0 && (
+              <li className="px-4 py-2 text-sm text-muted-foreground">
+                Nenhum subfluxo neste cenário.
+              </li>
+            )}
             {resultado.subfluxos.map((s) => (
-              <li key={s.nome} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm">
+              <li
+                key={s.nome}
+                className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm"
+              >
                 <div>
                   <p className="font-medium">{s.nome}</p>
                   <p className="text-xs text-muted-foreground">
                     {s.responsavel} · {s.sla}h
                   </p>
                 </div>
-                <Chip tone={s.estado.startsWith("Dependente") ? "alert" : s.estado === "Ativo" ? "blue" : "outline"}>{s.estado}</Chip>
+                <Chip
+                  tone={
+                    s.estado.startsWith("Dependente")
+                      ? "alert"
+                      : s.estado === "Ativo"
+                        ? "blue"
+                        : "outline"
+                  }
+                >
+                  {s.estado}
+                </Chip>
               </li>
             ))}
           </ul>
@@ -1092,14 +1280,18 @@ function AbaSimulador() {
         </div>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div className="rounded-md border border-border p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Regra efetiva</p>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Regra efetiva
+            </p>
             <p className="text-sm">{resultado.regraEfetiva.regra}</p>
             <div className="mt-1.5">
               <OrigemChip origem={resultado.regraEfetiva.origem} />
             </div>
           </div>
           <div className="rounded-md border border-border p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Próxima ação permitida</p>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Próxima ação permitida
+            </p>
             <p className="text-sm">{resultado.proximaAcao}</p>
           </div>
         </div>
@@ -1131,7 +1323,8 @@ function AbaValidacoes() {
         <ul className="divide-y divide-border">
           {achados.length === 0 && (
             <li className="flex items-center gap-2 px-4 py-3 text-sm text-primary-deep">
-              <CheckCircle2 className="size-4" /> Nenhum conflito. A configuração pode ser publicada.
+              <CheckCircle2 className="size-4" /> Nenhum conflito. A configuração pode ser
+              publicada.
             </li>
           )}
           {achados.map((a) => (
@@ -1151,7 +1344,10 @@ function AbaValidacoes() {
         </ul>
       </Panel>
 
-      <Panel title="O que a plataforma nunca permite" hint="Tentativas destas ações são recusadas com explicação, não silenciosamente.">
+      <Panel
+        title="O que a plataforma nunca permite"
+        hint="Tentativas destas ações são recusadas com explicação, não silenciosamente."
+      >
         <ul className="space-y-1.5 text-xs text-muted-foreground">
           {[
             "Remover ou reordenar um dos seis marcos canônicos.",
