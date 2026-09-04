@@ -4,7 +4,10 @@ import {
   ArrowRight,
   Bookmark,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Filter,
+  Hand,
   LayoutGrid,
   List,
   Lock,
@@ -12,6 +15,7 @@ import {
   Rows3,
   Save,
   Sparkles,
+  UserCog,
   Users,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -19,7 +23,16 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { NovaSolicitacaoButton } from "@/components/dialogs";
-import { Btn, ConfirmDialog, EmptyState, Field, Modal, SelectInput } from "@/components/forms";
+import { Btn, ConfirmDialog, EmptyState, Field, Modal } from "@/components/forms";
+import {
+  BarraLote,
+  CaixaSelecao,
+  ChecklistCaso,
+  PainelCarga,
+  ReatribuirDialog,
+  ResponsavelCaso,
+  TimelineRecente,
+} from "@/components/operacao-avancado";
 import {
   AvisoRegulatorio,
   CasoCard,
@@ -35,6 +48,7 @@ import { cenarios } from "@/lib/cenarios";
 import { agentById, brl, stages, type Request } from "@/lib/mock-data";
 import {
   acoesDe,
+  agentesOperacao,
   bloqueioPrincipal,
   impedimentoDe,
   marcoDe,
@@ -54,7 +68,7 @@ import {
   type Tarefa,
   type TipoPendencia,
 } from "@/lib/operacao-model";
-import { useStore } from "@/lib/store";
+import { USUARIO_ATUAL, useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/operacao")({
@@ -112,7 +126,7 @@ const pesoPrioridade = { critica: 0, alta: 1, normal: 2, baixa: 3 } as const;
 const abasValidas: Aba[] = ["visao", "fila", "casos", "demo"];
 
 function Operacao() {
-  const { requests, moveRequest, updateRequest } = useStore();
+  const { requests, moveRequest, updateRequest, toggleChecklist, logRequest } = useStore();
   const navigate = useNavigate();
   const { aba: abaUrl } = Route.useSearch();
 
@@ -130,8 +144,14 @@ function Operacao() {
   }
   const [caso, setCaso] = useState<string | null>(null);
   const [pendente, setPendente] = useState<{ acao: AcaoCaso; requestId: string } | null>(null);
+  const [selecao, setSelecao] = useState<string[]>([]);
+  const [lote, setLote] = useState<
+    null | "avancar" | "assumir" | "priorizar" | "bloquear" | "reatribuir"
+  >(null);
+  const [ordemVisivel, setOrdemVisivel] = useState<string[]>([]);
 
   const casoAberto = requests.find((r) => r.id === caso) ?? null;
+  const selecionados = requests.filter((r) => selecao.includes(r.id));
 
   const emissoesPorCliente = useMemo(() => {
     const mapa: Record<string, number> = {};
@@ -139,19 +159,30 @@ function Operacao() {
     return mapa;
   }, [requests]);
 
+  function alternarSelecao(id: string, marcado: boolean) {
+    setSelecao((s) => (marcado ? [...new Set([...s, id])] : s.filter((x) => x !== id)));
+  }
+
   function executar(acao: AcaoCaso, requestId: string) {
     const r = requests.find((x) => x.id === requestId);
     if (!r) return;
     if (acao.id === "assumir") {
       updateRequest(requestId, { responsavelId: perfilById(papelEsperado(r)).agenteId });
-      toast.success(`${r.protocolo} atribuído a você`, { description: "Registrado na trilha de auditoria." });
+      logRequest(requestId, "Caso assumido", `${USUARIO_ATUAL.nome} passou a responder pelo caso.`);
+      toast.success(`${r.protocolo} atribuído a você`, {
+        description: "Registrado na trilha de auditoria.",
+      });
     } else if (acao.id === "priorizar") {
-      const nova = r.prioridade === "critica" ? "alta" : r.prioridade === "alta" ? "critica" : "alta";
+      const nova =
+        r.prioridade === "critica" ? "alta" : r.prioridade === "alta" ? "critica" : "alta";
       updateRequest(requestId, { prioridade: nova });
+      logRequest(requestId, `Prioridade alterada para ${nova}`, `Anterior: ${r.prioridade}.`);
       toast.success(`Prioridade de ${r.protocolo} agora é ${nova}`);
     } else if (acao.destino) {
       moveRequest(requestId, acao.destino, acao.label);
-      toast.success(`${r.protocolo}: ${acao.label}`, { description: "Transição confirmada e auditada." });
+      toast.success(`${r.protocolo}: ${acao.label}`, {
+        description: "Transição confirmada e auditada.",
+      });
     }
     setPendente(null);
   }
@@ -165,6 +196,73 @@ function Operacao() {
       return;
     }
     setPendente({ acao, requestId });
+  }
+
+  // ---- ações em lote: sempre reportam o que passou e o que foi barrado.
+  const previaLote = useMemo(() => {
+    if (lote !== "avancar")
+      return { liberados: [] as Request[], barrados: [] as { r: Request; motivo: string }[] };
+    const liberados: Request[] = [];
+    const barrados: { r: Request; motivo: string }[] = [];
+    for (const r of selecionados) {
+      const acao = acoesDe(r).find((a) => a.destino && a.id === "avancar");
+      if (!acao) {
+        barrados.push({ r, motivo: "Não há avanço previsto para a etapa atual." });
+        continue;
+      }
+      const imp = impedimentoDe(r, acao);
+      if (imp) barrados.push({ r, motivo: imp });
+      else liberados.push(r);
+    }
+    return { liberados, barrados };
+  }, [lote, selecionados]);
+
+  function aplicarLote(agenteId?: string, motivo?: string) {
+    if (lote === "avancar") {
+      for (const r of previaLote.liberados) {
+        const acao = acoesDe(r).find((a) => a.destino && a.id === "avancar");
+        if (acao?.destino) moveRequest(r.id, acao.destino, `${acao.label} (ação em lote)`);
+      }
+      toast.success(`${previaLote.liberados.length} caso(s) avançaram`, {
+        description: previaLote.barrados.length
+          ? `${previaLote.barrados.length} permaneceram na etapa por requisito pendente.`
+          : "Nenhum caso ficou para trás.",
+      });
+    } else if (lote === "assumir") {
+      for (const r of selecionados) {
+        updateRequest(r.id, { responsavelId: USUARIO_ATUAL.id });
+        logRequest(
+          r.id,
+          "Caso assumido em lote",
+          `${USUARIO_ATUAL.nome} assumiu a responsabilidade.`,
+        );
+      }
+      toast.success(`${selecionados.length} caso(s) agora são seus`);
+    } else if (lote === "priorizar") {
+      for (const r of selecionados) {
+        updateRequest(r.id, { prioridade: "critica" });
+        logRequest(r.id, "Prioridade elevada para crítica", "Ação em lote da coordenação.");
+      }
+      toast.success(`${selecionados.length} caso(s) marcados como críticos`);
+    } else if (lote === "bloquear") {
+      for (const r of selecionados) moveRequest(r.id, "bloqueado", "Bloqueio registrado em lote");
+      toast.success(`${selecionados.length} caso(s) sinalizados como bloqueados`);
+    } else if (lote === "reatribuir" && agenteId) {
+      for (const r of selecionados) {
+        updateRequest(r.id, { responsavelId: agenteId });
+        logRequest(r.id, `Responsável alterado para ${agentById(agenteId).nome}`, motivo);
+      }
+      toast.success(`${selecionados.length} caso(s) transferidos para ${agentById(agenteId).nome}`);
+    }
+    setLote(null);
+    setSelecao([]);
+  }
+
+  const idxAberto = casoAberto ? ordemVisivel.indexOf(casoAberto.id) : -1;
+  function navegarCaso(passo: 1 | -1) {
+    if (idxAberto < 0) return;
+    const proximo = ordemVisivel[idxAberto + passo];
+    if (proximo) setCaso(proximo);
   }
 
   return (
@@ -195,7 +293,9 @@ function Operacao() {
             onClick={() => setAba(id)}
             className={cn(
               "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
-              aba === id ? "bg-primary-soft font-medium text-primary-deep" : "text-muted-foreground hover:text-foreground",
+              aba === id
+                ? "bg-primary-soft font-medium text-primary-deep"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             <Icon className="size-4" aria-hidden="true" /> {label}
@@ -203,7 +303,9 @@ function Operacao() {
               <span
                 className={cn(
                   "tabular rounded px-1 text-[10px] font-semibold",
-                  aba === id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                  aba === id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground",
                 )}
               >
                 {contagem}
@@ -218,13 +320,27 @@ function Operacao() {
           requests={requests}
           emissoes={emissoesPorCliente}
           onOpen={setCaso}
+          selecao={selecao}
+          onSelecionar={alternarSelecao}
+          onSelecionarVarios={(ids, marcado) =>
+            setSelecao((s) =>
+              marcado ? [...new Set([...s, ...ids])] : s.filter((x) => !ids.includes(x)),
+            )
+          }
+          onOrdemVisivel={setOrdemVisivel}
+          onAcaoRapida={(id, acaoId) => {
+            const r = requests.find((x) => x.id === id);
+            const acao = r && acoesDe(r).find((a) => a.id === acaoId);
+            if (r && acao) pedirConfirmacao(acao, id);
+          }}
           onSolicitarTransicao={(id, marco) => {
             const r = requests.find((x) => x.id === id);
             if (!r) return;
             const acao = acoesDe(r).find((a) => a.destino && marcoDestinoValido(a, marco));
             if (!acao) {
               toast.error("Transição não permitida", {
-                description: "Arraste apenas para o próximo marco previsto ou abra o caso para ver as ações.",
+                description:
+                  "Arraste apenas para o próximo marco previsto ou abra o caso para ver as ações.",
               });
               return;
             }
@@ -233,21 +349,135 @@ function Operacao() {
         />
       )}
 
-      {aba === "fila" && <MinhaFila requests={requests} onOpen={setCaso} />}
+      {aba === "fila" && (
+        <MinhaFila
+          requests={requests}
+          onOpen={setCaso}
+          selecao={selecao}
+          onSelecionar={alternarSelecao}
+          onOrdemVisivel={setOrdemVisivel}
+          onAssumir={(id) => {
+            updateRequest(id, { responsavelId: USUARIO_ATUAL.id });
+            logRequest(id, "Caso assumido pela fila", `${USUARIO_ATUAL.nome} puxou a tarefa.`);
+            toast.success("Tarefa assumida", { description: "O caso passou para a sua fila." });
+          }}
+        />
+      )}
 
-      {aba === "casos" && <TodosOsCasos requests={requests} onOpen={setCaso} />}
+      {aba === "casos" && (
+        <TodosOsCasos
+          requests={requests}
+          onOpen={setCaso}
+          selecao={selecao}
+          onSelecionar={alternarSelecao}
+          onSelecionarVarios={(ids, marcado) =>
+            setSelecao((s) =>
+              marcado ? [...new Set([...s, ...ids])] : s.filter((x) => !ids.includes(x)),
+            )
+          }
+          onOrdemVisivel={setOrdemVisivel}
+        />
+      )}
 
       {aba === "demo" && <CasosDemonstrativos />}
 
+      <BarraLote quantidade={selecao.length} onLimpar={() => setSelecao([])}>
+        <Btn variant="ghost" onClick={() => setLote("assumir")}>
+          <Hand className="size-3.5" /> Assumir
+        </Btn>
+        <Btn variant="ghost" onClick={() => setLote("reatribuir")}>
+          <UserCog className="size-3.5" /> Reatribuir
+        </Btn>
+        <Btn variant="ghost" onClick={() => setLote("priorizar")}>
+          <AlertTriangle className="size-3.5" /> Elevar prioridade
+        </Btn>
+        <Btn onClick={() => setLote("avancar")}>
+          <ArrowRight className="size-3.5" /> Avançar etapa
+        </Btn>
+        <Btn variant="danger" onClick={() => setLote("bloquear")}>
+          <Lock className="size-3.5" /> Registrar bloqueio
+        </Btn>
+      </BarraLote>
 
       <CasoDrawer
         r={casoAberto}
         onClose={() => setCaso(null)}
         onAcao={(acao) => casoAberto && pedirConfirmacao(acao, casoAberto.id)}
+        onToggleChecklist={(itemId) => casoAberto && toggleChecklist(casoAberto.id, itemId)}
+        onResponsavel={(agenteId) => {
+          if (!casoAberto) return;
+          updateRequest(casoAberto.id, { responsavelId: agenteId });
+          logRequest(casoAberto.id, `Responsável alterado para ${agentById(agenteId).nome}`);
+          toast.success(`Responsável agora é ${agentById(agenteId).nome}`);
+        }}
+        onNota={(texto) => {
+          if (!casoAberto) return;
+          logRequest(casoAberto.id, "Nota da operação", texto);
+          toast.success("Nota registrada no histórico do caso");
+        }}
+        {...(idxAberto > 0 ? { onAnterior: () => navegarCaso(-1) } : {})}
+        {...(idxAberto >= 0 && idxAberto < ordemVisivel.length - 1
+          ? { onProximo: () => navegarCaso(1) }
+          : {})}
+        {...(idxAberto >= 0 ? { posicao: `${idxAberto + 1} de ${ordemVisivel.length}` } : {})}
         onAbrirFicha={() => {
           if (casoAberto) navigate({ to: "/solicitacoes/$id", params: { id: casoAberto.id } });
         }}
       />
+
+      <ReatribuirDialog
+        open={lote === "reatribuir"}
+        quantidade={selecao.length}
+        sugerido={USUARIO_ATUAL.id}
+        onCancel={() => setLote(null)}
+        onConfirm={(agenteId, motivo) => aplicarLote(agenteId, motivo)}
+      />
+
+      <ConfirmDialog
+        open={!!lote && lote !== "reatribuir"}
+        title={
+          lote === "avancar"
+            ? "Avançar etapa em lote"
+            : lote === "assumir"
+              ? "Assumir casos selecionados"
+              : lote === "priorizar"
+                ? "Elevar prioridade para crítica"
+                : "Registrar bloqueio em lote"
+        }
+        descricao={`${selecao.length} caso(s) selecionado(s).`}
+        confirmLabel="Confirmar"
+        {...(lote === "bloquear" ? { destructive: true } : {})}
+        onCancel={() => setLote(null)}
+        onConfirm={() => aplicarLote()}
+      >
+        <div className="space-y-2 text-sm">
+          {lote === "avancar" ? (
+            <>
+              <p className="text-muted-foreground">
+                <span className="font-medium text-foreground">{previaLote.liberados.length}</span>{" "}
+                caso(s) atendem aos requisitos e vão avançar.{" "}
+                <span className="font-medium text-foreground">{previaLote.barrados.length}</span>{" "}
+                ficarão parados.
+              </p>
+              {previaLote.barrados.length > 0 && (
+                <ul className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-border p-2">
+                  {previaLote.barrados.map(({ r, motivo }) => (
+                    <li key={r.id} className="text-[11px] text-muted-foreground">
+                      <span className="tabular font-medium text-alert">{r.protocolo}</span> —{" "}
+                      {motivo}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : (
+            <p className="text-muted-foreground">
+              A ação será aplicada a todos os casos selecionados e registrada individualmente na
+              trilha de auditoria.
+            </p>
+          )}
+        </div>
+      </ConfirmDialog>
 
       <ConfirmDialog
         open={!!pendente}
@@ -264,8 +494,8 @@ function Operacao() {
           </p>
           {pendente?.acao.regulatoria && (
             <AvisoRegulatorio>
-              Requisito regulatório: a identificação presencial e a emissão seguem a política da ICP e não podem ser
-              alteradas nas configurações.
+              Requisito regulatório: a identificação presencial e a emissão seguem a política da ICP
+              e não podem ser alteradas nas configurações.
             </AvisoRegulatorio>
           )}
         </div>
@@ -293,7 +523,9 @@ function marcoDestinoValido(acao: AcaoCaso, marco: MarcoId) {
 function ResumoOperacao({ requests }: { requests: Request[] }) {
   const atrasados = requests.filter((r) => r.slaRestanteHoras < 0).length;
   const criticos = requests.filter((r) => r.prioridade === "critica").length;
-  const bloqueados = requests.filter((r) => !bloqueioPrincipal(r).startsWith("Sem bloqueio")).length;
+  const bloqueados = requests.filter(
+    (r) => !bloqueioPrincipal(r).startsWith("Sem bloqueio"),
+  ).length;
   const semDono = requests.filter((r) => r.responsavelId !== papelEsperadoAgente(r)).length;
 
   const itens = [
@@ -309,7 +541,9 @@ function ResumoOperacao({ requests }: { requests: Request[] }) {
       {itens.map((i) => (
         <div key={i.label} className="bg-card px-3 py-2">
           <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{i.label}</p>
-          <p className={cn("tabular font-display text-lg font-semibold leading-tight", i.tone)}>{i.valor}</p>
+          <p className={cn("tabular font-display text-lg font-semibold leading-tight", i.tone)}>
+            {i.valor}
+          </p>
         </div>
       ))}
     </div>
@@ -322,22 +556,36 @@ function papelEsperadoAgente(r: Request) {
 
 // ------------------------------------------------------------- visão geral
 
+interface SelecaoProps {
+  selecao: string[];
+  onSelecionar: (id: string, marcado: boolean) => void;
+  onSelecionarVarios: (ids: string[], marcado: boolean) => void;
+  onOrdemVisivel: (ids: string[]) => void;
+}
+
 function VisaoGeral({
   requests,
   emissoes,
   onOpen,
   onSolicitarTransicao,
-}: {
+  onAcaoRapida,
+  selecao,
+  onSelecionar,
+  onSelecionarVarios,
+  onOrdemVisivel,
+}: SelecaoProps & {
   requests: Request[];
   emissoes: Record<string, number>;
   onOpen: (id: string) => void;
   onSolicitarTransicao: (id: string, marco: MarcoId) => void;
+  onAcaoRapida: (id: string, acaoId: string) => void;
 }) {
   const [modo, setModo] = useState<"kanban" | "tabela">("kanban");
   const [responsavel, setResponsavel] = useState("todos");
   const [prioridade, setPrioridade] = useState("todas");
   const [somenteSla, setSomenteSla] = useState(false);
   const [arrastando, setArrastando] = useState<string | null>(null);
+  const [carga, setCarga] = useState(false);
 
   const filtrados = useMemo(
     () =>
@@ -350,8 +598,12 @@ function VisaoGeral({
     [requests, responsavel, prioridade, somenteSla],
   );
 
-  const filtroAtivo = responsavel !== "todos" || prioridade !== "todas" || somenteSla;
+  useEffect(() => {
+    onOrdemVisivel(filtrados.map((r) => r.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtrados]);
 
+  const filtroAtivo = responsavel !== "todos" || prioridade !== "todas" || somenteSla;
 
   return (
     <>
@@ -401,7 +653,9 @@ function VisaoGeral({
               onClick={() => setModo(v)}
               className={cn(
                 "flex items-center gap-1.5 rounded px-2.5 py-1 text-xs capitalize transition-colors",
-                modo === v ? "bg-primary-soft text-primary-deep" : "text-muted-foreground hover:text-foreground",
+                modo === v
+                  ? "bg-primary-soft text-primary-deep"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <Icon className="size-3.5" /> {v}
@@ -412,8 +666,8 @@ function VisaoGeral({
 
       <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
         <p aria-live="polite" className="text-xs text-muted-foreground">
-          Mostrando <span className="tabular font-medium text-foreground">{filtrados.length}</span> de{" "}
-          <span className="tabular">{requests.length}</span> casos
+          Mostrando <span className="tabular font-medium text-foreground">{filtrados.length}</span>{" "}
+          de <span className="tabular">{requests.length}</span> casos
         </p>
         {filtroAtivo && (
           <button
@@ -428,20 +682,40 @@ function VisaoGeral({
           </button>
         )}
         <LegendaProntidao />
+        <button
+          onClick={() => setCarga((v) => !v)}
+          aria-expanded={carga}
+          className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+        >
+          {carga ? "Ocultar carga da equipe" : "Ver carga da equipe"}
+        </button>
       </div>
+
+      {carga && (
+        <div className="mb-3">
+          <PainelCarga
+            requests={requests}
+            agenteAtivo={responsavel}
+            onFiltrarAgente={setResponsavel}
+          />
+        </div>
+      )}
 
       <p className="mb-3 flex items-start gap-1.5 text-[11px] text-muted-foreground">
         <Lock className="mt-px size-3 shrink-0" />
-        Marcos são uma leitura comparativa do andamento — trilhas comerciais, documentais e regulatórias acontecem em
-        paralelo. Toda transição passa por confirmação e pelos requisitos da etapa.
+        Marcos são uma leitura comparativa do andamento — trilhas comerciais, documentais e
+        regulatórias acontecem em paralelo. Toda transição passa por confirmação e pelos requisitos
+        da etapa.
       </p>
-
 
       {modo === "kanban" ? (
         <div className="flex gap-3 overflow-x-auto pb-4">
           {marcos.map((m) => {
             const cards = filtrados.filter((r) => marcoDe(r) === m.id);
             const total = cards.reduce((s, r) => s + r.valor, 0);
+            const atrasados = cards.filter((r) => r.slaRestanteHoras < 0).length;
+            const ids = cards.map((r) => r.id);
+            const todosMarcados = ids.length > 0 && ids.every((id) => selecao.includes(id));
             return (
               <div
                 key={m.id}
@@ -453,29 +727,82 @@ function VisaoGeral({
                 className="flex w-[290px] shrink-0 flex-col rounded-lg border border-border bg-surface"
               >
                 <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{m.nome}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">{m.descricao}</p>
+                  <div className="flex min-w-0 items-start gap-2">
+                    <span className="pt-0.5">
+                      <CaixaSelecao
+                        marcada={todosMarcados}
+                        rotulo={`Selecionar todos os casos do marco ${m.nome}`}
+                        onChange={(v) => onSelecionarVarios(ids, v)}
+                      />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium">{m.nome}</span>
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {m.descricao}
+                      </span>
+                    </span>
                   </div>
                   <div className="text-right">
                     <p className="tabular text-sm font-semibold">{cards.length}</p>
                     <p className="tabular text-[11px] text-muted-foreground">{brl(total)}</p>
+                    {atrasados > 0 && (
+                      <p className="tabular text-[10px] font-medium text-alert">
+                        {atrasados} fora do prazo
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex-1 space-y-2 overflow-y-auto p-2 lg:max-h-[calc(100vh-22rem)]">
                   {cards.map((r) => (
-                    <CasoCard
-                      key={r.id}
-                      r={r}
-                      emissoes={emissoes[r.clienteId] ?? 1}
-                      onOpen={() => onOpen(r.id)}
-                      onDragStart={() => setArrastando(r.id)}
-                      onDragEnd={() => setArrastando(null)}
-                      {...(arrastando === r.id ? { arrastando: true } : {})}
-                    />
+                    <div key={r.id} className="relative">
+                      <span className="absolute right-2 top-2 z-10">
+                        <CaixaSelecao
+                          marcada={selecao.includes(r.id)}
+                          rotulo={`Selecionar caso ${r.protocolo}`}
+                          onChange={(v) => onSelecionar(r.id, v)}
+                        />
+                      </span>
+                      <CasoCard
+                        r={r}
+                        emissoes={emissoes[r.clienteId] ?? 1}
+                        onOpen={() => onOpen(r.id)}
+                        onDragStart={() => setArrastando(r.id)}
+                        onDragEnd={() => setArrastando(null)}
+                        {...(arrastando === r.id ? { arrastando: true } : {})}
+                      />
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {acoesDe(r)
+                          .filter((a) => a.id === "avancar" || a.id === "assumir")
+                          .map((a) => {
+                            const imp = impedimentoDe(r, a);
+                            return (
+                              <button
+                                key={a.id}
+                                onClick={() => onAcaoRapida(r.id, a.id)}
+                                disabled={!!imp}
+                                title={imp ?? a.descricao}
+                                className={cn(
+                                  "rounded border px-1.5 py-0.5 text-[10px] transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+                                  imp
+                                    ? "cursor-not-allowed border-border text-muted-foreground/60"
+                                    : "border-border-strong text-muted-foreground hover:border-primary hover:text-primary-deep",
+                                )}
+                              >
+                                {a.id === "assumir"
+                                  ? "Assumir"
+                                  : imp
+                                    ? "Avanço bloqueado"
+                                    : "Avançar"}
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
                   ))}
                   {cards.length === 0 && (
-                    <p className="px-1 py-6 text-center text-xs text-muted-foreground">Nenhum caso neste marco</p>
+                    <p className="px-1 py-6 text-center text-xs text-muted-foreground">
+                      Nenhum caso neste marco
+                    </p>
                   )}
                 </div>
               </div>
@@ -483,7 +810,13 @@ function VisaoGeral({
           })}
         </div>
       ) : (
-        <TabelaCasos requests={filtrados} onOpen={onOpen} />
+        <TabelaCasos
+          requests={filtrados}
+          onOpen={onOpen}
+          selecao={selecao}
+          onSelecionar={onSelecionar}
+          onSelecionarVarios={onSelecionarVarios}
+        />
       )}
     </>
   );
@@ -491,14 +824,35 @@ function VisaoGeral({
 
 // ------------------------------------------------------------ tabela casos
 
-function TabelaCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: string) => void }) {
+function TabelaCasos({
+  requests,
+  onOpen,
+  selecao,
+  onSelecionar,
+  onSelecionarVarios,
+}: {
+  requests: Request[];
+  onOpen: (id: string) => void;
+  selecao: string[];
+  onSelecionar: (id: string, marcado: boolean) => void;
+  onSelecionarVarios: (ids: string[], marcado: boolean) => void;
+}) {
   const pag = usePaginacao(requests, 25);
+  const idsPagina = pag.visiveis.map((r) => r.id);
+  const todosMarcados = idsPagina.length > 0 && idsPagina.every((id) => selecao.includes(id));
   return (
     <Panel bodyClassName="p-0">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] text-sm">
+        <table className="w-full min-w-[960px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <th className="px-3 py-2 font-medium">
+                <CaixaSelecao
+                  marcada={todosMarcados}
+                  rotulo="Selecionar todos os casos desta página"
+                  onChange={(v) => onSelecionarVarios(idsPagina, v)}
+                />
+              </th>
               <th className="px-4 py-2 font-medium">Caso</th>
               <th className="px-4 py-2 font-medium">Cliente</th>
               <th className="px-4 py-2 font-medium">Produto</th>
@@ -514,8 +868,18 @@ function TabelaCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: s
               <tr
                 key={r.id}
                 onClick={() => onOpen(r.id)}
-                className="cursor-pointer transition-colors hover:bg-muted/50"
+                className={cn(
+                  "cursor-pointer transition-colors hover:bg-muted/50",
+                  selecao.includes(r.id) && "bg-primary-soft/50",
+                )}
               >
+                <td className="px-3 py-2.5">
+                  <CaixaSelecao
+                    marcada={selecao.includes(r.id)}
+                    rotulo={`Selecionar caso ${r.protocolo}`}
+                    onChange={(v) => onSelecionar(r.id, v)}
+                  />
+                </td>
                 <td className="px-4 py-2.5 tabular text-primary">{r.protocolo}</td>
                 <td className="px-4 py-2.5">
                   <p className="truncate">{r.cliente}</p>
@@ -528,18 +892,28 @@ function TabelaCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: s
                 <td className="px-4 py-2.5">
                   <ProntidaoLinha r={r} />
                 </td>
-                <td className="px-4 py-2.5 text-muted-foreground">{agentById(r.responsavelId).nome}</td>
+                <td className="px-4 py-2.5 text-muted-foreground">
+                  {agentById(r.responsavelId).nome}
+                </td>
                 <td className="px-4 py-2.5">
                   <SlaBadge horas={r.slaRestanteHoras} />
                 </td>
-                <td className="px-4 py-2.5 text-[11px] text-muted-foreground">{proximaAcaoLabel(r)}</td>
+                <td className="px-4 py-2.5 text-[11px] text-muted-foreground">
+                  <p>{proximaAcaoLabel(r)}</p>
+                  <p className="text-alert">
+                    {bloqueioPrincipal(r).startsWith("Sem bloqueio") ? "" : bloqueioPrincipal(r)}
+                  </p>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       {requests.length === 0 && (
-        <EmptyState titulo="Nenhum caso encontrado" descricao="Ajuste os filtros para ver outros casos." />
+        <EmptyState
+          titulo="Nenhum caso encontrado"
+          descricao="Ajuste os filtros para ver outros casos."
+        />
       )}
       <Paginacao {...pag} rotulo="casos" />
     </Panel>
@@ -548,24 +922,51 @@ function TabelaCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: s
 
 // ------------------------------------------------------------- todos casos
 
-function TodosOsCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: string) => void }) {
+function TodosOsCasos({
+  requests,
+  onOpen,
+  selecao,
+  onSelecionar,
+  onSelecionarVarios,
+  onOrdemVisivel,
+}: SelecaoProps & { requests: Request[]; onOpen: (id: string) => void }) {
   const [busca, setBusca] = useState("");
   const [marco, setMarco] = useState("todos");
   const [origem, setOrigem] = useState("todas");
+  const [responsavel, setResponsavel] = useState("todos");
+  const [prazo, setPrazo] = useState("todos");
+  const [ordem, setOrdem] = useState<"sla" | "valor" | "cliente">("sla");
 
-  const filtrados = useMemo(
-    () =>
-      requests.filter((r) => {
-        const texto = `${r.protocolo} ${r.cliente} ${r.documento} ${r.tipo}`.toLowerCase();
-        return (
-          (busca === "" || texto.includes(busca.toLowerCase())) &&
-          (marco === "todos" || marcoDe(r) === marco) &&
-          (origem === "todas" ||
-            (origem === "parceiro" ? origemDe(r).startsWith("Contabilidade") : !origemDe(r).startsWith("Contabilidade")))
-        );
-      }),
-    [requests, busca, marco, origem],
-  );
+  const filtrados = useMemo(() => {
+    const base = requests.filter((r) => {
+      const texto = `${r.protocolo} ${r.cliente} ${r.documento} ${r.tipo}`.toLowerCase();
+      return (
+        (busca === "" || texto.includes(busca.toLowerCase())) &&
+        (marco === "todos" || marcoDe(r) === marco) &&
+        (responsavel === "todos" || r.responsavelId === responsavel) &&
+        (prazo === "todos" ||
+          (prazo === "vencido" && r.slaRestanteHoras < 0) ||
+          (prazo === "hoje" && r.slaRestanteHoras >= 0 && r.slaRestanteHoras <= 8) ||
+          (prazo === "futuro" && r.slaRestanteHoras > 8)) &&
+        (origem === "todas" ||
+          (origem === "parceiro"
+            ? origemDe(r).startsWith("Contabilidade")
+            : !origemDe(r).startsWith("Contabilidade")))
+      );
+    });
+    return [...base].sort((a, b) =>
+      ordem === "sla"
+        ? a.slaRestanteHoras - b.slaRestanteHoras
+        : ordem === "valor"
+          ? b.valor - a.valor
+          : a.cliente.localeCompare(b.cliente),
+    );
+  }, [requests, busca, marco, origem, responsavel, prazo, ordem]);
+
+  useEffect(() => {
+    onOrdemVisivel(filtrados.map((r) => r.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtrados]);
 
   return (
     <>
@@ -576,30 +977,49 @@ function TodosOsCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: 
           placeholder="Buscar por protocolo, cliente ou documento"
           className="min-w-56 flex-1 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs outline-none focus:border-primary"
         />
-        <select
-          value={marco}
-          onChange={(e) => setMarco(e.target.value)}
-          className="rounded-md border border-border bg-card px-2 py-1 text-xs"
-        >
+        <SelectFiltro value={marco} onChange={setMarco}>
           <option value="todos">Todos os marcos</option>
           {marcos.map((m) => (
             <option key={m.id} value={m.id}>
               {m.nome}
             </option>
           ))}
-        </select>
-        <select
-          value={origem}
-          onChange={(e) => setOrigem(e.target.value)}
-          className="rounded-md border border-border bg-card px-2 py-1 text-xs"
-        >
+        </SelectFiltro>
+        <SelectFiltro value={responsavel} onChange={setResponsavel}>
+          <option value="todos">Todos os responsáveis</option>
+          {agentesOperacao.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.nome}
+            </option>
+          ))}
+        </SelectFiltro>
+        <SelectFiltro value={prazo} onChange={setPrazo}>
+          <option value="todos">Qualquer prazo</option>
+          <option value="vencido">SLA estourado</option>
+          <option value="hoje">Vence em até 8h</option>
+          <option value="futuro">Prazo folgado</option>
+        </SelectFiltro>
+        <SelectFiltro value={origem} onChange={setOrigem}>
           <option value="todas">Toda origem</option>
           <option value="parceiro">Indicação de contabilidade</option>
           <option value="direto">Canal direto</option>
-        </select>
-        <span className="tabular ml-auto text-[11px] text-muted-foreground">{filtrados.length} casos</span>
+        </SelectFiltro>
+        <SelectFiltro value={ordem} onChange={(v) => setOrdem(v as "sla")}>
+          <option value="sla">Ordenar por SLA</option>
+          <option value="valor">Ordenar por valor</option>
+          <option value="cliente">Ordenar por cliente</option>
+        </SelectFiltro>
+        <span className="tabular ml-auto text-[11px] text-muted-foreground">
+          {filtrados.length} casos
+        </span>
       </div>
-      <TabelaCasos requests={filtrados} onOpen={onOpen} />
+      <TabelaCasos
+        requests={filtrados}
+        onOpen={onOpen}
+        selecao={selecao}
+        onSelecionar={onSelecionar}
+        onSelecionarVarios={onSelecionarVarios}
+      />
     </>
   );
 }
@@ -608,12 +1028,28 @@ function TodosOsCasos({ requests, onOpen }: { requests: Request[]; onOpen: (id: 
 
 const STORAGE_VIEWS = "certus-op-views-v1";
 
-function MinhaFila({ requests, onOpen }: { requests: Request[]; onOpen: (id: string) => void }) {
+function MinhaFila({
+  requests,
+  onOpen,
+  selecao,
+  onSelecionar,
+  onOrdemVisivel,
+  onAssumir,
+}: {
+  requests: Request[];
+  onOpen: (id: string) => void;
+  selecao: string[];
+  onSelecionar: (id: string, marcado: boolean) => void;
+  onOrdemVisivel: (ids: string[]) => void;
+  onAssumir: (id: string) => void;
+}) {
   const [perfil, setPerfil] = useState<PerfilId>("agr");
   const [escopo, setEscopo] = useState<"minhas" | "equipe" | "livres">("minhas");
   const [filtros, setFiltros] = useState<FiltrosFila>(filtrosPadrao);
   const [estado, setEstado] = useState<"ok" | "carregando" | "erro">("carregando");
-  const [views, setViews] = useState<{ nome: string; perfil: PerfilId; filtros: FiltrosFila }[]>([]);
+  const [views, setViews] = useState<{ nome: string; perfil: PerfilId; filtros: FiltrosFila }[]>(
+    [],
+  );
   const [salvando, setSalvando] = useState(false);
   const [nomeView, setNomeView] = useState("");
 
@@ -672,6 +1108,11 @@ function MinhaFila({ requests, onOpen }: { requests: Request[]; onOpen: (id: str
 
   const pag = usePaginacao(lista, 10);
 
+  useEffect(() => {
+    onOrdemVisivel(lista.map((t) => t.request.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lista]);
+
   // Contagem por escopo: o usuário vê onde há trabalho antes de trocar de aba.
   const contagemEscopo = {
     minhas: tarefas.filter((t) => t.papel === perfil && t.atribuida).length,
@@ -690,7 +1131,9 @@ function MinhaFila({ requests, onOpen }: { requests: Request[]; onOpen: (id: str
     }
     setSalvando(false);
     setNomeView("");
-    toast.success("Visualização salva", { description: `“${nova.nome}” disponível para este perfil.` });
+    toast.success("Visualização salva", {
+      description: `“${nova.nome}” disponível para este perfil.`,
+    });
   }
 
   return (
@@ -745,14 +1188,18 @@ function MinhaFila({ requests, onOpen }: { requests: Request[]; onOpen: (id: str
             onClick={() => setEscopo(id)}
             className={cn(
               "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
-              escopo === id ? "bg-primary-soft font-medium text-primary-deep" : "text-muted-foreground hover:text-foreground",
+              escopo === id
+                ? "bg-primary-soft font-medium text-primary-deep"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {label}
             <span
               className={cn(
                 "tabular rounded px-1 text-[10px] font-semibold",
-                escopo === id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                escopo === id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground",
               )}
             >
               {contagemEscopo[id]}
@@ -774,7 +1221,10 @@ function MinhaFila({ requests, onOpen }: { requests: Request[]; onOpen: (id: str
             </option>
           ))}
         </SelectFiltro>
-        <SelectFiltro value={filtros.unidade} onChange={(v) => setFiltros({ ...filtros, unidade: v })}>
+        <SelectFiltro
+          value={filtros.unidade}
+          onChange={(v) => setFiltros({ ...filtros, unidade: v })}
+        >
           <option value="todas">Todas as unidades</option>
           {unidades.map((u) => (
             <option key={u} value={u}>
@@ -796,12 +1246,18 @@ function MinhaFila({ requests, onOpen }: { requests: Request[]; onOpen: (id: str
             </option>
           ))}
         </SelectFiltro>
-        <SelectFiltro value={filtros.origem} onChange={(v) => setFiltros({ ...filtros, origem: v })}>
+        <SelectFiltro
+          value={filtros.origem}
+          onChange={(v) => setFiltros({ ...filtros, origem: v })}
+        >
           <option value="todas">Toda origem</option>
           <option value="parceiro">Indicação de contabilidade</option>
           <option value="direto">Canal direto</option>
         </SelectFiltro>
-        <SelectFiltro value={filtros.ordem} onChange={(v) => setFiltros({ ...filtros, ordem: v as "prioridade" })}>
+        <SelectFiltro
+          value={filtros.ordem}
+          onChange={(v) => setFiltros({ ...filtros, ordem: v as "prioridade" })}
+        >
           <option value="prioridade">Ordenar por prioridade</option>
           <option value="vencimento">Ordenar por vencimento</option>
         </SelectFiltro>
@@ -853,7 +1309,14 @@ function MinhaFila({ requests, onOpen }: { requests: Request[]; onOpen: (id: str
           <>
             <ul className="divide-y divide-border">
               {pag.visiveis.map((t) => (
-                <TarefaLinha key={t.id} t={t} onOpen={() => onOpen(t.request.id)} />
+                <TarefaLinha
+                  key={t.id}
+                  t={t}
+                  onOpen={() => onOpen(t.request.id)}
+                  marcada={selecao.includes(t.request.id)}
+                  onSelecionar={(v) => onSelecionar(t.request.id, v)}
+                  onAssumir={() => onAssumir(t.request.id)}
+                />
               ))}
             </ul>
             <Paginacao {...pag} rotulo="tarefas" />
@@ -909,17 +1372,49 @@ function SelectFiltro({
   );
 }
 
-function TarefaLinha({ t, onOpen }: { t: Tarefa; onOpen: () => void }) {
+function TarefaLinha({
+  t,
+  onOpen,
+  marcada,
+  onSelecionar,
+  onAssumir,
+}: {
+  t: Tarefa;
+  onOpen: () => void;
+  marcada: boolean;
+  onSelecionar: (v: boolean) => void;
+  onAssumir: () => void;
+}) {
   return (
-    <li>
-      <button onClick={onOpen} className="w-full px-4 py-3 text-left transition-colors hover:bg-muted/50">
+    <li className={cn("relative", marcada && "bg-primary-soft/40")}>
+      <div className="absolute left-3 top-3.5 z-10 flex items-center gap-2">
+        <CaixaSelecao
+          marcada={marcada}
+          rotulo={`Selecionar tarefa ${t.request.protocolo}`}
+          onChange={onSelecionar}
+        />
+      </div>
+      {!t.atribuida && (
+        <button
+          onClick={onAssumir}
+          className="absolute right-4 top-3 z-10 inline-flex items-center gap-1 rounded-md border border-border-strong px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+        >
+          <Hand className="size-3" /> Puxar para mim
+        </button>
+      )}
+      <button
+        onClick={onOpen}
+        className="w-full py-3 pl-10 pr-4 text-left transition-colors hover:bg-muted/50"
+      >
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-display text-sm font-semibold">{t.acao}</span>
           <Chip tone={prioridadeTone[t.prioridade]}>{t.prioridade}</Chip>
           <SlaBadge horas={t.prazoHoras} />
           <Chip tone="outline">{tiposPendencia.find((x) => x.id === t.tipo)?.nome}</Chip>
           {!t.atribuida && <Chip tone="neutral">Não atribuída</Chip>}
-          <span className="tabular ml-auto text-[11px] text-muted-foreground">{t.request.protocolo}</span>
+          <span className="tabular ml-auto text-[11px] text-muted-foreground">
+            {t.request.protocolo}
+          </span>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
           {t.request.cliente} · {t.request.tipo} · {unidadeDe(t.request)} · {t.origem}
@@ -947,13 +1442,65 @@ function CasoDrawer({
   onClose,
   onAcao,
   onAbrirFicha,
+  onToggleChecklist,
+  onResponsavel,
+  onNota,
+  onAnterior,
+  onProximo,
+  posicao,
 }: {
   r: Request | null;
   onClose: () => void;
   onAcao: (acao: AcaoCaso) => void;
   onAbrirFicha: () => void;
+  onToggleChecklist: (itemId: string) => void;
+  onResponsavel: (agenteId: string) => void;
+  onNota: (texto: string) => void;
+  onAnterior?: () => void;
+  onProximo?: () => void;
+  posicao?: string;
 }) {
   if (!r) return null;
+  return (
+    <CasoDrawerConteudo
+      r={r}
+      onClose={onClose}
+      onAcao={onAcao}
+      onAbrirFicha={onAbrirFicha}
+      onToggleChecklist={onToggleChecklist}
+      onResponsavel={onResponsavel}
+      onNota={onNota}
+      {...(onAnterior ? { onAnterior } : {})}
+      {...(onProximo ? { onProximo } : {})}
+      {...(posicao ? { posicao } : {})}
+    />
+  );
+}
+
+function CasoDrawerConteudo({
+  r,
+  onClose,
+  onAcao,
+  onAbrirFicha,
+  onToggleChecklist,
+  onResponsavel,
+  onNota,
+  onAnterior,
+  onProximo,
+  posicao,
+}: {
+  r: Request;
+  onClose: () => void;
+  onAcao: (acao: AcaoCaso) => void;
+  onAbrirFicha: () => void;
+  onToggleChecklist: (itemId: string) => void;
+  onResponsavel: (agenteId: string) => void;
+  onNota: (texto: string) => void;
+  onAnterior?: () => void;
+  onProximo?: () => void;
+  posicao?: string;
+}) {
+  const [nota, setNota] = useState("");
   const acoes = acoesDe(r);
   const pendentes = pendenciasDe(r);
   const marco = marcos.find((m) => m.id === marcoDe(r));
@@ -967,6 +1514,17 @@ function CasoDrawer({
       width="max-w-2xl"
       footer={
         <>
+          <div className="mr-auto flex items-center gap-1.5">
+            <Btn variant="ghost" disabled={!onAnterior} onClick={() => onAnterior?.()}>
+              <ChevronLeft className="size-3.5" /> Anterior
+            </Btn>
+            <Btn variant="ghost" disabled={!onProximo} onClick={() => onProximo?.()}>
+              Próximo <ChevronRight className="size-3.5" />
+            </Btn>
+            {posicao && (
+              <span className="tabular text-[11px] text-muted-foreground">{posicao}</span>
+            )}
+          </div>
           <Btn variant="ghost" onClick={onClose}>
             Fechar
           </Btn>
@@ -990,6 +1548,10 @@ function CasoDrawer({
           </p>
           <ProntidaoLinha r={r} completo />
         </div>
+
+        <ResponsavelCaso r={r} onChange={onResponsavel} />
+
+        <ChecklistCaso r={r} onToggle={onToggleChecklist} />
 
         <div>
           <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -1021,10 +1583,16 @@ function CasoDrawer({
                 >
                   <div className="min-w-0">
                     <p className="flex items-center gap-1.5 text-sm font-medium">
-                      {impedimento ? <Lock className="size-3.5 text-alert" /> : <Check className="size-3.5 text-primary" />}
+                      {impedimento ? (
+                        <Lock className="size-3.5 text-alert" />
+                      ) : (
+                        <Check className="size-3.5 text-primary" />
+                      )}
                       {a.label}
                     </p>
-                    <p className="text-[11px] text-muted-foreground">{impedimento ?? a.descricao}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {impedimento ?? a.descricao}
+                    </p>
                   </div>
                   <Btn
                     variant={a.destrutiva ? "danger" : impedimento ? "ghost" : "primary"}
@@ -1039,16 +1607,42 @@ function CasoDrawer({
           </div>
           <div className="mt-2">
             <AvisoRegulatorio>
-              Requisitos regulatórios e de segurança (identificação do titular, videoconferência e emissão) são fixos e
-              não podem ser desativados por configuração.
+              Requisitos regulatórios e de segurança (identificação do titular, videoconferência e
+              emissão) são fixos e não podem ser desativados por configuração.
             </AvisoRegulatorio>
           </div>
         </div>
+
+        <div>
+          <Field
+            label="Nota rápida da operação"
+            hint="Fica registrada no histórico do caso, com autor e horário."
+          >
+            <div className="flex flex-wrap gap-2">
+              <input
+                value={nota}
+                onChange={(e) => setNota(e.target.value)}
+                placeholder="Ex.: cliente confirmou reenvio do comprovante hoje à tarde"
+                className="min-w-56 flex-1 rounded-md border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-primary"
+              />
+              <Btn
+                disabled={nota.trim().length < 3}
+                onClick={() => {
+                  onNota(nota.trim());
+                  setNota("");
+                }}
+              >
+                Registrar
+              </Btn>
+            </div>
+          </Field>
+        </div>
+
+        <TimelineRecente eventos={r.timeline} />
       </div>
     </Modal>
   );
 }
-
 
 // -------------------------------------------------- casos demonstrativos
 function CasosDemonstrativos() {
@@ -1064,7 +1658,11 @@ function CasosDemonstrativos() {
             <div className="flex flex-wrap items-start justify-between gap-2">
               <h3 className="text-sm font-medium">{c.titulo}</h3>
               <Chip tone={c.bloqueioAbsoluto ? "alert" : c.bloqueio ? "deep" : "blue"}>
-                {c.bloqueioAbsoluto ? "Bloqueio de conformidade" : c.bloqueio ? "Bloqueado" : "Em curso"}
+                {c.bloqueioAbsoluto
+                  ? "Bloqueio de conformidade"
+                  : c.bloqueio
+                    ? "Bloqueado"
+                    : "Em curso"}
               </Chip>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">{c.resumo}</p>
