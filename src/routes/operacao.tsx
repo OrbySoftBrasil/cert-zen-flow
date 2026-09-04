@@ -48,6 +48,7 @@ import { cenarios } from "@/lib/cenarios";
 import { agentById, brl, stages, type Request } from "@/lib/mock-data";
 import {
   acoesDe,
+  agentesOperacao,
   bloqueioPrincipal,
   impedimentoDe,
   marcoDe,
