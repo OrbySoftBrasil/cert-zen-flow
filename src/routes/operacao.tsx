@@ -24,6 +24,7 @@ import {
   AvisoRegulatorio,
   CasoCard,
   ErroEstado,
+  LegendaProntidao,
   ProntidaoLinha,
   SkeletonLinhas,
   prioridadeTone,
@@ -57,6 +58,8 @@ import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/operacao")({
+  validateSearch: (search: Record<string, unknown>): { aba?: string } =>
+    typeof search["aba"] === "string" ? { aba: search["aba"] } : {},
   head: () => ({
     meta: [
       { title: "Operação — Certus AR" },
@@ -106,11 +109,25 @@ const filtrosPadrao: FiltrosFila = {
 
 const pesoPrioridade = { critica: 0, alta: 1, normal: 2, baixa: 3 } as const;
 
+const abasValidas: Aba[] = ["visao", "fila", "casos", "demo"];
+
 function Operacao() {
   const { requests, moveRequest, updateRequest } = useStore();
   const navigate = useNavigate();
+  const { aba: abaUrl } = Route.useSearch();
 
-  const [aba, setAba] = useState<Aba>("visao");
+  // A visão fica na URL: links, favoritos e o botão voltar funcionam.
+  const [aba, setAbaEstado] = useState<Aba>(
+    abasValidas.includes(abaUrl as Aba) ? (abaUrl as Aba) : "visao",
+  );
+  useEffect(() => {
+    if (abasValidas.includes(abaUrl as Aba) && abaUrl !== aba) setAbaEstado(abaUrl as Aba);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abaUrl]);
+  function setAba(proxima: Aba) {
+    setAbaEstado(proxima);
+    void navigate({ to: "/operacao", search: { aba: proxima }, replace: true });
+  }
   const [caso, setCaso] = useState<string | null>(null);
   const [pendente, setPendente] = useState<{ acao: AcaoCaso; requestId: string } | null>(null);
 
@@ -156,19 +173,21 @@ function Operacao() {
       subtitle={`${requests.length} casos na base · marcos operacionais, fila por papel e base completa`}
       actions={<NovaSolicitacaoButton />}
     >
+      <ResumoOperacao requests={requests} />
+
       <div
         role="tablist"
         aria-label="Visões da operação"
-        className="mb-4 flex flex-wrap items-center gap-1 rounded-lg border border-border bg-card p-1"
+        className="sticky top-14 z-20 mb-4 flex flex-wrap items-center gap-1 rounded-lg border border-border bg-card/95 p-1 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80"
       >
         {(
           [
-            ["visao", "Visão geral", LayoutGrid],
-            ["fila", "Minha fila", Rows3],
-            ["casos", "Todos os casos", List],
-            ["demo", "Casos demonstrativos", Sparkles],
+            ["visao", "Visão geral", LayoutGrid, 0],
+            ["fila", "Minha fila", Rows3, 0],
+            ["casos", "Todos os casos", List, requests.length],
+            ["demo", "Casos demonstrativos", Sparkles, cenarios.length],
           ] as const
-        ).map(([id, label, Icon]) => (
+        ).map(([id, label, Icon, contagem]) => (
           <button
             key={id}
             role="tab"
@@ -180,6 +199,16 @@ function Operacao() {
             )}
           >
             <Icon className="size-4" aria-hidden="true" /> {label}
+            {contagem ? (
+              <span
+                className={cn(
+                  "tabular rounded px-1 text-[10px] font-semibold",
+                  aba === id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                )}
+              >
+                {contagem}
+              </span>
+            ) : null}
           </button>
         ))}
       </div>
@@ -259,6 +288,38 @@ function marcoDestinoValido(acao: AcaoCaso, marco: MarcoId) {
   return mapa[acao.destino] === marco;
 }
 
+// ------------------------------------------------------- resumo e legenda
+
+function ResumoOperacao({ requests }: { requests: Request[] }) {
+  const atrasados = requests.filter((r) => r.slaRestanteHoras < 0).length;
+  const criticos = requests.filter((r) => r.prioridade === "critica").length;
+  const bloqueados = requests.filter((r) => !bloqueioPrincipal(r).startsWith("Sem bloqueio")).length;
+  const semDono = requests.filter((r) => r.responsavelId !== papelEsperadoAgente(r)).length;
+
+  const itens = [
+    { label: "Casos ativos", valor: requests.length, tone: "" },
+    { label: "SLA estourado", valor: atrasados, tone: "text-alert" },
+    { label: "Prioridade crítica", valor: criticos, tone: "text-alert" },
+    { label: "Com bloqueio", valor: bloqueados, tone: "text-primary-deep" },
+    { label: "Fora do papel esperado", valor: semDono, tone: "text-muted-foreground" },
+  ];
+
+  return (
+    <div className="mb-3 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3 lg:grid-cols-5">
+      {itens.map((i) => (
+        <div key={i.label} className="bg-card px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{i.label}</p>
+          <p className={cn("tabular font-display text-lg font-semibold leading-tight", i.tone)}>{i.valor}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function papelEsperadoAgente(r: Request) {
+  return perfilById(papelEsperado(r)).agenteId;
+}
+
 // ------------------------------------------------------------- visão geral
 
 function VisaoGeral({
@@ -288,6 +349,9 @@ function VisaoGeral({
       ),
     [requests, responsavel, prioridade, somenteSla],
   );
+
+  const filtroAtivo = responsavel !== "todos" || prioridade !== "todas" || somenteSla;
+
 
   return (
     <>
@@ -346,11 +410,32 @@ function VisaoGeral({
         </div>
       </div>
 
+      <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <p aria-live="polite" className="text-xs text-muted-foreground">
+          Mostrando <span className="tabular font-medium text-foreground">{filtrados.length}</span> de{" "}
+          <span className="tabular">{requests.length}</span> casos
+        </p>
+        {filtroAtivo && (
+          <button
+            onClick={() => {
+              setResponsavel("todos");
+              setPrioridade("todas");
+              setSomenteSla(false);
+            }}
+            className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          >
+            Limpar filtros
+          </button>
+        )}
+        <LegendaProntidao />
+      </div>
+
       <p className="mb-3 flex items-start gap-1.5 text-[11px] text-muted-foreground">
         <Lock className="mt-px size-3 shrink-0" />
         Marcos são uma leitura comparativa do andamento — trilhas comerciais, documentais e regulatórias acontecem em
         paralelo. Toda transição passa por confirmação e pelos requisitos da etapa.
       </p>
+
 
       {modo === "kanban" ? (
         <div className="flex gap-3 overflow-x-auto pb-4">
@@ -377,7 +462,7 @@ function VisaoGeral({
                     <p className="tabular text-[11px] text-muted-foreground">{brl(total)}</p>
                   </div>
                 </div>
-                <div className="flex-1 space-y-2 p-2">
+                <div className="flex-1 space-y-2 overflow-y-auto p-2 lg:max-h-[calc(100vh-22rem)]">
                   {cards.map((r) => (
                     <CasoCard
                       key={r.id}
@@ -587,6 +672,13 @@ function MinhaFila({ requests, onOpen }: { requests: Request[]; onOpen: (id: str
 
   const pag = usePaginacao(lista, 10);
 
+  // Contagem por escopo: o usuário vê onde há trabalho antes de trocar de aba.
+  const contagemEscopo = {
+    minhas: tarefas.filter((t) => t.papel === perfil && t.atribuida).length,
+    equipe: tarefas.filter((t) => t.papel === perfil).length,
+    livres: tarefas.filter((t) => !t.atribuida).length,
+  } as const;
+
   function salvarView() {
     const nova = { nome: nomeView.trim() || `Visualização ${views.length + 1}`, perfil, filtros };
     const proximas = [...views.filter((v) => v.nome !== nova.nome), nova];
@@ -649,13 +741,22 @@ function MinhaFila({ requests, onOpen }: { requests: Request[]; onOpen: (id: str
         ).map(([id, label]) => (
           <button
             key={id}
+            aria-pressed={escopo === id}
             onClick={() => setEscopo(id)}
             className={cn(
-              "rounded-md px-3 py-1.5 text-sm transition-colors",
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
               escopo === id ? "bg-primary-soft font-medium text-primary-deep" : "text-muted-foreground hover:text-foreground",
             )}
           >
             {label}
+            <span
+              className={cn(
+                "tabular rounded px-1 text-[10px] font-semibold",
+                escopo === id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+              )}
+            >
+              {contagemEscopo[id]}
+            </span>
           </button>
         ))}
         <span className="tabular ml-auto px-2 text-[11px] text-muted-foreground">
