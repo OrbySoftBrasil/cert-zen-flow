@@ -1,14 +1,6 @@
 // Camadas de profundidade da área Operação: carga da equipe, ações em lote,
 // checklist operável e trilha de auditoria — tudo sobre o estado global.
-import {
-  ArrowRight,
-  CheckCircle2,
-  Circle,
-  ClipboardList,
-  History,
-  UserCog,
-  X,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, ClipboardList, History, UserCog, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { Btn, Field, Modal, SelectInput } from "@/components/forms";
@@ -206,13 +198,7 @@ export function ReatribuirDialog({
 
 // ---------------------------------------------------------------- checklist
 
-export function ChecklistCaso({
-  r,
-  onToggle,
-}: {
-  r: Request;
-  onToggle: (itemId: string) => void;
-}) {
+export function ChecklistCaso({ r, onToggle }: { r: Request; onToggle: (itemId: string) => void }) {
   const feitos = r.checklist.filter((c) => c.done).length;
   const total = r.checklist.length;
   const pct = total ? Math.round((feitos / total) * 100) : 100;
@@ -227,7 +213,10 @@ export function ChecklistCaso({
         </span>
       </div>
       <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+        <div
+          className="h-full rounded-full bg-primary transition-all"
+          style={{ width: `${pct}%` }}
+        />
       </div>
       {total === 0 ? (
         <p className="text-xs text-muted-foreground">Nenhum requisito pendente nesta etapa.</p>
@@ -245,7 +234,9 @@ export function ChecklistCaso({
                 ) : (
                   <Circle className="size-4 shrink-0 text-muted-foreground" />
                 )}
-                <span className={cn(c.done && "text-muted-foreground line-through")}>{c.label}</span>
+                <span className={cn(c.done && "text-muted-foreground line-through")}>
+                  {c.label}
+                </span>
               </button>
             </li>
           ))}
@@ -273,7 +264,11 @@ export function TimelineRecente({ eventos }: { eventos: TimelineEvent[] }) {
               <span
                 className={cn(
                   "absolute -left-[17px] top-1.5 size-1.5 rounded-full",
-                  e.tipo === "alerta" ? "bg-alert" : e.tipo === "sistema" ? "bg-primary" : "bg-border-strong",
+                  e.tipo === "alerta"
+                    ? "bg-alert"
+                    : e.tipo === "sistema"
+                      ? "bg-primary"
+                      : "bg-border-strong",
                 )}
               />
               <p className="font-medium">{e.titulo}</p>
@@ -320,7 +315,8 @@ export function ResponsavelCaso({
         </SelectInput>
         {foraDoPapel && (
           <span className="flex items-center gap-1 text-[11px] text-alert">
-            <ArrowRight className="size-3" /> A etapa espera {esperado.nome} ({agentById(esperado.agenteId).nome})
+            <ArrowRight className="size-3" /> A etapa espera {esperado.nome} (
+            {agentById(esperado.agenteId).nome})
           </span>
         )}
       </div>

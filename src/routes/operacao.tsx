@@ -145,7 +145,9 @@ function Operacao() {
   const [caso, setCaso] = useState<string | null>(null);
   const [pendente, setPendente] = useState<{ acao: AcaoCaso; requestId: string } | null>(null);
   const [selecao, setSelecao] = useState<string[]>([]);
-  const [lote, setLote] = useState<null | "avancar" | "assumir" | "priorizar" | "bloquear" | "reatribuir">(null);
+  const [lote, setLote] = useState<
+    null | "avancar" | "assumir" | "priorizar" | "bloquear" | "reatribuir"
+  >(null);
   const [ordemVisivel, setOrdemVisivel] = useState<string[]>([]);
 
   const casoAberto = requests.find((r) => r.id === caso) ?? null;
@@ -167,15 +169,20 @@ function Operacao() {
     if (acao.id === "assumir") {
       updateRequest(requestId, { responsavelId: perfilById(papelEsperado(r)).agenteId });
       logRequest(requestId, "Caso assumido", `${USUARIO_ATUAL.nome} passou a responder pelo caso.`);
-      toast.success(`${r.protocolo} atribuído a você`, { description: "Registrado na trilha de auditoria." });
+      toast.success(`${r.protocolo} atribuído a você`, {
+        description: "Registrado na trilha de auditoria.",
+      });
     } else if (acao.id === "priorizar") {
-      const nova = r.prioridade === "critica" ? "alta" : r.prioridade === "alta" ? "critica" : "alta";
+      const nova =
+        r.prioridade === "critica" ? "alta" : r.prioridade === "alta" ? "critica" : "alta";
       updateRequest(requestId, { prioridade: nova });
       logRequest(requestId, `Prioridade alterada para ${nova}`, `Anterior: ${r.prioridade}.`);
       toast.success(`Prioridade de ${r.protocolo} agora é ${nova}`);
     } else if (acao.destino) {
       moveRequest(requestId, acao.destino, acao.label);
-      toast.success(`${r.protocolo}: ${acao.label}`, { description: "Transição confirmada e auditada." });
+      toast.success(`${r.protocolo}: ${acao.label}`, {
+        description: "Transição confirmada e auditada.",
+      });
     }
     setPendente(null);
   }
@@ -193,7 +200,8 @@ function Operacao() {
 
   // ---- ações em lote: sempre reportam o que passou e o que foi barrado.
   const previaLote = useMemo(() => {
-    if (lote !== "avancar") return { liberados: [] as Request[], barrados: [] as { r: Request; motivo: string }[] };
+    if (lote !== "avancar")
+      return { liberados: [] as Request[], barrados: [] as { r: Request; motivo: string }[] };
     const liberados: Request[] = [];
     const barrados: { r: Request; motivo: string }[] = [];
     for (const r of selecionados) {
@@ -223,7 +231,11 @@ function Operacao() {
     } else if (lote === "assumir") {
       for (const r of selecionados) {
         updateRequest(r.id, { responsavelId: USUARIO_ATUAL.id });
-        logRequest(r.id, "Caso assumido em lote", `${USUARIO_ATUAL.nome} assumiu a responsabilidade.`);
+        logRequest(
+          r.id,
+          "Caso assumido em lote",
+          `${USUARIO_ATUAL.nome} assumiu a responsabilidade.`,
+        );
       }
       toast.success(`${selecionados.length} caso(s) agora são seus`);
     } else if (lote === "priorizar") {
@@ -281,7 +293,9 @@ function Operacao() {
             onClick={() => setAba(id)}
             className={cn(
               "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
-              aba === id ? "bg-primary-soft font-medium text-primary-deep" : "text-muted-foreground hover:text-foreground",
+              aba === id
+                ? "bg-primary-soft font-medium text-primary-deep"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             <Icon className="size-4" aria-hidden="true" /> {label}
@@ -289,7 +303,9 @@ function Operacao() {
               <span
                 className={cn(
                   "tabular rounded px-1 text-[10px] font-semibold",
-                  aba === id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                  aba === id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground",
                 )}
               >
                 {contagem}
@@ -307,7 +323,9 @@ function Operacao() {
           selecao={selecao}
           onSelecionar={alternarSelecao}
           onSelecionarVarios={(ids, marcado) =>
-            setSelecao((s) => (marcado ? [...new Set([...s, ...ids])] : s.filter((x) => !ids.includes(x))))
+            setSelecao((s) =>
+              marcado ? [...new Set([...s, ...ids])] : s.filter((x) => !ids.includes(x)),
+            )
           }
           onOrdemVisivel={setOrdemVisivel}
           onAcaoRapida={(id, acaoId) => {
@@ -321,7 +339,8 @@ function Operacao() {
             const acao = acoesDe(r).find((a) => a.destino && marcoDestinoValido(a, marco));
             if (!acao) {
               toast.error("Transição não permitida", {
-                description: "Arraste apenas para o próximo marco previsto ou abra o caso para ver as ações.",
+                description:
+                  "Arraste apenas para o próximo marco previsto ou abra o caso para ver as ações.",
               });
               return;
             }
@@ -352,7 +371,9 @@ function Operacao() {
           selecao={selecao}
           onSelecionar={alternarSelecao}
           onSelecionarVarios={(ids, marcado) =>
-            setSelecao((s) => (marcado ? [...new Set([...s, ...ids])] : s.filter((x) => !ids.includes(x))))
+            setSelecao((s) =>
+              marcado ? [...new Set([...s, ...ids])] : s.filter((x) => !ids.includes(x)),
+            )
           }
           onOrdemVisivel={setOrdemVisivel}
         />
@@ -395,7 +416,9 @@ function Operacao() {
           toast.success("Nota registrada no histórico do caso");
         }}
         {...(idxAberto > 0 ? { onAnterior: () => navegarCaso(-1) } : {})}
-        {...(idxAberto >= 0 && idxAberto < ordemVisivel.length - 1 ? { onProximo: () => navegarCaso(1) } : {})}
+        {...(idxAberto >= 0 && idxAberto < ordemVisivel.length - 1
+          ? { onProximo: () => navegarCaso(1) }
+          : {})}
         {...(idxAberto >= 0 ? { posicao: `${idxAberto + 1} de ${ordemVisivel.length}` } : {})}
         onAbrirFicha={() => {
           if (casoAberto) navigate({ to: "/solicitacoes/$id", params: { id: casoAberto.id } });
@@ -431,15 +454,17 @@ function Operacao() {
           {lote === "avancar" ? (
             <>
               <p className="text-muted-foreground">
-                <span className="font-medium text-foreground">{previaLote.liberados.length}</span> caso(s) atendem aos
-                requisitos e vão avançar.{" "}
-                <span className="font-medium text-foreground">{previaLote.barrados.length}</span> ficarão parados.
+                <span className="font-medium text-foreground">{previaLote.liberados.length}</span>{" "}
+                caso(s) atendem aos requisitos e vão avançar.{" "}
+                <span className="font-medium text-foreground">{previaLote.barrados.length}</span>{" "}
+                ficarão parados.
               </p>
               {previaLote.barrados.length > 0 && (
                 <ul className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-border p-2">
                   {previaLote.barrados.map(({ r, motivo }) => (
                     <li key={r.id} className="text-[11px] text-muted-foreground">
-                      <span className="tabular font-medium text-alert">{r.protocolo}</span> — {motivo}
+                      <span className="tabular font-medium text-alert">{r.protocolo}</span> —{" "}
+                      {motivo}
                     </li>
                   ))}
                 </ul>
@@ -447,7 +472,8 @@ function Operacao() {
             </>
           ) : (
             <p className="text-muted-foreground">
-              A ação será aplicada a todos os casos selecionados e registrada individualmente na trilha de auditoria.
+              A ação será aplicada a todos os casos selecionados e registrada individualmente na
+              trilha de auditoria.
             </p>
           )}
         </div>
@@ -468,8 +494,8 @@ function Operacao() {
           </p>
           {pendente?.acao.regulatoria && (
             <AvisoRegulatorio>
-              Requisito regulatório: a identificação presencial e a emissão seguem a política da ICP e não podem ser
-              alteradas nas configurações.
+              Requisito regulatório: a identificação presencial e a emissão seguem a política da ICP
+              e não podem ser alteradas nas configurações.
             </AvisoRegulatorio>
           )}
         </div>
@@ -497,7 +523,9 @@ function marcoDestinoValido(acao: AcaoCaso, marco: MarcoId) {
 function ResumoOperacao({ requests }: { requests: Request[] }) {
   const atrasados = requests.filter((r) => r.slaRestanteHoras < 0).length;
   const criticos = requests.filter((r) => r.prioridade === "critica").length;
-  const bloqueados = requests.filter((r) => !bloqueioPrincipal(r).startsWith("Sem bloqueio")).length;
+  const bloqueados = requests.filter(
+    (r) => !bloqueioPrincipal(r).startsWith("Sem bloqueio"),
+  ).length;
   const semDono = requests.filter((r) => r.responsavelId !== papelEsperadoAgente(r)).length;
 
   const itens = [
@@ -513,7 +541,9 @@ function ResumoOperacao({ requests }: { requests: Request[] }) {
       {itens.map((i) => (
         <div key={i.label} className="bg-card px-3 py-2">
           <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{i.label}</p>
-          <p className={cn("tabular font-display text-lg font-semibold leading-tight", i.tone)}>{i.valor}</p>
+          <p className={cn("tabular font-display text-lg font-semibold leading-tight", i.tone)}>
+            {i.valor}
+          </p>
         </div>
       ))}
     </div>
@@ -575,8 +605,6 @@ function VisaoGeral({
 
   const filtroAtivo = responsavel !== "todos" || prioridade !== "todas" || somenteSla;
 
-
-
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
@@ -625,7 +653,9 @@ function VisaoGeral({
               onClick={() => setModo(v)}
               className={cn(
                 "flex items-center gap-1.5 rounded px-2.5 py-1 text-xs capitalize transition-colors",
-                modo === v ? "bg-primary-soft text-primary-deep" : "text-muted-foreground hover:text-foreground",
+                modo === v
+                  ? "bg-primary-soft text-primary-deep"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <Icon className="size-3.5" /> {v}
@@ -636,8 +666,8 @@ function VisaoGeral({
 
       <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
         <p aria-live="polite" className="text-xs text-muted-foreground">
-          Mostrando <span className="tabular font-medium text-foreground">{filtrados.length}</span> de{" "}
-          <span className="tabular">{requests.length}</span> casos
+          Mostrando <span className="tabular font-medium text-foreground">{filtrados.length}</span>{" "}
+          de <span className="tabular">{requests.length}</span> casos
         </p>
         {filtroAtivo && (
           <button
@@ -663,16 +693,20 @@ function VisaoGeral({
 
       {carga && (
         <div className="mb-3">
-          <PainelCarga requests={requests} agenteAtivo={responsavel} onFiltrarAgente={setResponsavel} />
+          <PainelCarga
+            requests={requests}
+            agenteAtivo={responsavel}
+            onFiltrarAgente={setResponsavel}
+          />
         </div>
       )}
 
       <p className="mb-3 flex items-start gap-1.5 text-[11px] text-muted-foreground">
         <Lock className="mt-px size-3 shrink-0" />
-        Marcos são uma leitura comparativa do andamento — trilhas comerciais, documentais e regulatórias acontecem em
-        paralelo. Toda transição passa por confirmação e pelos requisitos da etapa.
+        Marcos são uma leitura comparativa do andamento — trilhas comerciais, documentais e
+        regulatórias acontecem em paralelo. Toda transição passa por confirmação e pelos requisitos
+        da etapa.
       </p>
-
 
       {modo === "kanban" ? (
         <div className="flex gap-3 overflow-x-auto pb-4">
@@ -703,14 +737,18 @@ function VisaoGeral({
                     </span>
                     <span className="min-w-0">
                       <span className="block text-sm font-medium">{m.nome}</span>
-                      <span className="block truncate text-[11px] text-muted-foreground">{m.descricao}</span>
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {m.descricao}
+                      </span>
                     </span>
                   </div>
                   <div className="text-right">
                     <p className="tabular text-sm font-semibold">{cards.length}</p>
                     <p className="tabular text-[11px] text-muted-foreground">{brl(total)}</p>
                     {atrasados > 0 && (
-                      <p className="tabular text-[10px] font-medium text-alert">{atrasados} fora do prazo</p>
+                      <p className="tabular text-[10px] font-medium text-alert">
+                        {atrasados} fora do prazo
+                      </p>
                     )}
                   </div>
                 </div>
@@ -750,7 +788,11 @@ function VisaoGeral({
                                     : "border-border-strong text-muted-foreground hover:border-primary hover:text-primary-deep",
                                 )}
                               >
-                                {a.id === "assumir" ? "Assumir" : imp ? "Avanço bloqueado" : "Avançar"}
+                                {a.id === "assumir"
+                                  ? "Assumir"
+                                  : imp
+                                    ? "Avanço bloqueado"
+                                    : "Avançar"}
                               </button>
                             );
                           })}
@@ -758,7 +800,9 @@ function VisaoGeral({
                     </div>
                   ))}
                   {cards.length === 0 && (
-                    <p className="px-1 py-6 text-center text-xs text-muted-foreground">Nenhum caso neste marco</p>
+                    <p className="px-1 py-6 text-center text-xs text-muted-foreground">
+                      Nenhum caso neste marco
+                    </p>
                   )}
                 </div>
               </div>
@@ -848,13 +892,17 @@ function TabelaCasos({
                 <td className="px-4 py-2.5">
                   <ProntidaoLinha r={r} />
                 </td>
-                <td className="px-4 py-2.5 text-muted-foreground">{agentById(r.responsavelId).nome}</td>
+                <td className="px-4 py-2.5 text-muted-foreground">
+                  {agentById(r.responsavelId).nome}
+                </td>
                 <td className="px-4 py-2.5">
                   <SlaBadge horas={r.slaRestanteHoras} />
                 </td>
                 <td className="px-4 py-2.5 text-[11px] text-muted-foreground">
                   <p>{proximaAcaoLabel(r)}</p>
-                  <p className="text-alert">{bloqueioPrincipal(r).startsWith("Sem bloqueio") ? "" : bloqueioPrincipal(r)}</p>
+                  <p className="text-alert">
+                    {bloqueioPrincipal(r).startsWith("Sem bloqueio") ? "" : bloqueioPrincipal(r)}
+                  </p>
                 </td>
               </tr>
             ))}
@@ -862,7 +910,10 @@ function TabelaCasos({
         </table>
       </div>
       {requests.length === 0 && (
-        <EmptyState titulo="Nenhum caso encontrado" descricao="Ajuste os filtros para ver outros casos." />
+        <EmptyState
+          titulo="Nenhum caso encontrado"
+          descricao="Ajuste os filtros para ver outros casos."
+        />
       )}
       <Paginacao {...pag} rotulo="casos" />
     </Panel>
@@ -898,7 +949,9 @@ function TodosOsCasos({
           (prazo === "hoje" && r.slaRestanteHoras >= 0 && r.slaRestanteHoras <= 8) ||
           (prazo === "futuro" && r.slaRestanteHoras > 8)) &&
         (origem === "todas" ||
-          (origem === "parceiro" ? origemDe(r).startsWith("Contabilidade") : !origemDe(r).startsWith("Contabilidade")))
+          (origem === "parceiro"
+            ? origemDe(r).startsWith("Contabilidade")
+            : !origemDe(r).startsWith("Contabilidade")))
       );
     });
     return [...base].sort((a, b) =>
@@ -956,7 +1009,9 @@ function TodosOsCasos({
           <option value="valor">Ordenar por valor</option>
           <option value="cliente">Ordenar por cliente</option>
         </SelectFiltro>
-        <span className="tabular ml-auto text-[11px] text-muted-foreground">{filtrados.length} casos</span>
+        <span className="tabular ml-auto text-[11px] text-muted-foreground">
+          {filtrados.length} casos
+        </span>
       </div>
       <TabelaCasos
         requests={filtrados}
@@ -992,7 +1047,9 @@ function MinhaFila({
   const [escopo, setEscopo] = useState<"minhas" | "equipe" | "livres">("minhas");
   const [filtros, setFiltros] = useState<FiltrosFila>(filtrosPadrao);
   const [estado, setEstado] = useState<"ok" | "carregando" | "erro">("carregando");
-  const [views, setViews] = useState<{ nome: string; perfil: PerfilId; filtros: FiltrosFila }[]>([]);
+  const [views, setViews] = useState<{ nome: string; perfil: PerfilId; filtros: FiltrosFila }[]>(
+    [],
+  );
   const [salvando, setSalvando] = useState(false);
   const [nomeView, setNomeView] = useState("");
 
@@ -1074,7 +1131,9 @@ function MinhaFila({
     }
     setSalvando(false);
     setNomeView("");
-    toast.success("Visualização salva", { description: `“${nova.nome}” disponível para este perfil.` });
+    toast.success("Visualização salva", {
+      description: `“${nova.nome}” disponível para este perfil.`,
+    });
   }
 
   return (
@@ -1129,14 +1188,18 @@ function MinhaFila({
             onClick={() => setEscopo(id)}
             className={cn(
               "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
-              escopo === id ? "bg-primary-soft font-medium text-primary-deep" : "text-muted-foreground hover:text-foreground",
+              escopo === id
+                ? "bg-primary-soft font-medium text-primary-deep"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {label}
             <span
               className={cn(
                 "tabular rounded px-1 text-[10px] font-semibold",
-                escopo === id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                escopo === id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground",
               )}
             >
               {contagemEscopo[id]}
@@ -1158,7 +1221,10 @@ function MinhaFila({
             </option>
           ))}
         </SelectFiltro>
-        <SelectFiltro value={filtros.unidade} onChange={(v) => setFiltros({ ...filtros, unidade: v })}>
+        <SelectFiltro
+          value={filtros.unidade}
+          onChange={(v) => setFiltros({ ...filtros, unidade: v })}
+        >
           <option value="todas">Todas as unidades</option>
           {unidades.map((u) => (
             <option key={u} value={u}>
@@ -1180,12 +1246,18 @@ function MinhaFila({
             </option>
           ))}
         </SelectFiltro>
-        <SelectFiltro value={filtros.origem} onChange={(v) => setFiltros({ ...filtros, origem: v })}>
+        <SelectFiltro
+          value={filtros.origem}
+          onChange={(v) => setFiltros({ ...filtros, origem: v })}
+        >
           <option value="todas">Toda origem</option>
           <option value="parceiro">Indicação de contabilidade</option>
           <option value="direto">Canal direto</option>
         </SelectFiltro>
-        <SelectFiltro value={filtros.ordem} onChange={(v) => setFiltros({ ...filtros, ordem: v as "prioridade" })}>
+        <SelectFiltro
+          value={filtros.ordem}
+          onChange={(v) => setFiltros({ ...filtros, ordem: v as "prioridade" })}
+        >
           <option value="prioridade">Ordenar por prioridade</option>
           <option value="vencimento">Ordenar por vencimento</option>
         </SelectFiltro>
@@ -1330,14 +1402,19 @@ function TarefaLinha({
           <Hand className="size-3" /> Puxar para mim
         </button>
       )}
-      <button onClick={onOpen} className="w-full py-3 pl-10 pr-4 text-left transition-colors hover:bg-muted/50">
+      <button
+        onClick={onOpen}
+        className="w-full py-3 pl-10 pr-4 text-left transition-colors hover:bg-muted/50"
+      >
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-display text-sm font-semibold">{t.acao}</span>
           <Chip tone={prioridadeTone[t.prioridade]}>{t.prioridade}</Chip>
           <SlaBadge horas={t.prazoHoras} />
           <Chip tone="outline">{tiposPendencia.find((x) => x.id === t.tipo)?.nome}</Chip>
           {!t.atribuida && <Chip tone="neutral">Não atribuída</Chip>}
-          <span className="tabular ml-auto text-[11px] text-muted-foreground">{t.request.protocolo}</span>
+          <span className="tabular ml-auto text-[11px] text-muted-foreground">
+            {t.request.protocolo}
+          </span>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
           {t.request.cliente} · {t.request.tipo} · {unidadeDe(t.request)} · {t.origem}
@@ -1444,7 +1521,9 @@ function CasoDrawerConteudo({
             <Btn variant="ghost" disabled={!onProximo} onClick={() => onProximo?.()}>
               Próximo <ChevronRight className="size-3.5" />
             </Btn>
-            {posicao && <span className="tabular text-[11px] text-muted-foreground">{posicao}</span>}
+            {posicao && (
+              <span className="tabular text-[11px] text-muted-foreground">{posicao}</span>
+            )}
           </div>
           <Btn variant="ghost" onClick={onClose}>
             Fechar
@@ -1504,10 +1583,16 @@ function CasoDrawerConteudo({
                 >
                   <div className="min-w-0">
                     <p className="flex items-center gap-1.5 text-sm font-medium">
-                      {impedimento ? <Lock className="size-3.5 text-alert" /> : <Check className="size-3.5 text-primary" />}
+                      {impedimento ? (
+                        <Lock className="size-3.5 text-alert" />
+                      ) : (
+                        <Check className="size-3.5 text-primary" />
+                      )}
                       {a.label}
                     </p>
-                    <p className="text-[11px] text-muted-foreground">{impedimento ?? a.descricao}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {impedimento ?? a.descricao}
+                    </p>
                   </div>
                   <Btn
                     variant={a.destrutiva ? "danger" : impedimento ? "ghost" : "primary"}
@@ -1522,14 +1607,17 @@ function CasoDrawerConteudo({
           </div>
           <div className="mt-2">
             <AvisoRegulatorio>
-              Requisitos regulatórios e de segurança (identificação do titular, videoconferência e emissão) são fixos e
-              não podem ser desativados por configuração.
+              Requisitos regulatórios e de segurança (identificação do titular, videoconferência e
+              emissão) são fixos e não podem ser desativados por configuração.
             </AvisoRegulatorio>
           </div>
         </div>
 
         <div>
-          <Field label="Nota rápida da operação" hint="Fica registrada no histórico do caso, com autor e horário.">
+          <Field
+            label="Nota rápida da operação"
+            hint="Fica registrada no histórico do caso, com autor e horário."
+          >
             <div className="flex flex-wrap gap-2">
               <input
                 value={nota}
@@ -1556,7 +1644,6 @@ function CasoDrawerConteudo({
   );
 }
 
-
 // -------------------------------------------------- casos demonstrativos
 function CasosDemonstrativos() {
   return (
@@ -1571,7 +1658,11 @@ function CasosDemonstrativos() {
             <div className="flex flex-wrap items-start justify-between gap-2">
               <h3 className="text-sm font-medium">{c.titulo}</h3>
               <Chip tone={c.bloqueioAbsoluto ? "alert" : c.bloqueio ? "deep" : "blue"}>
-                {c.bloqueioAbsoluto ? "Bloqueio de conformidade" : c.bloqueio ? "Bloqueado" : "Em curso"}
+                {c.bloqueioAbsoluto
+                  ? "Bloqueio de conformidade"
+                  : c.bloqueio
+                    ? "Bloqueado"
+                    : "Em curso"}
               </Chip>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">{c.resumo}</p>
