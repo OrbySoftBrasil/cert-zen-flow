@@ -9,8 +9,10 @@ import {
   GitCompare,
   History,
   Lock,
+  Pencil,
   Play,
   Plus,
+
   ShieldCheck,
   Trash2,
   XCircle,
@@ -19,6 +21,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Btn, ConfirmDialog, Field, Modal, SelectInput, TextArea, TextInput } from "@/components/forms";
+import { CANAIS, CanaisPicker, ChecklistEditor } from "@/components/opconfig-kit";
 import { Grid, Rows, Toggle } from "@/components/settings-kit";
 import { Chip, Panel } from "@/components/ui-kit";
 import {
@@ -29,9 +32,7 @@ import {
   ORIGENS,
   PAPEIS_OPERACAO,
   novaEtapaConfig,
-  novoItemChecklist,
   simular,
-  type Canal,
   type EtapaConfig,
   type MarcoId,
   type OrigemRegra,
@@ -39,20 +40,16 @@ import {
 import { useOpConfig } from "@/lib/opconfig-store";
 import { cn } from "@/lib/utils";
 
-const CANAIS: { id: Canal; label: string }[] = [
-  { id: "email", label: "E-mail" },
-  { id: "push", label: "Push" },
-  { id: "whatsapp", label: "WhatsApp" },
-];
 
 const abas = [
-  { id: "marcos", label: "Marcos & etapas" },
-  { id: "subfluxos", label: "Subfluxos" },
-  { id: "escopo", label: "Escopo & precedência" },
-  { id: "versoes", label: "Versões" },
-  { id: "simulador", label: "Simulador" },
-  { id: "validacoes", label: "Validações" },
+  { id: "marcos", label: "1. Esteira & etapas" },
+  { id: "subfluxos", label: "2. Subfluxos" },
+  { id: "escopo", label: "3. Escopo & precedência" },
+  { id: "simulador", label: "4. Simulador" },
+  { id: "validacoes", label: "5. Validações" },
+  { id: "versoes", label: "6. Versões" },
 ] as const;
+
 
 type AbaId = (typeof abas)[number]["id"];
 
@@ -159,43 +156,32 @@ function AbaMarcos() {
 
   return (
     <div className="space-y-4">
-      <Panel
-        title="Marcos canônicos"
-        hint="Os seis marcos são fixos: não podem ser removidos nem reordenados. Você configura o que acontece dentro de cada um."
-        bodyClassName="p-0"
-      >
-        <div className="divide-y divide-border">
-          {MARCOS.map((m, idx) => {
-            const etapas = rascunho.etapas.filter((e) => e.marco === m.id);
-            return (
-              <div key={m.id} className="p-3">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="grid size-6 shrink-0 place-items-center rounded bg-primary-soft text-[11px] font-semibold text-primary-deep tabular">
-                        {idx + 1}
-                      </span>
-                      <h3 className="font-display text-sm font-semibold">{m.nome}</h3>
-                      <Chip tone="outline" className="gap-1">
-                        <Lock className="size-3" /> Marco fixo
-                      </Chip>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)] xl:items-start">
+        <Panel
+          title="Esteira: 6 marcos"
+          hint="Os marcos são fixos. Escolha um marco, adicione etapas internas e clique na etapa para configurar checklist, prazos e avisos."
+          bodyClassName="p-0"
+          className="xl:sticky xl:top-4"
+        >
+          <div className="divide-y divide-border">
+            {MARCOS.map((m, idx) => {
+              const etapas = rascunho.etapas.filter((e) => e.marco === m.id);
+              return (
+                <div key={m.id} className="p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="grid size-6 shrink-0 place-items-center rounded bg-primary-soft text-[11px] font-semibold text-primary-deep tabular">
+                          {idx + 1}
+                        </span>
+                        <h3 className="font-display text-sm font-semibold">{m.nome}</h3>
+                        <Chip tone="outline" className="gap-1">
+                          <Lock className="size-3" /> Fixo
+                        </Chip>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">{m.proposito}</p>
+                      <p className="text-[11px] text-muted-foreground/80">{m.invariante}</p>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{m.proposito}</p>
-                    <p className="text-[11px] text-muted-foreground/80">{m.invariante}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      aria-label={`Remover marco ${m.nome}`}
-                      onClick={() =>
-                        toast.error("Marco fixo não pode ser removido", {
-                          description: m.invariante,
-                        })
-                      }
-                      className="grid size-7 place-items-center rounded border border-dashed border-border text-muted-foreground/60"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
                     <Btn
                       variant="ghost"
                       disabled={somenteLeitura}
@@ -204,42 +190,65 @@ function AbaMarcos() {
                         setDraft({ nome: "", papel: PAPEIS_OPERACAO[0] });
                       }}
                     >
-                      <Plus className="size-4" /> Etapa interna
+                      <Plus className="size-4" /> Etapa
                     </Btn>
                   </div>
-                </div>
 
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {etapas.length === 0 && (
-                    <span className="text-xs text-alert">Nenhuma etapa ativa — o marco não pode ficar vazio.</span>
-                  )}
-                  {etapas.map((e) => (
-                    <button
-                      key={e.id}
-                      type="button"
-                      onClick={() => setSel(e.id)}
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs transition-colors",
-                        e.id === sel
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : e.ativa
-                            ? "border-border text-muted-foreground hover:border-border-strong hover:text-foreground"
-                            : "border-dashed border-border text-muted-foreground/60",
-                      )}
-                    >
-                      {!ORIGENS[e.origem].editavel && <Lock className="size-3" />}
-                      {e.nome}
-                      <span className="tabular opacity-70">{e.slaHoras}h</span>
-                    </button>
-                  ))}
+                  <div className="mt-2 space-y-1">
+                    {etapas.length === 0 && (
+                      <span className="text-xs text-alert">Nenhuma etapa — o marco não pode ficar vazio.</span>
+                    )}
+                    {etapas.map((e, i) => {
+                      const obrigatorios = e.checklist.filter((c) => c.obrigatorio).length;
+                      return (
+                        <button
+                          key={e.id}
+                          type="button"
+                          onClick={() => setSel(e.id)}
+                          aria-current={e.id === sel}
+                          className={cn(
+                            "flex w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-left text-xs transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+                            e.id === sel
+                              ? "border-primary bg-primary-soft text-primary-deep"
+                              : e.ativa
+                                ? "border-border text-muted-foreground hover:border-border-strong hover:text-foreground"
+                                : "border-dashed border-border text-muted-foreground/60",
+                          )}
+                        >
+                          <span className="tabular w-4 shrink-0 opacity-60">{idx + 1}.{i + 1}</span>
+                          {!ORIGENS[e.origem].editavel && <Lock className="size-3 shrink-0" />}
+                          <span className="min-w-0 flex-1 truncate font-medium">{e.nome}</span>
+                          <span className="tabular shrink-0 opacity-70">{e.slaHoras}h</span>
+                          <span className="tabular shrink-0 rounded border border-border px-1 text-[10px] opacity-80">
+                            {e.checklist.length}/{obrigatorios}
+                          </span>
+                          {!e.ativa && <span className="shrink-0 text-[10px]">off</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          <p className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+            Cada etapa mostra <span className="tabular">itens/obrigatórios</span> do checklist e o SLA em horas.
+          </p>
+        </Panel>
+
+        <div className="min-w-0">
+          {atual ? (
+            <EditorEtapaOperacao etapa={atual} onMover={mover} somenteLeitura={somenteLeitura} />
+          ) : (
+            <Panel title="Nenhuma etapa selecionada" hint="Escolha uma etapa à esquerda para configurá-la.">
+              <p className="text-xs text-muted-foreground">
+                Você também pode criar uma nova etapa dentro de qualquer marco pelo botão “Etapa”.
+              </p>
+            </Panel>
+          )}
         </div>
-      </Panel>
+      </div>
 
-      {atual && <EditorEtapaOperacao etapa={atual} onMover={mover} somenteLeitura={somenteLeitura} />}
 
       <Modal
         open={criando !== null}
@@ -297,7 +306,6 @@ function EditorEtapaOperacao({
   somenteLeitura: boolean;
 }) {
   const { updateEtapa, patchEtapas } = useOpConfig();
-  const [novoItem, setNovoItem] = useState("");
   const [removendo, setRemovendo] = useState(false);
   const travada = !ORIGENS[etapa.origem].editavel;
   const bloqueado = somenteLeitura || travada;
@@ -404,66 +412,13 @@ function EditorEtapaOperacao({
         </Field>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Checklist</p>
-          <div className="divide-y divide-border rounded-md border border-border">
-            {etapa.checklist.length === 0 && <p className="p-3 text-xs text-muted-foreground">Nenhum item.</p>}
-            {etapa.checklist.map((c) => (
-              <div key={c.id} className="flex items-center gap-2 px-3 py-2">
-                <TextInput
-                  value={c.label}
-                  disabled={somenteLeitura}
-                  onChange={(e) =>
-                    updateEtapa(etapa.id, {
-                      checklist: etapa.checklist.map((x) => (x.id === c.id ? { ...x, label: e.target.value } : x)),
-                    })
-                  }
-                />
-                <button
-                  type="button"
-                  disabled={somenteLeitura}
-                  onClick={() =>
-                    updateEtapa(etapa.id, {
-                      checklist: etapa.checklist.map((x) => (x.id === c.id ? { ...x, obrigatorio: !x.obrigatorio } : x)),
-                    })
-                  }
-                  className={cn(
-                    "shrink-0 rounded border px-1.5 py-1 text-[11px]",
-                    c.obrigatorio ? "border-primary bg-primary-soft text-primary-deep" : "border-border text-muted-foreground",
-                  )}
-                >
-                  {c.obrigatorio ? "Obrigatório" : "Opcional"}
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Remover ${c.label}`}
-                  disabled={somenteLeitura}
-                  onClick={() => updateEtapa(etapa.id, { checklist: etapa.checklist.filter((x) => x.id !== c.id) })}
-                  className="shrink-0 text-muted-foreground hover:text-alert"
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <form
-            className="mt-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!novoItem.trim()) return;
-              updateEtapa(etapa.id, { checklist: [...etapa.checklist, novoItemChecklist(novoItem.trim())] });
-              setNovoItem("");
-            }}
-          >
-            <TextInput
-              value={novoItem}
-              disabled={somenteLeitura}
-              onChange={(e) => setNovoItem(e.target.value)}
-              placeholder="Adicionar item ao checklist…"
-            />
-          </form>
-        </div>
+      <div className="mt-4 grid gap-4">
+        <ChecklistEditor
+          titulo="Checklist da etapa"
+          itens={etapa.checklist}
+          disabled={somenteLeitura}
+          onChange={(checklist) => updateEtapa(etapa.id, { checklist })}
+        />
 
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Notificações e controles</p>
@@ -495,29 +450,15 @@ function EditorEtapaOperacao({
               onChange={(v) => updateEtapa(etapa.id, { segregacaoObrigatoria: v })}
             />
           </Rows>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {CANAIS.map((c) => {
-              const on = etapa.canais.includes(c.id);
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  disabled={somenteLeitura}
-                  onClick={() =>
-                    updateEtapa(etapa.id, {
-                      canais: on ? etapa.canais.filter((x) => x !== c.id) : [...etapa.canais, c.id],
-                    })
-                  }
-                  className={cn(
-                    "rounded border px-2 py-1 text-[11px]",
-                    on ? "border-primary bg-primary-soft text-primary-deep" : "border-border text-muted-foreground",
-                  )}
-                >
-                  {c.label}
-                </button>
-              );
-            })}
+          <div className="mt-2">
+            <p className="mb-1 text-[11px] text-muted-foreground">Canais de aviso</p>
+            <CanaisPicker
+              value={etapa.canais}
+              disabled={somenteLeitura}
+              onChange={(canais) => updateEtapa(etapa.id, { canais })}
+            />
           </div>
+
 
           {etapa.segregacaoObrigatoria && (
             <div className="mt-3">
@@ -580,120 +521,155 @@ function EditorEtapaOperacao({
 function AbaSubfluxos() {
   const { rascunho, updateSubfluxo, permissoes } = useOpConfig();
   const somenteLeitura = !permissoes.editarRascunho;
+  const [abrindo, setAbrindo] = useState<string | null>(null);
+  const [busca, setBusca] = useState("");
+
+  const lista = rascunho.subfluxos.filter((s) =>
+    `${s.nome} ${s.descricao} ${s.gatilho} ${s.responsavel}`.toLowerCase().includes(busca.trim().toLowerCase()),
+  );
+  const aberto = rascunho.subfluxos.find((s) => s.id === abrindo);
+  const ativos = rascunho.subfluxos.filter((s) => s.ativo).length;
 
   return (
-    <Panel
-      title="Catálogo de subfluxos"
-      hint="Subfluxos são pré-definidos pelo produto. Você ativa, atribui responsável, SLA, checklist e avisos — sem criar loops, scripts ou ligações arbitrárias."
-      bodyClassName="p-0"
-    >
-      <div className="divide-y divide-border">
-        {rascunho.subfluxos.map((s) => {
-          const dependente = s.dependeHomologacao && !s.homologado;
-          return (
-            <div key={s.id} className="p-3">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
+    <div className="space-y-4">
+      <Panel
+        title="Catálogo de subfluxos"
+        hint="Subfluxos são exceções pré-definidas pelo produto. Você liga, escolhe quem responde, o prazo, os avisos e monta o checklist — sem criar loops ou ligações arbitrárias."
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip tone="outline">
+              {ativos} de {rascunho.subfluxos.length} ativos
+            </Chip>
+            <div className="w-44">
+              <TextInput
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                aria-label="Buscar subfluxo"
+                placeholder="Buscar subfluxo…"
+              />
+            </div>
+          </div>
+        }
+        bodyClassName="p-0"
+      >
+        <ul className="divide-y divide-border">
+          {lista.length === 0 && (
+            <li className="px-4 py-6 text-center text-xs text-muted-foreground">Nenhum subfluxo com esse termo.</li>
+          )}
+          {lista.map((s) => {
+            const dependente = s.dependeHomologacao && !s.homologado;
+            const obrigatorios = s.checklist.filter((c) => c.obrigatorio).length;
+            return (
+              <li key={s.id} className="flex flex-wrap items-start justify-between gap-3 p-3">
+                <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-display text-sm font-semibold">{s.nome}</h3>
                     <OrigemChip origem={s.origem} />
-                    {dependente && <Chip tone="alert">Dependente de homologação da AC</Chip>}
+                    {dependente && <Chip tone="alert">Aguarda homologação da AC</Chip>}
                     {s.ativo && !dependente && <Chip tone="blue">Ativo</Chip>}
+                    {!s.ativo && <Chip tone="outline">Desligado</Chip>}
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">{s.descricao}</p>
-                  <p className="text-[11px] text-muted-foreground/80">Gatilho: {s.gatilho}</p>
+                  <p className="text-[11px] text-muted-foreground/80">Dispara quando: {s.gatilho}</p>
+                  {s.ativo && (
+                    <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                      <span>Responsável: {s.responsavel || "— não definido"}</span>
+                      <span className="tabular">SLA {s.slaHoras}h</span>
+                      <span className="tabular">
+                        {s.checklist.length} itens no checklist ({obrigatorios} obrigatórios)
+                      </span>
+                      <span>Avisos: {s.canais.length ? s.canais.map((c) => CANAIS.find((x) => x.id === c)?.label).join(", ") : "nenhum"}</span>
+                    </p>
+                  )}
                 </div>
-                <div className="w-40 shrink-0">
-                  <Toggle
-                    label={s.ativo ? "Ativado" : "Desativado"}
-                    checked={s.ativo}
-                    disabled={somenteLeitura}
-                    onChange={(v) => {
-                      if (v && dependente) {
-                        toast.error("Capability não confirmada pela AC", {
-                          description: "Este subfluxo só pode ser ativado após homologação. A ativação fica registrada como pendência de publicação.",
-                        });
-                      }
-                      updateSubfluxo(s.id, { ativo: v });
-                    }}
-                  />
-                </div>
-              </div>
-
-              {s.ativo && (
-                <div className="mt-2 grid gap-3 sm:grid-cols-3">
-                  <Field label="Responsável">
-                    <SelectInput value={s.responsavel} disabled={somenteLeitura} onChange={(e) => updateSubfluxo(s.id, { responsavel: e.target.value })}>
-                      <option value="">Selecionar…</option>
-                      {PAPEIS_OPERACAO.map((p) => (
-                        <option key={p}>{p}</option>
-                      ))}
-                    </SelectInput>
-                  </Field>
-                  <Field label="SLA (horas)">
-                    <TextInput
-                      type="number"
-                      min={0}
-                      value={s.slaHoras}
+                <div className="flex shrink-0 items-center gap-2">
+                  <Btn variant="ghost" onClick={() => setAbrindo(s.id)}>
+                    <Pencil className="size-4" /> {somenteLeitura ? "Ver" : "Configurar"}
+                  </Btn>
+                  <div className="w-28">
+                    <Toggle
+                      label={s.ativo ? "Ligado" : "Desligado"}
+                      checked={s.ativo}
                       disabled={somenteLeitura}
-                      onChange={(e) => updateSubfluxo(s.id, { slaHoras: Number(e.target.value) })}
+                      onChange={(v) => {
+                        if (v && dependente) {
+                          toast.error("Capability não confirmada pela AC", {
+                            description: "Este subfluxo só pode valer após homologação. A ativação fica registrada como pendência de publicação.",
+                          });
+                        }
+                        updateSubfluxo(s.id, { ativo: v });
+                      }}
                     />
-                  </Field>
-                  <Field label="Canais de aviso">
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {CANAIS.map((c) => {
-                        const on = s.canais.includes(c.id);
-                        return (
-                          <button
-                            key={c.id}
-                            type="button"
-                            disabled={somenteLeitura}
-                            onClick={() =>
-                              updateSubfluxo(s.id, { canais: on ? s.canais.filter((x) => x !== c.id) : [...s.canais, c.id] })
-                            }
-                            className={cn(
-                              "rounded border px-2 py-1 text-[11px]",
-                              on ? "border-primary bg-primary-soft text-primary-deep" : "border-border text-muted-foreground",
-                            )}
-                          >
-                            {c.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </Field>
-                  <div className="sm:col-span-3">
-                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Checklist do subfluxo</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {s.checklist.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          disabled={somenteLeitura}
-                          onClick={() =>
-                            updateSubfluxo(s.id, {
-                              checklist: s.checklist.map((x) => (x.id === c.id ? { ...x, obrigatorio: !x.obrigatorio } : x)),
-                            })
-                          }
-                          className={cn(
-                            "rounded border px-2 py-1 text-[11px]",
-                            c.obrigatorio ? "border-primary bg-primary-soft text-primary-deep" : "border-border text-muted-foreground",
-                          )}
-                        >
-                          {c.label} · {c.obrigatorio ? "obrigatório" : "opcional"}
-                        </button>
-                      ))}
-                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </Panel>
+              </li>
+            );
+          })}
+        </ul>
+      </Panel>
+
+      <Modal
+        open={aberto !== undefined}
+        onClose={() => setAbrindo(null)}
+        title={aberto ? `Subfluxo: ${aberto.nome}` : ""}
+        {...(aberto ? { hint: aberto.descricao } : {})}
+        width="max-w-2xl"
+        footer={
+          <Btn onClick={() => setAbrindo(null)}>Concluir</Btn>
+        }
+      >
+        {aberto && (
+          <div className="space-y-4">
+            <p className="rounded-md border border-border bg-muted/40 p-2.5 text-xs text-muted-foreground">
+              Dispara quando: <span className="text-foreground">{aberto.gatilho}</span>. Origem da regra: {ORIGENS[aberto.origem].label} — {ORIGENS[aberto.origem].hint}
+            </p>
+            <Grid cols={3}>
+              <Field label="Responsável">
+                <SelectInput
+                  value={aberto.responsavel}
+                  disabled={somenteLeitura}
+                  onChange={(e) => updateSubfluxo(aberto.id, { responsavel: e.target.value })}
+                >
+                  <option value="">Selecionar…</option>
+                  {PAPEIS_OPERACAO.map((p) => (
+                    <option key={p}>{p}</option>
+                  ))}
+                </SelectInput>
+              </Field>
+              <Field label="SLA (horas)">
+                <TextInput
+                  type="number"
+                  min={0}
+                  value={aberto.slaHoras}
+                  disabled={somenteLeitura}
+                  onChange={(e) => updateSubfluxo(aberto.id, { slaHoras: Number(e.target.value) })}
+                />
+              </Field>
+              <Field label="Canais de aviso">
+                <div className="pt-1">
+                  <CanaisPicker
+                    value={aberto.canais}
+                    disabled={somenteLeitura}
+                    onChange={(canais) => updateSubfluxo(aberto.id, { canais })}
+                  />
+                </div>
+              </Field>
+            </Grid>
+            <ChecklistEditor
+              titulo="Checklist do subfluxo"
+              hint="Estes são os itens que o responsável precisa cumprir para encerrar o subfluxo."
+              itens={aberto.checklist}
+              disabled={somenteLeitura}
+              onChange={(checklist) => updateSubfluxo(aberto.id, { checklist })}
+              placeholder="Ex.: Novo horário confirmado com o titular"
+            />
+          </div>
+        )}
+      </Modal>
+    </div>
   );
 }
+
 
 /* ----------------------------------------------------- Escopo & precedência */
 
