@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import { stages, type StageId } from "@/lib/mock-data";
+import { PAPEIS_OPERACAO } from "@/lib/opconfig-model";
 
 const STORAGE_KEY = "certus-ac-config-v1";
 

@@ -99,7 +99,7 @@ function PapelSelect({
           onClick={() => irPara("equipe")}
           className="text-[11px] text-primary underline-offset-2 hover:underline"
         >
-          Criar ou editar papéis em Equipe & usuários
+          Gerenciar perfis e papéis em Equipe & usuários
         </button>
       )}
     </div>
