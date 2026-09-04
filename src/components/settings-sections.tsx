@@ -1068,6 +1068,8 @@ export function SecaoEquipe() {
   const [novoPapel, setNovoPapel] = useState(false);
   const [papelDraft, setPapelDraft] = useState({ nome: "", descricao: "", perfil: "—" });
   const [removerPapel, setRemoverPapel] = useState<string | null>(null);
+  const [novoPerfil, setNovoPerfil] = useState("");
+  const [renomeando, setRenomeando] = useState<{ antigo: string; novo: string } | null>(null);
 
   const opcfg = useOpConfig();
   const nomePapel = (id: string) => papeis.find((p) => p.id === id)?.nome ?? "Sem papel";
@@ -1078,6 +1080,62 @@ export function SecaoEquipe() {
     perfil === "—" ? [] : opcfg.rascunho.etapas.filter((e) => e.papel === perfil && e.ativa);
 
   const setUsuarios = (lista: UsuarioRule[]) => replace("usuarios", lista);
+
+  // --- Perfis da esteira (fonte das opções de "Papel responsável" em Operação & perfis)
+  const perfis = settings.perfisEsteira;
+  const perfilPadrao = (p: string) => (PAPEIS_OPERACAO as readonly string[]).includes(p);
+  const adicionarPerfil = () => {
+    const nome = novoPerfil.trim();
+    if (!nome) return;
+    if (perfis.some((p) => p.toLowerCase() === nome.toLowerCase())) {
+      toast.error("Já existe um perfil com este nome.");
+      return;
+    }
+    replace("perfisEsteira", [...perfis, nome]);
+    setNovoPerfil("");
+    toast.success("Perfil criado", { description: `"${nome}" já aparece em Operação & perfis.` });
+  };
+  const confirmarRenome = () => {
+    if (!renomeando) return;
+    const nome = renomeando.novo.trim();
+    if (!nome) return;
+    if (perfis.some((p) => p.toLowerCase() === nome.toLowerCase() && p !== renomeando.antigo)) {
+      toast.error("Já existe um perfil com este nome.");
+      return;
+    }
+    replace(
+      "perfisEsteira",
+      perfis.map((p) => (p === renomeando.antigo ? nome : p)),
+    );
+    replace(
+      "papeis",
+      papeis.map((p) =>
+        p.perfilOperacional === renomeando.antigo ? { ...p, perfilOperacional: nome } : p,
+      ) as PapelRule[],
+    );
+    opcfg.mutar((r) => ({
+      ...r,
+      etapas: r.etapas.map((e) => (e.papel === renomeando.antigo ? { ...e, papel: nome } : e)),
+    }));
+    setRenomeando(null);
+    toast.success("Perfil renomeado", { description: "Etapas e papéis foram atualizados." });
+  };
+  const excluirPerfil = (nome: string) => {
+    if (etapasDoPerfil(nome).length) {
+      toast.error("Perfil em uso na esteira", {
+        description: "Troque o papel responsável dessas etapas antes de excluir.",
+      });
+      return;
+    }
+    replace("perfisEsteira", perfis.filter((p) => p !== nome));
+    replace(
+      "papeis",
+      papeis.map((p) =>
+        p.perfilOperacional === nome ? { ...p, perfilOperacional: "—" } : p,
+      ) as PapelRule[],
+    );
+    toast.success("Perfil removido");
+  };
 
   const filtrados = usuarios.filter((u) => {
     const texto = `${u.nome} ${u.email} ${u.unidade}`.toLowerCase();
@@ -1333,6 +1391,53 @@ export function SecaoEquipe() {
             ))}
           </ul>
         )}
+      </Panel>
+
+      <Panel
+        title="Perfis na esteira"
+        hint="São as opções de “Papel responsável” das etapas em Operação & perfis. Os oito primeiros vêm prontos com o produto; você pode renomear, excluir os que não usa e criar novos."
+      >
+        <ul className="divide-y divide-border rounded-lg border border-border">
+          {perfis.map((perfil) => {
+            const etapas = etapasDoPerfil(perfil).length;
+            const papeisDoPerfil = papeis.filter((p) => p.perfilOperacional === perfil).length;
+            return (
+              <li key={perfil} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
+                <span className="min-w-40 flex-1 font-medium">{perfil}</span>
+                {perfilPadrao(perfil) && <Chip tone="neutral">Padrão do produto</Chip>}
+                <span className="text-xs text-muted-foreground">
+                  {etapas} etapa(s) · {papeisDoPerfil} papel(is)
+                </span>
+                <Btn variant="ghost" onClick={() => setRenomeando({ antigo: perfil, novo: perfil })}>
+                  Renomear
+                </Btn>
+                <Btn variant="ghost" onClick={() => excluirPerfil(perfil)}>
+                  <Trash2 className="size-4" /> Excluir
+                </Btn>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="mt-3 flex flex-wrap items-end gap-2">
+          <div className="min-w-56 flex-1">
+            <Field label="Novo perfil">
+              <TextInput
+                value={novoPerfil}
+                placeholder="Ex.: Conferência jurídica"
+                onChange={(e) => setNovoPerfil(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    adicionarPerfil();
+                  }
+                }}
+              />
+            </Field>
+          </div>
+          <Btn variant="primary" onClick={adicionarPerfil}>
+            <Plus className="size-4" /> Adicionar perfil
+          </Btn>
+        </div>
       </Panel>
 
       <Panel
