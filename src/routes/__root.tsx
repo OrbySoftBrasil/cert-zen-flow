@@ -17,6 +17,7 @@ import { SettingsProvider } from "@/lib/settings-store";
 import { OpConfigProvider } from "@/lib/opconfig-store";
 import { AuthProvider } from "@/lib/auth-store";
 import { ThemeProvider } from "@/lib/theme";
+import { DensidadeProvider } from "@/lib/densidade";
 
 function NotFoundComponent() {
   return (
