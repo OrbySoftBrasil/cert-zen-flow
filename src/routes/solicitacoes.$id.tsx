@@ -262,7 +262,8 @@ function Workspace() {
       actions={
         <>
           <Link
-            to="/solicitacoes"
+            to="/operacao"
+            search={{ aba: "casos" }}
             className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
           >
             <ArrowLeft className="size-3.5" /> Todos os casos
