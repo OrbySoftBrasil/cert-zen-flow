@@ -9,8 +9,10 @@ import {
   GitCompare,
   History,
   Lock,
+  Pencil,
   Play,
   Plus,
+  Search,
   ShieldCheck,
   Trash2,
   XCircle,
@@ -19,6 +21,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Btn, ConfirmDialog, Field, Modal, SelectInput, TextArea, TextInput } from "@/components/forms";
+import { CANAIS, CanaisPicker, ChecklistEditor } from "@/components/opconfig-kit";
 import { Grid, Rows, Toggle } from "@/components/settings-kit";
 import { Chip, Panel } from "@/components/ui-kit";
 import {
@@ -29,9 +32,7 @@ import {
   ORIGENS,
   PAPEIS_OPERACAO,
   novaEtapaConfig,
-  novoItemChecklist,
   simular,
-  type Canal,
   type EtapaConfig,
   type MarcoId,
   type OrigemRegra,
@@ -39,11 +40,6 @@ import {
 import { useOpConfig } from "@/lib/opconfig-store";
 import { cn } from "@/lib/utils";
 
-const CANAIS: { id: Canal; label: string }[] = [
-  { id: "email", label: "E-mail" },
-  { id: "push", label: "Push" },
-  { id: "whatsapp", label: "WhatsApp" },
-];
 
 const abas = [
   { id: "marcos", label: "Marcos & etapas" },
