@@ -7,13 +7,13 @@ import { SettingsActions, SettingsWorkspace, type SecaoId } from "@/components/s
 export const Route = createFileRoute("/configuracoes")({
   head: () => ({
     meta: [
-      { title: "Configurações da operação — Certus AC" },
+      { title: "Configurações da operação — Certus AR" },
       {
         name: "description",
         content:
           "Personalize a esteira de emissão, checklists por etapa, requisitos de avanço, SLA, catálogo, papéis, MFA, sessões, integrações e políticas de dados da autoridade certificadora.",
       },
-      { property: "og:title", content: "Configurações da operação — Certus AC" },
+      { property: "og:title", content: "Configurações da operação — Certus AR" },
       {
         property: "og:description",
         content:
@@ -33,7 +33,7 @@ function ConfiguracoesPage() {
   return (
     <AppShell
       title="Configurações"
-      subtitle="Parametrize a esteira, as regras de negócio e as políticas de segurança desta autoridade certificadora."
+      subtitle="Parametrize a esteira, as regras de negócio e as políticas de segurança desta Autoridade de Registro."
       actions={<SettingsActions />}
     >
       <SettingsWorkspace ativa={ativa} onChange={setAtiva} />

@@ -175,7 +175,7 @@ export function SettingsDialog({ open, onClose }: { open: boolean; onClose: () =
       open={open}
       onClose={onClose}
       title="Configurações"
-      hint="Parametrize a esteira, as regras de negócio e as políticas de segurança desta AC."
+      hint="Parametrize a esteira, as regras de negócio e as políticas de segurança desta AR."
       width="max-w-6xl"
       footer={<SettingsActions />}
     >

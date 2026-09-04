@@ -274,7 +274,7 @@ function seedEtapas(): EtapaConfig[] {
       removivel: false,
       origem: "plataforma",
       segregacaoObrigatoria: true,
-      papelVerificador: "Verificadora",
+      papelVerificador: "AGR — Agente de registro",
       criterioEntrada: "Dossiê enviado para verificação.",
       criterioSaida: "Dossiê aprovado sem divergência aberta.",
       instrucoes: "Quem montou o dossiê não pode conferir o mesmo dossiê.",
