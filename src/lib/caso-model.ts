@@ -385,7 +385,18 @@ export function dossieDe(r: Request, cliente?: Client): Dossie {
     segregacaoOk: montadora !== verificadora,
   };
 
-  return { ...base2, ...(cenarioDe(r.id)?.dossie ?? {}) };
+  const cen = cenarioDe(r.id);
+  if (cen) {
+    // Nos casos demonstrativos o dossiê acompanha a emissão principal: se ela
+    // já está conferida, nenhum item obrigatório pode aparecer pendente.
+    const principal = cen.emissoes.find((e) => e.principal) ?? cen.emissoes[0];
+    if (principal?.dossie === "concluido") {
+      base2.itens = base2.itens.map((i) => ({ ...i, status: "aprovado" as const }));
+      base2.devolucoes = [];
+    }
+  }
+  return { ...base2, ...(cen?.dossie ?? {}) };
+
 }
 
 
