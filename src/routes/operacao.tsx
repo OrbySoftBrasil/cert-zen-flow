@@ -973,7 +973,21 @@ function TodosOsCasos({
 
 const STORAGE_VIEWS = "certus-op-views-v1";
 
-function MinhaFila({ requests, onOpen }: { requests: Request[]; onOpen: (id: string) => void }) {
+function MinhaFila({
+  requests,
+  onOpen,
+  selecao,
+  onSelecionar,
+  onOrdemVisivel,
+  onAssumir,
+}: {
+  requests: Request[];
+  onOpen: (id: string) => void;
+  selecao: string[];
+  onSelecionar: (id: string, marcado: boolean) => void;
+  onOrdemVisivel: (ids: string[]) => void;
+  onAssumir: (id: string) => void;
+}) {
   const [perfil, setPerfil] = useState<PerfilId>("agr");
   const [escopo, setEscopo] = useState<"minhas" | "equipe" | "livres">("minhas");
   const [filtros, setFiltros] = useState<FiltrosFila>(filtrosPadrao);
