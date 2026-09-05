@@ -24,24 +24,58 @@ export interface Agent {
   tempoMedioMin: number;
 }
 
-/** Prova concreta que libera a conclusão de um requisito de etapa. */
+/** Prova concreta que satisfaz um requisito de etapa. */
 export interface EvidenciaRequisito {
   tipo: string;
+  /** Como a evidência entrou: novo envio, reutilização, sistema, manual... */
+  origem: "nova" | "reutilizada" | "automatica" | "manual" | "confirmacao" | "decisao";
   referencia?: string;
   arquivo?: string;
+  documentoId?: string;
   valor?: string;
   quando?: string;
+  fonte?: string;
+  resultado?: string;
   observacao?: string;
   por: string;
   registradoEm: string;
+}
+
+export interface RegistroHistoricoRequisito {
+  id: string;
+  quando: string;
+  por: string;
+  acao: string;
+  detalhe?: string;
 }
 
 export interface ChecklistItem {
   id: string;
   label: string;
   done: boolean;
+  /** Comportamento explícito — nunca inferido pelo texto do rótulo. */
+  modo: import("@/lib/checklist-model").ModoCumprimento;
+  escopo?: import("@/lib/checklist-model").EscopoRequisito;
+  obrigatorio?: boolean;
+  instrucao?: string;
+  categoriaDoc?: import("@/lib/checklist-model").CategoriaDoc;
+  chaveDerivada?: import("@/lib/checklist-model").ChaveDerivada;
+  acaoProduto?: import("@/lib/checklist-model").AcaoProduto;
+  emissaoId?: string;
+  /** Ação protegida que este requisito bloqueia enquanto pendente. */
+  bloqueia?: string;
+  responsavel?: string;
+  validadeDias?: number;
+  reutilizacao?: "permitida" | "vedada";
+  observacaoObrigatoria?: boolean;
+  exigeAprovacao?: boolean;
+  exigeSegundoOperador?: boolean;
+  origemRegra?: import("@/lib/checklist-model").OrigemRegra;
+  naoAplicavel?: { motivo: string; regra: string };
   evidencia?: EvidenciaRequisito;
+  historico?: RegistroHistoricoRequisito[];
 }
+
 
 export interface TimelineEvent {
   id: string;
@@ -97,6 +131,10 @@ export interface DocumentFile {
   enviadoEm: string;
   status: "aprovado" | "em análise" | "reprovado";
   motivo?: string;
+  /** Versão substituída por um envio mais recente — não serve para reutilização. */
+  substituido?: boolean;
+  /** Documento reaproveitado de outro requisito (nunca duplicamos o arquivo). */
+  reutilizadoDe?: string;
 }
 
 export interface Client {
@@ -297,7 +335,10 @@ export const clients: Client[] = [
     gestor: "Rafael Bastos",
     certificados: [{ id: "cert9", tipo: "e-CPF A3", serie: "AC-2024-99011", emitidoEm: "2024-11-11", validoAte: diaOffset(88), status: "ativo" }],
     faturas: [{ id: "f7", descricao: "e-CPF A3 + token", valor: 318, vencimento: "2024-11-11", status: "pago", metodo: "Cartão" }],
-    documentos: [{ id: "d7", nome: "OAB frente e verso.pdf", tipo: "Identificação", enviadoEm: diaOffset(-20), status: "aprovado" }],
+    documentos: [
+      { id: "d7", nome: "OAB frente e verso.pdf", tipo: "Identificação", enviadoEm: diaOffset(-20), status: "aprovado" },
+      { id: "d8", nome: "Conta de energia 2025.pdf", tipo: "Endereço", enviadoEm: diaOffset(-200), status: "aprovado" },
+    ],
     notas: [],
   },
 ];
@@ -306,9 +347,27 @@ export function clientById(id: string) {
   return clients.find((c) => c.id === id);
 }
 
-function ck(items: [string, boolean][]): ChecklistItem[] {
-  return items.map(([label, done], i) => ({ id: `ck${i}`, label, done }));
+/** Seeds do checklist. O modo é sempre explícito — o rótulo não decide nada. */
+export type EspecItem = Partial<ChecklistItem> & { label: string; done?: boolean };
+
+function ck(items: ([string, boolean] | EspecItem)[], prefixo = "ck"): ChecklistItem[] {
+  return items.map((it, i) => {
+    const spec: EspecItem = Array.isArray(it) ? { label: it[0], done: it[1] } : it;
+    const { label, done = false, ...resto } = spec;
+    return {
+      id: `${prefixo}${i}`,
+      label,
+      done,
+      modo: "confirmacao",
+      escopo: "caso",
+      obrigatorio: true,
+      origemRegra: "tenant",
+      ...resto,
+    } as ChecklistItem;
+  });
 }
+
+export { ck as itensChecklist };
 
 export const requests: Request[] = [
   {

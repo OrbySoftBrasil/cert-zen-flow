@@ -1,10 +1,18 @@
 // Primitivas compartilhadas da configuração de "Operação & perfis".
 // Editor de checklist completo (criar, renomear, marcar obrigatório, reordenar
 // e remover) usado tanto nas etapas quanto nos subfluxos.
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Plus, Settings2, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-import { Btn, TextInput } from "@/components/forms";
+import { Btn, Field, SelectInput, TextInput } from "@/components/forms";
+import {
+  ACOES_PRODUTO,
+  CATEGORIAS_DOC,
+  DERIVADOS,
+  ESCOPOS,
+  MODOS,
+  modoInfo,
+} from "@/lib/checklist-model";
 import { novoItemChecklist, type Canal, type ItemChecklist } from "@/lib/opconfig-model";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +73,7 @@ export function ChecklistEditor({
   placeholder?: string;
 }) {
   const [draft, setDraft] = useState("");
+  const [aberto, setAberto] = useState<string | null>(null);
   const obrigatorios = itens.filter((i) => i.obrigatorio).length;
 
   const mover = (id: string, dir: -1 | 1) => {
@@ -98,7 +107,8 @@ export function ChecklistEditor({
           </li>
         )}
         {itens.map((c, i) => (
-          <li key={c.id} className="flex items-center gap-2 px-3 py-2">
+          <li key={c.id} className="px-3 py-2">
+            <div className="flex items-center gap-2">
             <span className="tabular w-5 shrink-0 text-[11px] text-muted-foreground">{i + 1}.</span>
             <TextInput
               value={c.label}
@@ -139,6 +149,18 @@ export function ChecklistEditor({
               </button>
               <button
                 type="button"
+                aria-expanded={aberto === c.id}
+                aria-label={`Configurar “${c.label}”`}
+                onClick={() => setAberto(aberto === c.id ? null : c.id)}
+                className={cn(
+                  "grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground",
+                  aberto === c.id && "bg-primary-soft text-primary-deep",
+                )}
+              >
+                <Settings2 className="size-3.5" />
+              </button>
+              <button
+                type="button"
                 disabled={disabled}
                 aria-label={`Remover “${c.label}”`}
                 onClick={() => onChange(itens.filter((x) => x.id !== c.id))}
@@ -146,7 +168,21 @@ export function ChecklistEditor({
               >
                 <Trash2 className="size-3.5" />
               </button>
+              </div>
             </div>
+            <p className="mt-1 pl-7 text-[11px] text-muted-foreground">
+              {modoInfo(c.modo).nome} · escopo {ESCOPOS.find((e) => e.id === c.escopo)?.nome ?? "Caso"}
+              {c.bloqueia ? ` · bloqueia: ${c.bloqueia}` : " · não bloqueia nenhuma ação"}
+            </p>
+            {aberto === c.id && (
+              <ConfigItem
+                item={c}
+                disabled={disabled}
+                onChange={(patch) =>
+                  onChange(itens.map((x) => (x.id === c.id ? ({ ...x, ...patch } as ItemChecklist) : x)))
+                }
+              />
+            )}
           </li>
         ))}
       </ul>
@@ -173,5 +209,199 @@ export function ChecklistEditor({
         </Btn>
       </form>
     </section>
+  );
+}
+
+type PatchItem = { [K in keyof ItemChecklist]?: ItemChecklist[K] | undefined };
+
+/** Configuração explícita do item: “Como este item é cumprido?”. */
+function ConfigItem({
+  item,
+  disabled,
+  onChange,
+}: {
+  item: ItemChecklist;
+  disabled?: boolean | undefined;
+  onChange: (patch: PatchItem) => void;
+}) {
+  return (
+    <div className="mt-2 space-y-3 rounded-md border border-border bg-muted/40 p-3">
+      <Field
+        label="Como este item é cumprido?"
+        hint="Escolha explícita. Renomear o item não muda o comportamento."
+      >
+        <SelectInput
+          value={item.modo}
+          disabled={disabled}
+          onChange={(e) =>
+            onChange({
+              modo: e.target.value as ItemChecklist["modo"],
+              categoriaDoc: undefined,
+              chaveDerivada: undefined,
+              acaoProduto: undefined,
+            })
+          }
+        >
+          {MODOS.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.nome}
+            </option>
+          ))}
+        </SelectInput>
+      </Field>
+      <p className="text-[11px] text-muted-foreground">{modoInfo(item.modo).descricao}</p>
+
+      {item.modo === "documento" && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Categoria documental exigida">
+            <SelectInput
+              value={item.categoriaDoc ?? "identidade"}
+              disabled={disabled}
+              onChange={(e) => onChange({ categoriaDoc: e.target.value as ItemChecklist["categoriaDoc"] })}
+            >
+              {CATEGORIAS_DOC.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+          <Field label="Validade máxima da evidência (dias)">
+            <TextInput
+              inputMode="numeric"
+              disabled={disabled}
+              value={String(item.validadeDias ?? "")}
+              placeholder="Padrão da categoria"
+              onChange={(e) =>
+                onChange({
+                  validadeDias: e.target.value ? Number(e.target.value) : undefined,
+                })
+              }
+            />
+          </Field>
+          <Field label="Política de reutilização">
+            <SelectInput
+              value={item.reutilizacao}
+              disabled={disabled}
+              onChange={(e) => onChange({ reutilizacao: e.target.value as ItemChecklist["reutilizacao"] })}
+            >
+              <option value="permitida">Reaproveitar documento válido existente</option>
+              <option value="vedada">Sempre exigir nova versão</option>
+            </SelectInput>
+          </Field>
+        </div>
+      )}
+
+      {item.modo === "derivado" && (
+        <Field label="Registro do sistema que satisfaz o item">
+          <SelectInput
+            value={item.chaveDerivada ?? "pagamento"}
+            disabled={disabled}
+            onChange={(e) => onChange({ chaveDerivada: e.target.value as ItemChecklist["chaveDerivada"] })}
+          >
+            {DERIVADOS.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.nome}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
+      )}
+
+      {item.modo === "acao" && (
+        <Field label="Ação estruturada do produto">
+          <SelectInput
+            value={item.acaoProduto ?? "registrar-consulta"}
+            disabled={disabled}
+            onChange={(e) => onChange({ acaoProduto: e.target.value as ItemChecklist["acaoProduto"] })}
+          >
+            {ACOES_PRODUTO.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.nome}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
+      )}
+
+      {item.modo === "confirmacao" && (
+        <label className="flex items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            disabled={disabled}
+            checked={item.observacaoObrigatoria === true}
+            onChange={(e) => onChange({ observacaoObrigatoria: e.target.checked })}
+          />
+          Exigir observação na confirmação
+        </label>
+      )}
+
+      {item.modo === "decisao" && (
+        <div className="space-y-1.5">
+          <label className="flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              disabled={disabled}
+              checked={item.exigeAprovacao === true}
+              onChange={(e) => onChange({ exigeAprovacao: e.target.checked })}
+            />
+            Exigir alçada de aprovação
+          </label>
+          <label className="flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              disabled={disabled}
+              checked={item.exigeSegundoOperador === true}
+              onChange={(e) => onChange({ exigeSegundoOperador: e.target.checked })}
+            />
+            Exigir segundo operador
+          </label>
+        </div>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Escopo do requisito">
+          <SelectInput
+            value={item.escopo}
+            disabled={disabled}
+            onChange={(e) => onChange({ escopo: e.target.value as ItemChecklist["escopo"] })}
+          >
+            {ESCOPOS.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.nome}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
+        <Field
+          label="Ação bloqueada enquanto pendente"
+          hint="Vazio = não bloqueia nada."
+        >
+          <SelectInput
+            value={item.bloqueia ?? ""}
+            disabled={disabled || item.modo === "orientacao"}
+            onChange={(e) => onChange({ bloqueia: e.target.value || undefined })}
+          >
+            <option value="">Não bloqueia</option>
+            <option>Enviar dossiê para verificação</option>
+            <option>Aprovar emissão</option>
+            <option>Registrar emissão manual</option>
+            <option>Liberar entrega</option>
+            <option>Concluir o caso</option>
+          </SelectInput>
+        </Field>
+        <Field label="Origem da regra">
+          <SelectInput
+            value={item.origemItem}
+            disabled={disabled}
+            onChange={(e) => onChange({ origemItem: e.target.value as ItemChecklist["origemItem"] })}
+          >
+            <option value="plataforma">Plataforma</option>
+            <option value="ac">AC</option>
+            <option value="tenant">Tenant (esta AR)</option>
+          </SelectInput>
+        </Field>
+      </div>
+    </div>
   );
 }

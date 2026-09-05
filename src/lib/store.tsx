@@ -13,6 +13,10 @@ import {
 
 import {
   agents,
+  itensChecklist,
+  type ChecklistItem,
+  type EspecItem,
+  type RegistroHistoricoRequisito,
   appointments as seedAppointments,
   clients as seedClients,
   requests as seedRequests,
@@ -32,6 +36,7 @@ import {
   type TicketCategoria,
   type TimelineEvent,
 } from "@/lib/mock-data";
+import { categoriaInfo, origemLabel } from "@/lib/checklist-model";
 import { cenarioAppointments, cenarioRegistros, cenarioRequests } from "@/lib/cenarios";
 import {
   type AutorRegistro,
@@ -231,11 +236,24 @@ interface Actions {
   addRequest: (input: NovaSolicitacaoInput) => Request;
   updateRequest: (id: string, patch: Partial<Request>) => void;
   moveRequest: (id: string, stage: StageId, detalhe?: string) => void;
+  /** Satisfaz um requisito com a evidência do modo configurado. */
   cumprirRequisito: (
     requestId: string,
     itemId: string,
     evidencia: Omit<EvidenciaRequisito, "por" | "registradoEm">,
+    opcoes?: { anexarAoDossie?: boolean },
   ) => void;
+  /** Vincula um documento já existente do dossiê ao requisito (sem duplicar arquivo). */
+  reutilizarDocumento: (requestId: string, itemId: string, documentoId: string) => void;
+  /** Marca o requisito como não aplicável, com motivo e regra. */
+  naoAplicarRequisito: (
+    requestId: string,
+    itemId: string,
+    motivo: string,
+    regra: string,
+  ) => void;
+  /** Pede o item ao cliente — o requisito fica aguardando informação. */
+  solicitarAoCliente: (requestId: string, itemId: string, mensagem: string) => void;
   reabrirRequisito: (requestId: string, itemId: string, motivo: string) => void;
   logRequest: (
     requestId: string,
@@ -329,24 +347,68 @@ interface Actions {
 
 const Ctx = createContext<(AppState & Actions) | null>(null);
 
-const checklistPorEtapa: Record<StageId, string[]> = {
-  novo: ["Confirmar dados do titular", "Validar forma de pagamento"],
+const checklistPorEtapa: Record<StageId, EspecItem[]> = {
+  novo: [
+    { label: "Confirmar dados do titular", modo: "confirmacao", escopo: "titular" },
+    {
+      label: "Pagamento da emissão",
+      modo: "derivado",
+      chaveDerivada: "pagamento",
+      escopo: "emissao",
+      bloqueia: "Aprovar emissão",
+    },
+  ],
   documentacao: [
-    "Documento de identidade",
-    "Comprovante de endereço",
-    "Contrato social / procuração",
+    { label: "Documento de identidade", modo: "documento", categoriaDoc: "identidade", escopo: "titular", bloqueia: "Enviar dossiê para verificação" },
+    { label: "Comprovante de endereço", modo: "documento", categoriaDoc: "endereco", escopo: "titular", validadeDias: 90, bloqueia: "Enviar dossiê para verificação" },
+    { label: "Contrato social / procuração", modo: "documento", categoriaDoc: "contrato-social", escopo: "organizacao", obrigatorio: false },
   ],
   validacao: [
-    "Conferência biométrica",
-    "Checagem em bases públicas",
-    "Parecer do agente de registro",
+    { label: "Consulta à Lista Negativa", modo: "acao", acaoProduto: "registrar-consulta", escopo: "titular", bloqueia: "Aprovar emissão" },
+    { label: "Resultado da validação", modo: "acao", acaoProduto: "registrar-validacao", escopo: "emissao", bloqueia: "Aprovar emissão" },
+    { label: "Parecer do agente de registro", modo: "decisao", escopo: "caso", exigeAprovacao: true, bloqueia: "Aprovar emissão" },
   ],
-  agendamento: ["Enviar convite de videoconferência", "Confirmar disponibilidade do titular"],
-  videoconferencia: ["Gravação arquivada", "Termo de titularidade assinado"],
-  emissao: ["Gerar par de chaves", "Entregar mídia ao titular"],
-  concluido: ["Pesquisa de satisfação enviada"],
-  bloqueado: ["Registrar impedimento"],
+  agendamento: [
+    { label: "Agendamento criado", modo: "derivado", chaveDerivada: "agendamento", escopo: "atendimento" },
+    { label: "Titular orientado sobre o horário", modo: "confirmacao", escopo: "atendimento", obrigatorio: false },
+  ],
+  videoconferencia: [
+    { label: "Gravação da sessão", modo: "documento", categoriaDoc: "gravacao", escopo: "atendimento" },
+    { label: "Termo de titularidade assinado", modo: "documento", categoriaDoc: "termo-assinado", escopo: "titular" },
+  ],
+  emissao: [
+    { label: "Emissão registrada", modo: "acao", acaoProduto: "registrar-emissao-manual", escopo: "emissao", bloqueia: "Liberar entrega" },
+    { label: "Entrega confirmada", modo: "derivado", chaveDerivada: "entrega", escopo: "emissao" },
+  ],
+  concluido: [
+    { label: "Instalação e funcionamento confirmados", modo: "derivado", chaveDerivada: "instalacao", escopo: "emissao" },
+    { label: "Orientar o titular a manter o token conectado", modo: "orientacao", obrigatorio: false },
+  ],
+  bloqueado: [
+    { label: "Registrar impedimento", modo: "confirmacao", observacaoObrigatoria: true },
+  ],
 };
+
+function itensDeEtapa(stage: StageId) {
+  return itensChecklist(checklistPorEtapa[stage] ?? []).map((i) => ({ ...i, id: uid("ck") }));
+}
+
+function comHistorico(
+  c: ChecklistItem,
+  acao: string,
+  detalhe?: string,
+): RegistroHistoricoRequisito[] {
+  return [
+    ...(c.historico ?? []),
+    {
+      id: uid("h"),
+      quando: agora(),
+      por: USUARIO_ATUAL.nome,
+      acao,
+      ...(detalhe ? { detalhe } : {}),
+    },
+  ];
+}
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(seed);
@@ -478,11 +540,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           slaHoras: input.slaHoras,
           slaRestanteHoras: input.slaHoras,
           tags: ["nova"],
-          checklist: (checklistPorEtapa.novo ?? []).map((label) => ({
-            id: uid("ck"),
-            label,
-            done: false,
-          })),
+          checklist: itensDeEtapa("novo"),
           timeline: [
             evento("Solicitação criada", `${input.tipo} · canal ${input.canal}`, "sistema"),
             ...(input.observacao ? [evento("Observação de abertura", input.observacao)] : []),
@@ -497,16 +555,13 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       moveRequest: (id, stage, detalhe) =>
         patchRequest(id, (r) => {
           const nome = stages.find((s) => s.id === stage)?.nome ?? stage;
-          const novosItens = (checklistPorEtapa[stage] ?? []).filter(
-            (label) => !r.checklist.some((c) => c.label === label),
+          const novos = itensDeEtapa(stage).filter(
+            (n) => !r.checklist.some((c) => c.label === n.label),
           );
           return {
             ...r,
             stage,
-            checklist: [
-              ...r.checklist,
-              ...novosItens.map((label) => ({ id: uid("ck"), label, done: false })),
-            ],
+            checklist: [...r.checklist, ...novos],
             timeline: [
               ...r.timeline,
               evento(
@@ -518,7 +573,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           };
         }),
 
-      cumprirRequisito: (requestId, itemId, dados) => {
+      cumprirRequisito: (requestId, itemId, dados, opcoes) => {
         const evidencia: EvidenciaRequisito = {
           ...dados,
           por: USUARIO_ATUAL.nome,
@@ -531,12 +586,20 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           const detalhe = [
             evidencia.referencia,
             evidencia.arquivo,
+            evidencia.fonte,
+            evidencia.resultado,
             evidencia.valor,
             evidencia.observacao,
           ]
             .filter(Boolean)
             .join(" · ");
-          const anexo = evidencia.arquivo;
+          // Só novos envios viram documento do dossiê. Reutilização nunca duplica arquivo.
+          const anexo = opcoes?.anexarAoDossie !== false && evidencia.origem === "nova"
+            ? evidencia.arquivo
+            : undefined;
+          const categoria = item.categoriaDoc
+            ? categoriaInfo(item.categoriaDoc).nome
+            : (evidencia.referencia ?? item.label);
           return {
             ...s,
             requests: s.requests.map((r) =>
@@ -544,16 +607,30 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
                 ? {
                     ...r,
                     checklist: r.checklist.map((c) =>
-                      c.id === itemId ? { ...c, done: true, evidencia } : c,
+                      c.id === itemId
+                        ? {
+                            ...c,
+                            done: true,
+                            evidencia,
+                            historico: comHistorico(
+                              c,
+                              `Requisito atendido (${origemLabel(evidencia.origem)})`,
+                              detalhe || undefined,
+                            ),
+                          }
+                        : c,
                     ),
                     timeline: [
                       ...r.timeline,
-                      evento(`Requisito cumprido: ${item.label}`, detalhe || undefined, "humano"),
+                      evento(
+                        `${origemLabel(evidencia.origem)}: ${item.label}`,
+                        detalhe || undefined,
+                        "humano",
+                      ),
                     ],
                   }
                 : r,
             ),
-            // Anexos entram no dossiê do cliente para não haver duas verdades.
             clients: anexo
               ? s.clients.map((c) =>
                   c.id === req.clienteId
@@ -563,11 +640,14 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
                           {
                             id: uid("d"),
                             nome: anexo,
-                            tipo: evidencia.referencia ?? item.label,
+                            tipo: categoria,
                             enviadoEm: hojeIso(),
                             status: "em análise" as const,
                           },
-                          ...c.documentos,
+                          // versões anteriores da mesma categoria ficam marcadas
+                          ...c.documentos.map((d) =>
+                            d.tipo === categoria ? { ...d, substituido: true } : d,
+                          ),
                         ],
                       }
                     : c,
@@ -577,16 +657,125 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         });
       },
 
-      reabrirRequisito: (requestId, itemId, motivo) =>
+      reutilizarDocumento: (requestId, itemId, documentoId) =>
+        setState((s) => {
+          const req = s.requests.find((r) => r.id === requestId);
+          const item = req?.checklist.find((c) => c.id === itemId);
+          const cliente = s.clients.find((c) => c.id === req?.clienteId);
+          const doc = cliente?.documentos.find((d) => d.id === documentoId);
+          if (!req || !item || !doc) return s;
+          const evidencia: EvidenciaRequisito = {
+            tipo: item.categoriaDoc ?? "documento",
+            origem: "reutilizada",
+            arquivo: doc.nome,
+            documentoId: doc.id,
+            referencia: doc.tipo,
+            observacao: `Versão de ${doc.enviadoEm}, aprovada — política de reutilização permitida`,
+            por: USUARIO_ATUAL.nome,
+            registradoEm: agora(),
+          };
+          return {
+            ...s,
+            requests: s.requests.map((r) =>
+              r.id === requestId
+                ? {
+                    ...r,
+                    checklist: r.checklist.map((c) =>
+                      c.id === itemId
+                        ? {
+                            ...c,
+                            done: true,
+                            evidencia,
+                            historico: comHistorico(
+                              c,
+                              "Evidência reutilizada",
+                              `${doc.nome} · enviada em ${doc.enviadoEm}`,
+                            ),
+                          }
+                        : c,
+                    ),
+                    timeline: [
+                      ...r.timeline,
+                      evento(
+                        `Evidência reutilizada: ${item.label}`,
+                        `${doc.nome} — arquivo não duplicado, versão original vinculada`,
+                        "sistema",
+                      ),
+                    ],
+                  }
+                : r,
+            ),
+          };
+        }),
+
+      naoAplicarRequisito: (requestId, itemId, motivo, regra) =>
         patchRequest(requestId, (r) => {
           const item = r.checklist.find((c) => c.id === itemId);
           return {
             ...r,
             checklist: r.checklist.map((c) =>
-              c.id === itemId ? { id: c.id, label: c.label, done: false } : c,
+              c.id === itemId
+                ? {
+                    ...c,
+                    done: false,
+                    naoAplicavel: { motivo, regra },
+                    historico: comHistorico(c, "Marcado como não aplicável", `${motivo} · ${regra}`),
+                  }
+                : c,
             ),
             timeline: item
-              ? [...r.timeline, evento(`Requisito reaberto: ${item.label}`, motivo, "alerta")]
+              ? [
+                  ...r.timeline,
+                  evento(`Requisito não aplicável: ${item.label}`, `${motivo} · ${regra}`, "sistema"),
+                ]
+              : r.timeline,
+          };
+        }),
+
+      solicitarAoCliente: (requestId, itemId, mensagem) =>
+        patchRequest(requestId, (r) => {
+          const item = r.checklist.find((c) => c.id === itemId);
+          return {
+            ...r,
+            checklist: r.checklist.map((c) =>
+              c.id === itemId
+                ? { ...c, historico: comHistorico(c, "Solicitado ao cliente", mensagem) }
+                : c,
+            ),
+            timeline: item
+              ? [...r.timeline, evento(`Solicitado ao cliente: ${item.label}`, mensagem, "humano")]
+              : r.timeline,
+          };
+        }),
+
+      reabrirRequisito: (requestId, itemId, motivo) =>
+        patchRequest(requestId, (r) => {
+          const item = r.checklist.find((c) => c.id === itemId);
+          return {
+            ...r,
+            checklist: r.checklist.map((c) => {
+              if (c.id !== itemId) return c;
+              const { evidencia, naoAplicavel, ...resto } = c;
+              const anterior = evidencia
+                ? `Evidência anterior preservada: ${[evidencia.arquivo, evidencia.referencia, evidencia.resultado].filter(Boolean).join(" · ")} (${evidencia.por}, ${evidencia.registradoEm})`
+                : naoAplicavel
+                  ? `Não aplicabilidade anterior: ${naoAplicavel.motivo}`
+                  : undefined;
+              return {
+                ...resto,
+                done: false,
+                historico: comHistorico(c, `Requisito reaberto — ${motivo}`, anterior),
+              };
+            }),
+            timeline: item
+              ? [
+                  ...r.timeline,
+                  evento(
+                    `Requisito reaberto: ${item.label}`,
+                    `${motivo} — histórico e evidência anteriores preservados`,
+                    "alerta",
+                  ),
+                ]
               : r.timeline,
           };
         }),
