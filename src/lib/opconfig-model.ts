@@ -295,14 +295,8 @@ function seedEtapas(): EtapaConfig[] {
       slaHoras: 4,
       obrigatoria: true,
       removivel: false,
-      criterioEntrada: "Pedido criado por portal, indicador, chat ou import type {
-  AcaoProduto,
-  CategoriaDoc,
-  ChaveDerivada,
-  EscopoRequisito,
-  ModoCumprimento,
-} from "@/lib/checklist-model";
-importação.",
+      criterioEntrada: "Pedido criado por portal, indicador, chat ou importação.",
+
       criterioSaida: "Titular, produto e condição comercial definidos.",
       instrucoes: "Confirme quem é o titular, quem paga e quem acompanha o caso.",
       checklist: [
