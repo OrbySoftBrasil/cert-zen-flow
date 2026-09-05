@@ -2,6 +2,7 @@
 // Cada cenário traz um Request próprio + sobreposições determinísticas de
 // emissões, dossiê, prontidão e tarefa de fila, para que o protótipo possa ser
 // percorrido de ponta a ponta sem depender de dados aleatórios.
+import { itensChecklist, type EspecItem } from "@/lib/mock-data";
 import type { Appointment, CertType, ChecklistItem, Request, TimelineEvent } from "@/lib/mock-data";
 import type { DetalheProntidao, Dossie, EmissaoCaso, TrilhaCaso } from "@/lib/caso-model";
 import type { PerfilId, TipoPendencia } from "@/lib/operacao-model";
@@ -15,8 +16,8 @@ function dia(n: number) {
   return d.toISOString().slice(0, 10);
 }
 
-function ck(items: [string, boolean][]): ChecklistItem[] {
-  return items.map(([label, done], i) => ({ id: `dck${i}`, label, done }));
+function ck(items: ([string, boolean] | EspecItem)[], prefixo = "dck"): ChecklistItem[] {
+  return itensChecklist(items, prefixo);
 }
 
 function ev(id: string, quando: string, autor: string, titulo: string, tipo: TimelineEvent["tipo"], detalhe?: string): TimelineEvent {

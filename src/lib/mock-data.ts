@@ -131,6 +131,10 @@ export interface DocumentFile {
   enviadoEm: string;
   status: "aprovado" | "em análise" | "reprovado";
   motivo?: string;
+  /** Versão substituída por um envio mais recente — não serve para reutilização. */
+  substituido?: boolean;
+  /** Documento reaproveitado de outro requisito (nunca duplicamos o arquivo). */
+  reutilizadoDe?: string;
 }
 
 export interface Client {
@@ -340,9 +344,27 @@ export function clientById(id: string) {
   return clients.find((c) => c.id === id);
 }
 
-function ck(items: [string, boolean][]): ChecklistItem[] {
-  return items.map(([label, done], i) => ({ id: `ck${i}`, label, done }));
+/** Seeds do checklist. O modo é sempre explícito — o rótulo não decide nada. */
+export type EspecItem = Partial<ChecklistItem> & { label: string; done?: boolean };
+
+function ck(items: ([string, boolean] | EspecItem)[], prefixo = "ck"): ChecklistItem[] {
+  return items.map((it, i) => {
+    const spec: EspecItem = Array.isArray(it) ? { label: it[0], done: it[1] } : it;
+    const { label, done = false, ...resto } = spec;
+    return {
+      id: `${prefixo}${i}`,
+      label,
+      done,
+      modo: "confirmacao",
+      escopo: "caso",
+      obrigatorio: true,
+      origemRegra: "tenant",
+      ...resto,
+    } as ChecklistItem;
+  });
 }
+
+export { ck as itensChecklist };
 
 export const requests: Request[] = [
   {
