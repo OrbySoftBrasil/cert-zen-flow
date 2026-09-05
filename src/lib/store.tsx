@@ -14,6 +14,7 @@ import {
 import {
   agents,
   itensChecklist,
+  type ChecklistItem,
   type EspecItem,
   appointments as seedAppointments,
   clients as seedClients,
@@ -34,6 +35,7 @@ import {
   type TicketCategoria,
   type TimelineEvent,
 } from "@/lib/mock-data";
+import { categoriaInfo, origemLabel } from "@/lib/checklist-model";
 import { cenarioAppointments, cenarioRegistros, cenarioRequests } from "@/lib/cenarios";
 import {
   type AutorRegistro,
@@ -386,6 +388,27 @@ const checklistPorEtapa: Record<StageId, EspecItem[]> = {
   ],
 };
 
+function itensDeEtapa(stage: StageId) {
+  return itensChecklist(checklistPorEtapa[stage] ?? []).map((i) => ({ ...i, id: uid("ck") }));
+}
+
+function comHistorico(
+  c: ChecklistItem,
+  acao: string,
+  detalhe?: string,
+): ChecklistItem["historico"] {
+  return [
+    ...(c.historico ?? []),
+    {
+      id: uid("h"),
+      quando: agora(),
+      por: USUARIO_ATUAL.nome,
+      acao,
+      ...(detalhe ? { detalhe } : {}),
+    },
+  ];
+}
+
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(seed);
 
@@ -549,7 +572,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           };
         }),
 
-      cumprirRequisito: (requestId, itemId, dados) => {
+      cumprirRequisito: (requestId, itemId, dados, opcoes) => {
         const evidencia: EvidenciaRequisito = {
           ...dados,
           por: USUARIO_ATUAL.nome,
@@ -562,12 +585,20 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           const detalhe = [
             evidencia.referencia,
             evidencia.arquivo,
+            evidencia.fonte,
+            evidencia.resultado,
             evidencia.valor,
             evidencia.observacao,
           ]
             .filter(Boolean)
             .join(" · ");
-          const anexo = evidencia.arquivo;
+          // Só novos envios viram documento do dossiê. Reutilização nunca duplica arquivo.
+          const anexo = opcoes?.anexarAoDossie !== false && evidencia.origem === "nova"
+            ? evidencia.arquivo
+            : undefined;
+          const categoria = item.categoriaDoc
+            ? categoriaInfo(item.categoriaDoc).nome
+            : (evidencia.referencia ?? item.label);
           return {
             ...s,
             requests: s.requests.map((r) =>
@@ -575,16 +606,30 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
                 ? {
                     ...r,
                     checklist: r.checklist.map((c) =>
-                      c.id === itemId ? { ...c, done: true, evidencia } : c,
+                      c.id === itemId
+                        ? {
+                            ...c,
+                            done: true,
+                            evidencia,
+                            historico: comHistorico(
+                              c,
+                              `Requisito atendido (${origemLabel(evidencia.origem)})`,
+                              detalhe || undefined,
+                            ),
+                          }
+                        : c,
                     ),
                     timeline: [
                       ...r.timeline,
-                      evento(`Requisito cumprido: ${item.label}`, detalhe || undefined, "humano"),
+                      evento(
+                        `${origemLabel(evidencia.origem)}: ${item.label}`,
+                        detalhe || undefined,
+                        "humano",
+                      ),
                     ],
                   }
                 : r,
             ),
-            // Anexos entram no dossiê do cliente para não haver duas verdades.
             clients: anexo
               ? s.clients.map((c) =>
                   c.id === req.clienteId
@@ -594,11 +639,14 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
                           {
                             id: uid("d"),
                             nome: anexo,
-                            tipo: evidencia.referencia ?? item.label,
+                            tipo: categoria,
                             enviadoEm: hojeIso(),
                             status: "em análise" as const,
                           },
-                          ...c.documentos,
+                          // versões anteriores da mesma categoria ficam marcadas
+                          ...c.documentos.map((d) =>
+                            d.tipo === categoria ? { ...d, substituido: true } : d,
+                          ),
                         ],
                       }
                     : c,
@@ -608,16 +656,125 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         });
       },
 
-      reabrirRequisito: (requestId, itemId, motivo) =>
+      reutilizarDocumento: (requestId, itemId, documentoId) =>
+        setState((s) => {
+          const req = s.requests.find((r) => r.id === requestId);
+          const item = req?.checklist.find((c) => c.id === itemId);
+          const cliente = s.clients.find((c) => c.id === req?.clienteId);
+          const doc = cliente?.documentos.find((d) => d.id === documentoId);
+          if (!req || !item || !doc) return s;
+          const evidencia: EvidenciaRequisito = {
+            tipo: item.categoriaDoc ?? "documento",
+            origem: "reutilizada",
+            arquivo: doc.nome,
+            documentoId: doc.id,
+            referencia: doc.tipo,
+            observacao: `Versão de ${doc.enviadoEm}, aprovada — política de reutilização permitida`,
+            por: USUARIO_ATUAL.nome,
+            registradoEm: agora(),
+          };
+          return {
+            ...s,
+            requests: s.requests.map((r) =>
+              r.id === requestId
+                ? {
+                    ...r,
+                    checklist: r.checklist.map((c) =>
+                      c.id === itemId
+                        ? {
+                            ...c,
+                            done: true,
+                            evidencia,
+                            historico: comHistorico(
+                              c,
+                              "Evidência reutilizada",
+                              `${doc.nome} · enviada em ${doc.enviadoEm}`,
+                            ),
+                          }
+                        : c,
+                    ),
+                    timeline: [
+                      ...r.timeline,
+                      evento(
+                        `Evidência reutilizada: ${item.label}`,
+                        `${doc.nome} — arquivo não duplicado, versão original vinculada`,
+                        "sistema",
+                      ),
+                    ],
+                  }
+                : r,
+            ),
+          };
+        }),
+
+      naoAplicarRequisito: (requestId, itemId, motivo, regra) =>
         patchRequest(requestId, (r) => {
           const item = r.checklist.find((c) => c.id === itemId);
           return {
             ...r,
             checklist: r.checklist.map((c) =>
-              c.id === itemId ? { id: c.id, label: c.label, done: false } : c,
+              c.id === itemId
+                ? {
+                    ...c,
+                    done: false,
+                    naoAplicavel: { motivo, regra },
+                    historico: comHistorico(c, "Marcado como não aplicável", `${motivo} · ${regra}`),
+                  }
+                : c,
             ),
             timeline: item
-              ? [...r.timeline, evento(`Requisito reaberto: ${item.label}`, motivo, "alerta")]
+              ? [
+                  ...r.timeline,
+                  evento(`Requisito não aplicável: ${item.label}`, `${motivo} · ${regra}`, "sistema"),
+                ]
+              : r.timeline,
+          };
+        }),
+
+      solicitarAoCliente: (requestId, itemId, mensagem) =>
+        patchRequest(requestId, (r) => {
+          const item = r.checklist.find((c) => c.id === itemId);
+          return {
+            ...r,
+            checklist: r.checklist.map((c) =>
+              c.id === itemId
+                ? { ...c, historico: comHistorico(c, "Solicitado ao cliente", mensagem) }
+                : c,
+            ),
+            timeline: item
+              ? [...r.timeline, evento(`Solicitado ao cliente: ${item.label}`, mensagem, "humano")]
+              : r.timeline,
+          };
+        }),
+
+      reabrirRequisito: (requestId, itemId, motivo) =>
+        patchRequest(requestId, (r) => {
+          const item = r.checklist.find((c) => c.id === itemId);
+          return {
+            ...r,
+            checklist: r.checklist.map((c) => {
+              if (c.id !== itemId) return c;
+              const { evidencia, naoAplicavel, ...resto } = c;
+              const anterior = evidencia
+                ? `Evidência anterior preservada: ${[evidencia.arquivo, evidencia.referencia, evidencia.resultado].filter(Boolean).join(" · ")} (${evidencia.por}, ${evidencia.registradoEm})`
+                : naoAplicavel
+                  ? `Não aplicabilidade anterior: ${naoAplicavel.motivo}`
+                  : undefined;
+              return {
+                ...resto,
+                done: false,
+                historico: comHistorico(c, `Requisito reaberto — ${motivo}`, anterior),
+              };
+            }),
+            timeline: item
+              ? [
+                  ...r.timeline,
+                  evento(
+                    `Requisito reaberto: ${item.label}`,
+                    `${motivo} — histórico e evidência anteriores preservados`,
+                    "alerta",
+                  ),
+                ]
               : r.timeline,
           };
         }),
