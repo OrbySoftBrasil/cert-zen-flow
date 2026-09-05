@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Btn, Field, Modal, Select, TextArea, TextInput } from "@/components/forms";
+import { Btn, Field, Modal, SelectInput, TextArea, TextInput } from "@/components/forms";
 import { emissoesDoCaso } from "@/lib/caso-model";
 import {
   ACOES_PRODUTO,
@@ -336,11 +336,11 @@ function DlgConsulta({ r, item, onClose }: { r: Request; item: ChecklistItem; on
           <TextInput type="datetime-local" value={quando} onChange={(e) => setQuando(e.target.value)} />
         </Field>
         <Field label="Resultado">
-          <Select value={resultado} onChange={(e) => setResultado(e.target.value)}>
+          <SelectInput value={resultado} onChange={(e) => setResultado(e.target.value)}>
             {RESULTADOS_CONSULTA.map((x) => (
               <option key={x}>{x}</option>
             ))}
-          </Select>
+          </SelectInput>
         </Field>
         <Field label="Protocolo externo · opcional">
           <TextInput value={protocolo} onChange={(e) => setProtocolo(e.target.value)} />
@@ -506,12 +506,12 @@ function DlgNaoAplicavel({
           <TextArea rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
         </Field>
         <Field label="Regra que determina a não aplicabilidade">
-          <Select value={regra} onChange={(e) => setRegra(e.target.value)}>
+          <SelectInput value={regra} onChange={(e) => setRegra(e.target.value)}>
             <option>Regra do produto</option>
             <option>Regra da modalidade</option>
             <option>Regra da unidade</option>
             <option>Regra do perfil homologado</option>
-          </Select>
+          </SelectInput>
         </Field>
       </div>
     </Modal>
