@@ -335,7 +335,10 @@ export const clients: Client[] = [
     gestor: "Rafael Bastos",
     certificados: [{ id: "cert9", tipo: "e-CPF A3", serie: "AC-2024-99011", emitidoEm: "2024-11-11", validoAte: diaOffset(88), status: "ativo" }],
     faturas: [{ id: "f7", descricao: "e-CPF A3 + token", valor: 318, vencimento: "2024-11-11", status: "pago", metodo: "Cartão" }],
-    documentos: [{ id: "d7", nome: "OAB frente e verso.pdf", tipo: "Identificação", enviadoEm: diaOffset(-20), status: "aprovado" }],
+    documentos: [
+      { id: "d7", nome: "OAB frente e verso.pdf", tipo: "Identificação", enviadoEm: diaOffset(-20), status: "aprovado" },
+      { id: "d8", nome: "Conta de energia 2025.pdf", tipo: "Endereço", enviadoEm: diaOffset(-200), status: "aprovado" },
+    ],
     notas: [],
   },
 ];
