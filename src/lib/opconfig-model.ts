@@ -137,6 +137,21 @@ export interface ItemChecklist {
   id: string;
   label: string;
   obrigatorio: boolean;
+  /** Como o item é cumprido. Escolha explícita — o texto do item não decide nada. */
+  modo: ModoCumprimento;
+  escopo: EscopoRequisito;
+  categoriaDoc?: CategoriaDoc;
+  chaveDerivada?: ChaveDerivada;
+  acaoProduto?: AcaoProduto;
+  /** Ação protegida que este requisito bloqueia enquanto pendente. */
+  bloqueia?: string;
+  validadeDias?: number;
+  reutilizacao: "permitida" | "vedada";
+  observacaoObrigatoria?: boolean;
+  exigeAprovacao?: boolean;
+  exigeSegundoOperador?: boolean;
+  aplicabilidade?: string[];
+  origemItem: OrigemRegra;
 }
 
 export interface PortaoEtapa {
@@ -211,8 +226,21 @@ let seq = 0;
 const uid = (p: string) =>
   `${p}-${(seq += 1).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-function ck(label: string, obrigatorio = true): ItemChecklist {
-  return { id: uid("ck"), label, obrigatorio };
+function ck(
+  label: string,
+  obrigatorio = true,
+  cfg: Partial<ItemChecklist> = {},
+): ItemChecklist {
+  return {
+    id: uid("ck"),
+    label,
+    obrigatorio,
+    modo: "confirmacao",
+    escopo: "caso",
+    reutilizacao: "permitida",
+    origemItem: "tenant",
+    ...cfg,
+  };
 }
 
 function etapa(
@@ -249,8 +277,13 @@ export function novaEtapaConfig(marco: MarcoId, nome: string, papel: string): Et
   });
 }
 
+/**
+ * Item livre criado pela AR: nasce sempre como confirmação manual.
+ * Para ganhar validação automática, o administrador precisa escolher
+ * explicitamente um tipo do catálogo.
+ */
 export function novoItemChecklist(label: string): ItemChecklist {
-  return ck(label, false);
+  return ck(label, false, { modo: "confirmacao" });
 }
 
 function seedEtapas(): EtapaConfig[] {
@@ -262,7 +295,14 @@ function seedEtapas(): EtapaConfig[] {
       slaHoras: 4,
       obrigatoria: true,
       removivel: false,
-      criterioEntrada: "Pedido criado por portal, indicador, chat ou importação.",
+      criterioEntrada: "Pedido criado por portal, indicador, chat ou import type {
+  AcaoProduto,
+  CategoriaDoc,
+  ChaveDerivada,
+  EscopoRequisito,
+  ModoCumprimento,
+} from "@/lib/checklist-model";
+importação.",
       criterioSaida: "Titular, produto e condição comercial definidos.",
       instrucoes: "Confirme quem é o titular, quem paga e quem acompanha o caso.",
       checklist: [
