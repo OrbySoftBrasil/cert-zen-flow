@@ -179,7 +179,7 @@ export function ChecklistEditor({
                 item={c}
                 disabled={disabled}
                 onChange={(patch) =>
-                  onChange(itens.map((x) => (x.id === c.id ? { ...x, ...patch } : x)))
+                  onChange(itens.map((x) => (x.id === c.id ? ({ ...x, ...patch } as ItemChecklist) : x)))
                 }
               />
             )}
@@ -212,6 +212,8 @@ export function ChecklistEditor({
   );
 }
 
+type PatchItem = { [K in keyof ItemChecklist]?: ItemChecklist[K] | undefined };
+
 /** Configuração explícita do item: “Como este item é cumprido?”. */
 function ConfigItem({
   item,
@@ -219,8 +221,8 @@ function ConfigItem({
   onChange,
 }: {
   item: ItemChecklist;
-  disabled?: boolean;
-  onChange: (patch: Partial<ItemChecklist>) => void;
+  disabled?: boolean | undefined;
+  onChange: (patch: PatchItem) => void;
 }) {
   return (
     <div className="mt-2 space-y-3 rounded-md border border-border bg-muted/40 p-3">
