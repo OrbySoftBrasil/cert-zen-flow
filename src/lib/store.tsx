@@ -13,6 +13,8 @@ import {
 
 import {
   agents,
+  itensChecklist,
+  type EspecItem,
   appointments as seedAppointments,
   clients as seedClients,
   requests as seedRequests,
@@ -231,11 +233,24 @@ interface Actions {
   addRequest: (input: NovaSolicitacaoInput) => Request;
   updateRequest: (id: string, patch: Partial<Request>) => void;
   moveRequest: (id: string, stage: StageId, detalhe?: string) => void;
+  /** Satisfaz um requisito com a evidência do modo configurado. */
   cumprirRequisito: (
     requestId: string,
     itemId: string,
     evidencia: Omit<EvidenciaRequisito, "por" | "registradoEm">,
+    opcoes?: { anexarAoDossie?: boolean },
   ) => void;
+  /** Vincula um documento já existente do dossiê ao requisito (sem duplicar arquivo). */
+  reutilizarDocumento: (requestId: string, itemId: string, documentoId: string) => void;
+  /** Marca o requisito como não aplicável, com motivo e regra. */
+  naoAplicarRequisito: (
+    requestId: string,
+    itemId: string,
+    motivo: string,
+    regra: string,
+  ) => void;
+  /** Pede o item ao cliente — o requisito fica aguardando informação. */
+  solicitarAoCliente: (requestId: string, itemId: string, mensagem: string) => void;
   reabrirRequisito: (requestId: string, itemId: string, motivo: string) => void;
   logRequest: (
     requestId: string,
@@ -329,23 +344,46 @@ interface Actions {
 
 const Ctx = createContext<(AppState & Actions) | null>(null);
 
-const checklistPorEtapa: Record<StageId, string[]> = {
-  novo: ["Confirmar dados do titular", "Validar forma de pagamento"],
+const checklistPorEtapa: Record<StageId, EspecItem[]> = {
+  novo: [
+    { label: "Confirmar dados do titular", modo: "confirmacao", escopo: "titular" },
+    {
+      label: "Pagamento da emissão",
+      modo: "derivado",
+      chaveDerivada: "pagamento",
+      escopo: "emissao",
+      bloqueia: "Aprovar emissão",
+    },
+  ],
   documentacao: [
-    "Documento de identidade",
-    "Comprovante de endereço",
-    "Contrato social / procuração",
+    { label: "Documento de identidade", modo: "documento", categoriaDoc: "identidade", escopo: "titular", bloqueia: "Enviar dossiê para verificação" },
+    { label: "Comprovante de endereço", modo: "documento", categoriaDoc: "endereco", escopo: "titular", validadeDias: 90, bloqueia: "Enviar dossiê para verificação" },
+    { label: "Contrato social / procuração", modo: "documento", categoriaDoc: "contrato-social", escopo: "organizacao", obrigatorio: false },
   ],
   validacao: [
-    "Conferência biométrica",
-    "Checagem em bases públicas",
-    "Parecer do agente de registro",
+    { label: "Consulta à Lista Negativa", modo: "acao", acaoProduto: "registrar-consulta", escopo: "titular", bloqueia: "Aprovar emissão" },
+    { label: "Resultado da validação", modo: "acao", acaoProduto: "registrar-validacao", escopo: "emissao", bloqueia: "Aprovar emissão" },
+    { label: "Parecer do agente de registro", modo: "decisao", escopo: "caso", exigeAprovacao: true, bloqueia: "Aprovar emissão" },
   ],
-  agendamento: ["Enviar convite de videoconferência", "Confirmar disponibilidade do titular"],
-  videoconferencia: ["Gravação arquivada", "Termo de titularidade assinado"],
-  emissao: ["Gerar par de chaves", "Entregar mídia ao titular"],
-  concluido: ["Pesquisa de satisfação enviada"],
-  bloqueado: ["Registrar impedimento"],
+  agendamento: [
+    { label: "Agendamento criado", modo: "derivado", chaveDerivada: "agendamento", escopo: "atendimento" },
+    { label: "Titular orientado sobre o horário", modo: "confirmacao", escopo: "atendimento", obrigatorio: false },
+  ],
+  videoconferencia: [
+    { label: "Gravação da sessão", modo: "documento", categoriaDoc: "gravacao", escopo: "atendimento" },
+    { label: "Termo de titularidade assinado", modo: "documento", categoriaDoc: "termo-assinado", escopo: "titular" },
+  ],
+  emissao: [
+    { label: "Emissão registrada", modo: "acao", acaoProduto: "registrar-emissao-manual", escopo: "emissao", bloqueia: "Liberar entrega" },
+    { label: "Entrega confirmada", modo: "derivado", chaveDerivada: "entrega", escopo: "emissao" },
+  ],
+  concluido: [
+    { label: "Instalação e funcionamento confirmados", modo: "derivado", chaveDerivada: "instalacao", escopo: "emissao" },
+    { label: "Orientar o titular a manter o token conectado", modo: "orientacao", obrigatorio: false },
+  ],
+  bloqueado: [
+    { label: "Registrar impedimento", modo: "confirmacao", observacaoObrigatoria: true },
+  ],
 };
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
@@ -478,11 +516,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           slaHoras: input.slaHoras,
           slaRestanteHoras: input.slaHoras,
           tags: ["nova"],
-          checklist: (checklistPorEtapa.novo ?? []).map((label) => ({
-            id: uid("ck"),
-            label,
-            done: false,
-          })),
+          checklist: itensDeEtapa("novo"),
           timeline: [
             evento("Solicitação criada", `${input.tipo} · canal ${input.canal}`, "sistema"),
             ...(input.observacao ? [evento("Observação de abertura", input.observacao)] : []),
@@ -497,16 +531,13 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       moveRequest: (id, stage, detalhe) =>
         patchRequest(id, (r) => {
           const nome = stages.find((s) => s.id === stage)?.nome ?? stage;
-          const novosItens = (checklistPorEtapa[stage] ?? []).filter(
-            (label) => !r.checklist.some((c) => c.label === label),
+          const novos = itensDeEtapa(stage).filter(
+            (n) => !r.checklist.some((c) => c.label === n.label),
           );
           return {
             ...r,
             stage,
-            checklist: [
-              ...r.checklist,
-              ...novosItens.map((label) => ({ id: uid("ck"), label, done: false })),
-            ],
+            checklist: [...r.checklist, ...novos],
             timeline: [
               ...r.timeline,
               evento(
