@@ -1,4 +1,14 @@
+import type {
+  AcaoProduto,
+  CategoriaDoc,
+  ChaveDerivada,
+  EscopoRequisito,
+  ModoCumprimento,
+  OrigemRegra as OrigemRegraChecklist,
+} from "@/lib/checklist-model";
+
 // Modelo de "Operação & perfis": o administrador NÃO desenha workflows livres.
+
 // Ele configura um perfil operacional dentro de limites definidos pelo produto:
 // marcos canônicos fixos, subfluxos de um catálogo controlado, escopo com
 // precedência declarada e publicação versionada.
