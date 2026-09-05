@@ -16,6 +16,7 @@ import {
   itensChecklist,
   type ChecklistItem,
   type EspecItem,
+  type RegistroHistoricoRequisito,
   appointments as seedAppointments,
   clients as seedClients,
   requests as seedRequests,
@@ -396,7 +397,7 @@ function comHistorico(
   c: ChecklistItem,
   acao: string,
   detalhe?: string,
-): ChecklistItem["historico"] {
+): RegistroHistoricoRequisito[] {
   return [
     ...(c.historico ?? []),
     {
