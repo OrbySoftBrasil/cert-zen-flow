@@ -475,7 +475,7 @@ function Workspace() {
               />
               <Panel
                 title="Requisitos da etapa atual"
-                hint={`${pendentes.length} pendência(s) — cada item exige a ação registrada no sistema`}
+                hint={`${pendentes.length} pendência(s) — cada item é cumprido conforme o modo configurado`}
               >
                 <RequisitosEtapa r={caso} />
               </Panel>
