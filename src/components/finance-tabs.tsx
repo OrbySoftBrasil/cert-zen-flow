@@ -16,7 +16,8 @@ export function FinanceTabs() {
   return (
     <nav className="mb-4 flex flex-wrap gap-1 rounded-lg border border-border bg-card p-1 print:hidden">
       {tabs.map((t) => {
-        const active = t.to === "/financeiro" ? pathname === "/financeiro" : pathname.startsWith(t.to);
+        const active =
+          t.to === "/financeiro" ? pathname === "/financeiro" : pathname.startsWith(t.to);
         return (
           <Link
             key={t.to}

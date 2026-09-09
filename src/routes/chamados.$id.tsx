@@ -5,12 +5,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Chip, Panel, SlaBadge } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
-import {
-  agentById,
-  agents,
-  ticketStatuses,
-  type TicketStatus,
-} from "@/lib/mock-data";
+import { agentById, agents, ticketStatuses, type TicketStatus } from "@/lib/mock-data";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import { prioridadeTone, statusTone } from "./chamados.index";
@@ -20,7 +15,10 @@ export const Route = createFileRoute("/chamados/$id")({
   head: () => ({
     meta: [
       { title: "Detalhe do chamado — Certus AC" },
-      { name: "description", content: "Histórico do chamado, respostas ao cliente, notas internas, SLA e classificação." },
+      {
+        name: "description",
+        content: "Histórico do chamado, respostas ao cliente, notas internas, SLA e classificação.",
+      },
       { property: "og:title", content: "Detalhe do chamado — Certus AC" },
       { property: "og:description", content: "Conversa, SLA, responsável e histórico do cliente." },
     ],
@@ -112,14 +110,21 @@ function ChamadoDetalhe() {
                       <span
                         className={cn(
                           "mt-1.5 inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px]",
-                          cliente ? "border-border text-muted-foreground" : "border-primary-foreground/40",
+                          cliente
+                            ? "border-border text-muted-foreground"
+                            : "border-primary-foreground/40",
                         )}
                       >
                         <Paperclip className="size-3" /> {m.anexo.nome}
                       </span>
                     )}
                     {!sistema && (
-                      <p className={cn("mt-1 text-[10px] tabular", cliente ? "text-muted-foreground" : "opacity-70")}>
+                      <p
+                        className={cn(
+                          "mt-1 text-[10px] tabular",
+                          cliente ? "text-muted-foreground" : "opacity-70",
+                        )}
+                      >
                         {m.quando}
                       </p>
                     )}
@@ -135,7 +140,9 @@ function ChamadoDetalhe() {
                 onClick={() => setInterna(false)}
                 className={cn(
                   "rounded-md px-2.5 py-1 transition-colors",
-                  !interna ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground",
+                  !interna
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border text-muted-foreground",
                 )}
               >
                 Resposta ao cliente
@@ -144,7 +151,9 @@ function ChamadoDetalhe() {
                 onClick={() => setInterna(true)}
                 className={cn(
                   "rounded-md px-2.5 py-1 transition-colors",
-                  interna ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground",
+                  interna
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border text-muted-foreground",
                 )}
               >
                 Nota interna
@@ -161,7 +170,9 @@ function ChamadoDetalhe() {
                   }
                 }}
                 rows={2}
-                placeholder={interna ? "Nota visível apenas para a equipe" : "Escreva a resposta ao cliente"}
+                placeholder={
+                  interna ? "Nota visível apenas para a equipe" : "Escreva a resposta ao cliente"
+                }
                 className="min-h-[56px] flex-1 resize-none rounded-md border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
               />
               <button
@@ -235,7 +246,11 @@ function ChamadoDetalhe() {
 
           <Panel title="Cliente">
             <div className="space-y-1.5 text-sm">
-              <Link to="/clientes/$id" params={{ id: ticket.clienteId }} className="text-primary hover:underline">
+              <Link
+                to="/clientes/$id"
+                params={{ id: ticket.clienteId }}
+                className="text-primary hover:underline"
+              >
                 {ticket.cliente}
               </Link>
               <p className="text-xs text-muted-foreground">{ticket.contato}</p>
@@ -243,7 +258,9 @@ function ChamadoDetalhe() {
                 Última atualização: <span className="tabular">{ticket.atualizadoEm}</span>
               </p>
               {ticket.satisfacao && (
-                <p className="text-xs text-muted-foreground">Satisfação: {"★".repeat(ticket.satisfacao)}</p>
+                <p className="text-xs text-muted-foreground">
+                  Satisfação: {"★".repeat(ticket.satisfacao)}
+                </p>
               )}
               <Link to="/chat" className="inline-block pt-1 text-xs text-primary hover:underline">
                 Abrir conversa no chat
@@ -257,13 +274,18 @@ function ChamadoDetalhe() {
                 .filter((t) => t.clienteId === ticket.clienteId && t.id !== ticket.id)
                 .map((t) => (
                   <li key={t.id}>
-                    <Link to="/chamados/$id" params={{ id: t.id }} className="text-primary hover:underline">
+                    <Link
+                      to="/chamados/$id"
+                      params={{ id: t.id }}
+                      className="text-primary hover:underline"
+                    >
                       {t.numero}
                     </Link>{" "}
                     <span className="text-xs text-muted-foreground">{t.assunto}</span>
                   </li>
                 ))}
-              {tickets.filter((t) => t.clienteId === ticket.clienteId && t.id !== ticket.id).length === 0 && (
+              {tickets.filter((t) => t.clienteId === ticket.clienteId && t.id !== ticket.id)
+                .length === 0 && (
                 <li className="text-xs text-muted-foreground">Nenhum outro chamado.</li>
               )}
             </ul>

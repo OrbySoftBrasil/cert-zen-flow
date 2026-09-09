@@ -8,17 +8,38 @@ import { ExportMenu } from "@/components/export-menu";
 import { Field, KpiCard, StatusDot, inputCls } from "@/components/admin-kit";
 import { Paginacao, usePaginacao } from "@/components/pagination";
 import { Chip, Panel } from "@/components/ui-kit";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { moeda, numero, rotuloPlano, rotuloRegiao, type PlanoId, type Regiao, type StatusTenant } from "@/lib/admin-data";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  moeda,
+  numero,
+  rotuloPlano,
+  rotuloRegiao,
+  type PlanoId,
+  type Regiao,
+  type StatusTenant,
+} from "@/lib/admin-data";
 import { useAdmin } from "@/lib/admin-store";
 
 export const Route = createFileRoute("/admin/tenants/")({
   head: () => ({
     meta: [
       { title: "Tenants da plataforma — Admin Center | Certus SaaS" },
-      { name: "description", content: "Crie, provisione e acompanhe todos os tenants do SaaS: plano, consumo, saúde, inadimplência e limites contratados." },
+      {
+        name: "description",
+        content:
+          "Crie, provisione e acompanhe todos os tenants do SaaS: plano, consumo, saúde, inadimplência e limites contratados.",
+      },
       { property: "og:title", content: "Tenants da plataforma — Admin Center" },
-      { property: "og:description", content: "Crie, provisione e acompanhe todos os tenants do SaaS." },
+      {
+        property: "og:description",
+        content: "Crie, provisione e acompanhe todos os tenants do SaaS.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -63,9 +84,17 @@ function TenantsPage() {
               {
                 nome: "Tenants",
                 linhas: filtrados.map((t) => ({
-                  Tenant: t.nome, Domínio: t.dominio, CNPJ: t.cnpj, Status: t.status,
-                  Plano: rotuloPlano[t.plano], Região: rotuloRegiao[t.regiao], MRR: t.mrr,
-                  Usuários: t.usuarios, Emissões: t.emissoesMes, Saúde: t.saudeScore, Inadimplente: t.inadimplente ? "sim" : "não",
+                  Tenant: t.nome,
+                  Domínio: t.dominio,
+                  CNPJ: t.cnpj,
+                  Status: t.status,
+                  Plano: rotuloPlano[t.plano],
+                  Região: rotuloRegiao[t.regiao],
+                  MRR: t.mrr,
+                  Usuários: t.usuarios,
+                  Emissões: t.emissoesMes,
+                  Saúde: t.saudeScore,
+                  Inadimplente: t.inadimplente ? "sim" : "não",
                 })),
               },
             ]}
@@ -81,9 +110,22 @@ function TenantsPage() {
     >
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="MRR ativo" value={moeda(mrr)} hint="somatório dos tenants ativos" />
-        <KpiCard label="Em trial" value={String(tenants.filter((t) => t.status === "trial").length)} hint="conversão média 46%" />
-        <KpiCard label="Suspensos" value={String(tenants.filter((t) => t.status === "suspenso").length)} tone="alert" hint="bloqueio por inadimplência" />
-        <KpiCard label="Emissões no mês" value={numero(tenants.reduce((s, t) => s + t.emissoesMes, 0))} hint="todos os tenants" />
+        <KpiCard
+          label="Em trial"
+          value={String(tenants.filter((t) => t.status === "trial").length)}
+          hint="conversão média 46%"
+        />
+        <KpiCard
+          label="Suspensos"
+          value={String(tenants.filter((t) => t.status === "suspenso").length)}
+          tone="alert"
+          hint="bloqueio por inadimplência"
+        />
+        <KpiCard
+          label="Emissões no mês"
+          value={numero(tenants.reduce((s, t) => s + t.emissoesMes, 0))}
+          hint="todos os tenants"
+        />
       </div>
 
       <Panel className="mt-4" bodyClassName="p-0">
@@ -97,16 +139,28 @@ function TenantsPage() {
               className={`${inputCls} pl-8`}
             />
           </div>
-          <select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} className={`${inputCls} w-auto`}>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as typeof status)}
+            className={`${inputCls} w-auto`}
+          >
             <option value="todos">Todos os status</option>
             {STATUS.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s}>
+                {s}
+              </option>
             ))}
           </select>
-          <select value={plano} onChange={(e) => setPlano(e.target.value as typeof plano)} className={`${inputCls} w-auto`}>
+          <select
+            value={plano}
+            onChange={(e) => setPlano(e.target.value as typeof plano)}
+            className={`${inputCls} w-auto`}
+          >
             <option value="todos">Todos os planos</option>
             {planos.map((p) => (
-              <option key={p.id} value={p.id}>{p.nome}</option>
+              <option key={p.id} value={p.id}>
+                {p.nome}
+              </option>
             ))}
           </select>
         </div>
@@ -130,21 +184,39 @@ function TenantsPage() {
               {pag.visiveis.map((t) => (
                 <tr key={t.id} className="border-b border-border last:border-0 hover:bg-muted/50">
                   <td className="px-4 py-2">
-                    <Link to="/admin/tenants/$id" params={{ id: t.id }} className="font-medium hover:text-primary">
+                    <Link
+                      to="/admin/tenants/$id"
+                      params={{ id: t.id }}
+                      className="font-medium hover:text-primary"
+                    >
                       {t.nome}
                     </Link>
-                    <p className="text-[11px] text-muted-foreground">{t.dominio} · {t.responsavel}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {t.dominio} · {t.responsavel}
+                    </p>
                   </td>
                   <td className="px-4 py-2">
                     <StatusDot status={t.status} />
-                    {t.inadimplente && <Chip tone="alert" className="ml-1">inadimplente</Chip>}
+                    {t.inadimplente && (
+                      <Chip tone="alert" className="ml-1">
+                        inadimplente
+                      </Chip>
+                    )}
                   </td>
                   <td className="px-4 py-2 text-muted-foreground">{rotuloPlano[t.plano]}</td>
                   <td className="px-4 py-2 text-muted-foreground">{rotuloRegiao[t.regiao]}</td>
-                  <td className="tabular px-4 py-2 text-right">{t.usuarios}/{t.usuariosLimite}</td>
-                  <td className="tabular px-4 py-2 text-right">{numero(t.emissoesMes)}/{numero(t.emissoesLimite)}</td>
+                  <td className="tabular px-4 py-2 text-right">
+                    {t.usuarios}/{t.usuariosLimite}
+                  </td>
+                  <td className="tabular px-4 py-2 text-right">
+                    {numero(t.emissoesMes)}/{numero(t.emissoesLimite)}
+                  </td>
                   <td className="tabular px-4 py-2 text-right">{moeda(t.mrr)}</td>
-                  <td className={`tabular px-4 py-2 text-right ${t.saudeScore < 60 ? "text-alert" : ""}`}>{t.saudeScore}</td>
+                  <td
+                    className={`tabular px-4 py-2 text-right ${t.saudeScore < 60 ? "text-alert" : ""}`}
+                  >
+                    {t.saudeScore}
+                  </td>
                   <td className="px-4 py-2 text-right">
                     <button
                       onClick={() => {
@@ -188,8 +260,15 @@ function NovoTenantDialog({
 }) {
   const { planos } = useAdmin();
   const [form, setForm] = useState({
-    nome: "", slug: "", cnpj: "", responsavel: "", email: "", telefone: "",
-    plano: "pro" as PlanoId, regiao: "br-sp" as Regiao, trial: true,
+    nome: "",
+    slug: "",
+    cnpj: "",
+    responsavel: "",
+    email: "",
+    telefone: "",
+    plano: "pro" as PlanoId,
+    regiao: "br-sp" as Regiao,
+    trial: true,
   });
 
   const set = (k: keyof typeof form, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
@@ -202,44 +281,94 @@ function NovoTenantDialog({
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Razão social / nome">
-            <input className={inputCls} value={form.nome} onChange={(e) => { set("nome", e.target.value); set("slug", e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 14)); }} />
+            <input
+              className={inputCls}
+              value={form.nome}
+              onChange={(e) => {
+                set("nome", e.target.value);
+                set(
+                  "slug",
+                  e.target.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, "")
+                    .slice(0, 14),
+                );
+              }}
+            />
           </Field>
           <Field label="Subdomínio" hint={`${form.slug || "tenant"}.certus.app`}>
-            <input className={inputCls} value={form.slug} onChange={(e) => set("slug", e.target.value)} />
+            <input
+              className={inputCls}
+              value={form.slug}
+              onChange={(e) => set("slug", e.target.value)}
+            />
           </Field>
           <Field label="CNPJ">
-            <input className={inputCls} value={form.cnpj} onChange={(e) => set("cnpj", e.target.value)} />
+            <input
+              className={inputCls}
+              value={form.cnpj}
+              onChange={(e) => set("cnpj", e.target.value)}
+            />
           </Field>
           <Field label="Responsável">
-            <input className={inputCls} value={form.responsavel} onChange={(e) => set("responsavel", e.target.value)} />
+            <input
+              className={inputCls}
+              value={form.responsavel}
+              onChange={(e) => set("responsavel", e.target.value)}
+            />
           </Field>
           <Field label="E-mail administrativo">
-            <input className={inputCls} value={form.email} onChange={(e) => set("email", e.target.value)} />
+            <input
+              className={inputCls}
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+            />
           </Field>
           <Field label="Telefone">
-            <input className={inputCls} value={form.telefone} onChange={(e) => set("telefone", e.target.value)} />
+            <input
+              className={inputCls}
+              value={form.telefone}
+              onChange={(e) => set("telefone", e.target.value)}
+            />
           </Field>
           <Field label="Plano">
-            <select className={inputCls} value={form.plano} onChange={(e) => set("plano", e.target.value)}>
+            <select
+              className={inputCls}
+              value={form.plano}
+              onChange={(e) => set("plano", e.target.value)}
+            >
               {planos.map((p) => (
-                <option key={p.id} value={p.id}>{p.nome} — {moeda(p.preco)}/mês</option>
+                <option key={p.id} value={p.id}>
+                  {p.nome} — {moeda(p.preco)}/mês
+                </option>
               ))}
             </select>
           </Field>
           <Field label="Região de dados">
-            <select className={inputCls} value={form.regiao} onChange={(e) => set("regiao", e.target.value)}>
+            <select
+              className={inputCls}
+              value={form.regiao}
+              onChange={(e) => set("regiao", e.target.value)}
+            >
               <option value="br-sp">BR São Paulo</option>
               <option value="br-rj">BR Rio de Janeiro</option>
               <option value="br-ne">BR Nordeste</option>
             </select>
           </Field>
           <label className="flex items-center gap-2 text-sm sm:col-span-2">
-            <input type="checkbox" checked={form.trial} onChange={(e) => set("trial", e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={form.trial}
+              onChange={(e) => set("trial", e.target.checked)}
+            />
             Iniciar com 14 dias de trial (sem cobrança)
           </label>
         </div>
         <DialogFooter>
-          <button onClick={() => onOpenChange(false)} className="h-9 rounded-md border border-border px-3 text-sm text-muted-foreground hover:text-foreground">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="h-9 rounded-md border border-border px-3 text-sm text-muted-foreground hover:text-foreground"
+          >
             Cancelar
           </button>
           <button

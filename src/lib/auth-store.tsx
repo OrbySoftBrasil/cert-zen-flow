@@ -1,6 +1,14 @@
 // Sessão do protótipo — autenticação simulada com MFA e recuperação de senha.
 // Nada aqui é seguro nem chega a um servidor: é a camada de UX de acesso.
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 const STORAGE_KEY = "certus-ac-sessao-v1";
 
@@ -14,9 +22,24 @@ export interface Sessao {
 }
 
 export const CONTAS_DEMO = [
-  { email: "marina.duarte@certus.com.br", senha: "certus123", nome: "Marina Duarte", papel: "Agente de Registro" },
-  { email: "diego.nunes@certus.com.br", senha: "certus123", nome: "Diego Nunes", papel: "Atendimento" },
-  { email: "admin@certus.com.br", senha: "certus123", nome: "Helena Prado", papel: "Administrador" },
+  {
+    email: "marina.duarte@certus.com.br",
+    senha: "certus123",
+    nome: "Marina Duarte",
+    papel: "Agente de Registro",
+  },
+  {
+    email: "diego.nunes@certus.com.br",
+    senha: "certus123",
+    nome: "Diego Nunes",
+    papel: "Atendimento",
+  },
+  {
+    email: "admin@certus.com.br",
+    senha: "certus123",
+    nome: "Helena Prado",
+    papel: "Administrador",
+  },
 ];
 
 export const CODIGO_MFA_DEMO = "246810";
@@ -53,22 +76,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPronta(true);
   }, []);
 
-  const entrar = useCallback((nome: string, email: string, papel: string, metodoMfa: Sessao["metodoMfa"]) => {
-    const nova: Sessao = {
-      nome,
-      email,
-      papel,
-      iniciais: iniciais(nome),
-      metodoMfa,
-      entrouEm: new Date().toISOString(),
-    };
-    setSessao(nova);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nova));
-    } catch {
-      /* cota indisponível */
-    }
-  }, []);
+  const entrar = useCallback(
+    (nome: string, email: string, papel: string, metodoMfa: Sessao["metodoMfa"]) => {
+      const nova: Sessao = {
+        nome,
+        email,
+        papel,
+        iniciais: iniciais(nome),
+        metodoMfa,
+        entrouEm: new Date().toISOString(),
+      };
+      setSessao(nova);
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nova));
+      } catch {
+        /* cota indisponível */
+      }
+    },
+    [],
+  );
 
   const sair = useCallback(() => {
     setSessao(null);

@@ -44,6 +44,23 @@ import {
 import { cenarioDe } from "@/lib/cenarios";
 import { agentById, agents, brl, requestById } from "@/lib/mock-data";
 
+/** Ação do workspace → ação protegida canônica avaliada pelo checklist. */
+function acaoProtegidaDe(id: string): string | null {
+  switch (id) {
+    case "enviar-verificacao":
+      return "Enviar dossiê para verificação";
+    case "resultado-validacao":
+    case "aprovar-direto":
+      return "Aprovar emissão";
+    case "registrar-entrega":
+      return "Registrar entrega";
+    case "concluir":
+      return "Concluir caso";
+    default:
+      return null;
+  }
+}
+
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -181,6 +198,12 @@ function Workspace() {
     // Bloqueio de conformidade (ex.: fraude) não é superado por nenhuma
     // liberação comercial, emissão ou entrega.
     if (bloqueioAbsoluto && a.id !== "fraude" && a.grupo !== "Atendimento") return bloqueioAbsoluto;
+    // Portão central do checklist: única fonte de verdade dos bloqueios.
+    const protegida = acaoProtegidaDe(a.id);
+    if (protegida) {
+      const av = store.avaliarAcaoDoCaso(caso!.id, protegida);
+      if (!av.permitida) return av.explicacao;
+    }
     if (a.id === "enviar-verificacao" && travaDossie) return travaDossie;
     if (a.id === "resultado-validacao" && travaDossie)
       return "Dossiê incompleto — verifique os itens obrigatórios.";
@@ -228,11 +251,13 @@ function Workspace() {
         store.moveRequest(caso!.id, "documentacao", "Montagem de dossiê aberta");
         break;
       case "enviar-verificacao":
-        store.moveRequest(caso!.id, "validacao", "Dossiê enviado para verificação");
+        store.moveRequest(caso!.id, "validacao", "Dossiê enviado para verificação", {
+          acao: "Enviar dossiê para verificação",
+        });
         break;
       case "resultado-validacao":
       case "aprovar-direto":
-        store.moveRequest(caso!.id, "emissao", "Validação concluída");
+        store.moveRequest(caso!.id, "emissao", "Validação concluída", { acao: "Aprovar emissão" });
         break;
       case "fraude":
         store.updateRequest(caso!.id, { responsavelId: "a5", prioridade: "critica" });
@@ -935,14 +960,25 @@ function Workspace() {
                 <BotaoAcao
                   label="Concluir caso"
                   onClick={() => {
+                    const av = store.avaliarAcaoDoCaso(caso.id, "Concluir caso");
+                    if (!av.permitida) {
+                      toast.error("Ação bloqueada", { description: av.explicacao ?? undefined });
+                      return;
+                    }
                     store.moveRequest(
                       caso.id,
                       "concluido",
                       "Todas as emissões em uso e tarefas resolvidas",
+                      { acao: "Concluir caso" },
                     );
                     toast.success("Caso concluído");
                   }}
-                  bloqueio={caso.stage === "concluido" ? "Caso já concluído." : conclusao.motivo}
+                  bloqueio={
+                    caso.stage === "concluido"
+                      ? "Caso já concluído."
+                      : (conclusao.motivo ??
+                        store.avaliarAcaoDoCaso(caso.id, "Concluir caso").explicacao)
+                  }
                 />
               </div>
               {grupos.map((g) => (
@@ -1050,8 +1086,13 @@ function Workspace() {
             <Btn variant="ghost" onClick={() => setAcao(null)}>
               Cancelar
             </Btn>
-            <Btn variant={acao?.destrutiva ? "danger" : "primary"} onClick={executar}>
-              Confirmar
+            <Btn
+              variant={acao?.destrutiva ? "danger" : "primary"}
+              // Enquanto houver portão ativo não existe caminho de execução.
+              disabled={!!(acao && bloqueioDaAcao(acao))}
+              onClick={executar}
+            >
+              {acao && bloqueioDaAcao(acao) ? "Ação bloqueada" : "Confirmar"}
             </Btn>
           </>
         }

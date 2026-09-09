@@ -19,7 +19,15 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { MCard, MiniBar, Row, StatTile } from "@/components/mobile-kit";
 import { Chip, SlaBadge } from "@/components/ui-kit";
@@ -200,7 +208,9 @@ function MobileContador() {
   const [chamados, setChamados] = useState<ChamadoParceiro[]>(chamadosIniciais);
 
   const [busca, setBusca] = useState("");
-  const [filtroPedido, setFiltroPedido] = useState<"todos" | "andamento" | "risco" | "concluidos">("andamento");
+  const [filtroPedido, setFiltroPedido] = useState<"todos" | "andamento" | "risco" | "concluidos">(
+    "andamento",
+  );
   const [chFiltro, setChFiltro] = useState<"todos" | "abertos" | "resolvidos">("todos");
 
   // form: novo cliente
@@ -228,7 +238,9 @@ function MobileContador() {
   const emAndamento = pedidos.filter((p) => p.stage !== "concluido");
   const emRisco = pedidos.filter((p) => p.slaRestanteHoras <= 4 && p.stage !== "concluido");
   const concluidos = pedidos.filter((p) => p.stage === "concluido");
-  const chamadosAbertos = chamados.filter((c) => c.status !== "resolvido" && c.status !== "fechado");
+  const chamadosAbertos = chamados.filter(
+    (c) => c.status !== "resolvido" && c.status !== "fechado",
+  );
   const metaPct = Math.round((contador.emissoesMes / Math.max(1, contador.metaMes)) * 100);
   const vencendo = carteira.filter((c) => {
     const t = new Date(c.proximoVencimento).getTime();
@@ -352,8 +364,8 @@ function MobileContador() {
       <aside className="hidden max-w-sm lg:block">
         <p className="font-display text-2xl font-semibold">Certus Parceiro</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          App do contador credenciado. Tudo que existe no portal web: acompanhar pedidos, cadastrar clientes,
-          fazer novos pedidos de certificado, abrir chamados e consultar comissões.
+          App do contador credenciado. Tudo que existe no portal web: acompanhar pedidos, cadastrar
+          clientes, fazer novos pedidos de certificado, abrir chamados e consultar comissões.
         </p>
         <Link to="/parceiro" className="mt-4 inline-block text-sm text-primary hover:underline">
           Abrir versão web do portal
@@ -374,7 +386,9 @@ function MobileContador() {
           <header className="bg-primary-deep px-5 pb-4 pt-2 text-primary-foreground">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
               <div className="min-w-0">
-                <p className="text-[11px] text-primary-foreground/70">Olá, {contador.responsavel}</p>
+                <p className="text-[11px] text-primary-foreground/70">
+                  Olá, {contador.responsavel}
+                </p>
                 <h1 className="truncate font-display text-lg font-semibold">{contador.nome}</h1>
               </div>
               <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-foreground/10 text-[11px] font-bold">
@@ -403,25 +417,50 @@ function MobileContador() {
             {tab === "painel" && (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <StatTile label="Em andamento" value={String(emAndamento.length)} hint={`${emRisco.length} com SLA crítico`} tone={emRisco.length ? "alert" : "default"} />
-                  <StatTile label="Emissões no mês" value={String(contador.emissoesMes)} hint={`meta ${contador.metaMes}`} tone="primary" />
-                  <StatTile label="Comissão do mês" value={brl(contador.comissaoMes)} hint={`${contador.comissaoPercentual}% sobre a base`} />
-                  <StatTile label="Chamados abertos" value={String(chamadosAbertos.length)} hint={`${chamados.length} no total`} />
+                  <StatTile
+                    label="Em andamento"
+                    value={String(emAndamento.length)}
+                    hint={`${emRisco.length} com SLA crítico`}
+                    tone={emRisco.length ? "alert" : "default"}
+                  />
+                  <StatTile
+                    label="Emissões no mês"
+                    value={String(contador.emissoesMes)}
+                    hint={`meta ${contador.metaMes}`}
+                    tone="primary"
+                  />
+                  <StatTile
+                    label="Comissão do mês"
+                    value={brl(contador.comissaoMes)}
+                    hint={`${contador.comissaoPercentual}% sobre a base`}
+                  />
+                  <StatTile
+                    label="Chamados abertos"
+                    value={String(chamadosAbertos.length)}
+                    hint={`${chamados.length} no total`}
+                  />
                 </div>
 
                 <MCard title="Meta do mês" hint={`${metaPct}% atingido`}>
                   <MiniBar value={metaPct} tone={metaPct < 60 ? "alert" : "primary"} />
                   <p className="mt-2 text-[11px] text-muted-foreground">
-                    Faltam {Math.max(0, contador.metaMes - contador.emissoesMes)} emissões para o próximo tier de
-                    comissão.
+                    Faltam {Math.max(0, contador.metaMes - contador.emissoesMes)} emissões para o
+                    próximo tier de comissão.
                   </p>
                 </MCard>
 
                 <MCard title="Produção" hint="emissões e receita por mês">
                   <div className="h-[150px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={contador.serie} margin={{ top: 4, right: 6, left: -18, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                      <AreaChart
+                        data={contador.serie}
+                        margin={{ top: 4, right: 6, left: -18, bottom: 0 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="var(--border)"
+                          vertical={false}
+                        />
                         <XAxis dataKey="mes" tick={axis} axisLine={false} tickLine={false} />
                         <YAxis tick={axis} axisLine={false} tickLine={false} width={30} />
                         <Tooltip contentStyle={tooltipStyle} />
@@ -437,9 +476,15 @@ function MobileContador() {
                   </div>
                 </MCard>
 
-                <MCard title="Vencimentos em 30 dias" hint={`${vencendo.length} clientes`} bodyClassName="p-0">
+                <MCard
+                  title="Vencimentos em 30 dias"
+                  hint={`${vencendo.length} clientes`}
+                  bodyClassName="p-0"
+                >
                   {vencendo.length === 0 && (
-                    <p className="px-4 py-4 text-[12px] text-muted-foreground">Nenhum vencimento próximo.</p>
+                    <p className="px-4 py-4 text-[12px] text-muted-foreground">
+                      Nenhum vencimento próximo.
+                    </p>
                   )}
                   {vencendo.slice(0, 5).map((c) => (
                     <Row
@@ -473,7 +518,11 @@ function MobileContador() {
                       key={t.tipo}
                       title={t.tipo}
                       subtitle={`Balcão ${brl(t.balcao)} · ${t.prazo}`}
-                      right={<span className="text-[12px] font-semibold tabular text-primary-deep">{brl(t.parceiro)}</span>}
+                      right={
+                        <span className="text-[12px] font-semibold tabular text-primary-deep">
+                          {brl(t.parceiro)}
+                        </span>
+                      }
                     />
                   ))}
                 </MCard>
@@ -494,7 +543,9 @@ function MobileContador() {
                 />
                 <MCard bodyClassName="p-0">
                   {pedidosFiltrados.length === 0 && (
-                    <p className="px-4 py-5 text-center text-[12px] text-muted-foreground">Nenhum pedido aqui.</p>
+                    <p className="px-4 py-5 text-center text-[12px] text-muted-foreground">
+                      Nenhum pedido aqui.
+                    </p>
                   )}
                   {pedidosFiltrados.map((p) => (
                     <Row
@@ -538,7 +589,9 @@ function MobileContador() {
                     />
                   ))}
                   {carteiraFiltrada.length === 0 && (
-                    <p className="px-4 py-5 text-center text-[12px] text-muted-foreground">Nada encontrado.</p>
+                    <p className="px-4 py-5 text-center text-[12px] text-muted-foreground">
+                      Nada encontrado.
+                    </p>
                   )}
                 </MCard>
                 <button
@@ -595,10 +648,18 @@ function MobileContador() {
             {tab === "comissoes" && (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <StatTile label="Comissão do mês" value={brl(contador.comissaoMes)} tone="primary" />
+                  <StatTile
+                    label="Comissão do mês"
+                    value={brl(contador.comissaoMes)}
+                    tone="primary"
+                  />
                   <StatTile label="Receita gerada (ano)" value={brl(contador.receitaAno)} />
                   <StatTile label="Ticket médio" value={brl(contador.ticketMedio)} />
-                  <StatTile label="Percentual" value={`${contador.comissaoPercentual}%`} hint={contador.tabelaEspecial} />
+                  <StatTile
+                    label="Percentual"
+                    value={`${contador.comissaoPercentual}%`}
+                    hint={contador.tabelaEspecial}
+                  />
                 </div>
                 <MCard title="Extrato de comissões" bodyClassName="p-0">
                   {contador.extrato.map((e) => (
@@ -612,9 +673,9 @@ function MobileContador() {
                 </MCard>
                 <MCard title="Como sua comissão é calculada">
                   <p className="text-[12px] text-muted-foreground">
-                    {contador.comissaoPercentual}% sobre a receita líquida das emissões faturadas no mês, apuradas
-                    no dia 1º e pagas até o 10º dia útil. Pedidos cancelados ou estornados são retidos na
-                    competência seguinte.
+                    {contador.comissaoPercentual}% sobre a receita líquida das emissões faturadas no
+                    mês, apuradas no dia 1º e pagas até o 10º dia útil. Pedidos cancelados ou
+                    estornados são retidos na competência seguinte.
                   </p>
                 </MCard>
               </div>
@@ -625,9 +686,30 @@ function MobileContador() {
           <div className="absolute bottom-20 right-4 z-10 flex flex-col items-end gap-2">
             {fabAberto && (
               <>
-                <FabItem label="Novo pedido" icon={FileSpreadsheet} onClick={() => { setSheet("pedido"); setFabAberto(false); }} />
-                <FabItem label="Novo cliente" icon={Building2} onClick={() => { setSheet("cliente"); setFabAberto(false); }} />
-                <FabItem label="Abrir chamado" icon={LifeBuoy} onClick={() => { setSheet("chamado"); setFabAberto(false); }} />
+                <FabItem
+                  label="Novo pedido"
+                  icon={FileSpreadsheet}
+                  onClick={() => {
+                    setSheet("pedido");
+                    setFabAberto(false);
+                  }}
+                />
+                <FabItem
+                  label="Novo cliente"
+                  icon={Building2}
+                  onClick={() => {
+                    setSheet("cliente");
+                    setFabAberto(false);
+                  }}
+                />
+                <FabItem
+                  label="Abrir chamado"
+                  icon={LifeBuoy}
+                  onClick={() => {
+                    setSheet("chamado");
+                    setFabAberto(false);
+                  }}
+                />
               </>
             )}
             <button
@@ -656,7 +738,12 @@ function MobileContador() {
                     ativo ? "text-primary" : "text-muted-foreground",
                   )}
                 >
-                  <span className={cn("grid size-8 place-items-center rounded-full transition-colors", ativo && "bg-primary-soft")}>
+                  <span
+                    className={cn(
+                      "grid size-8 place-items-center rounded-full transition-colors",
+                      ativo && "bg-primary-soft",
+                    )}
+                  >
                     <t.icon className="size-4" />
                   </span>
                   {t.label}
@@ -670,21 +757,33 @@ function MobileContador() {
             <Sheet titulo="Novo pedido" onFechar={() => setSheet(null)}>
               <div className="space-y-3">
                 <Campo label="Cliente">
-                  <select value={pCliente} onChange={(e) => setPCliente(e.target.value)} className={inputCls}>
+                  <select
+                    value={pCliente}
+                    onChange={(e) => setPCliente(e.target.value)}
+                    className={inputCls}
+                  >
                     {carteira.map((c) => (
                       <option key={c.id}>{c.nome}</option>
                     ))}
                   </select>
                 </Campo>
                 <Campo label="Tipo de certificado">
-                  <select value={pTipo} onChange={(e) => setPTipo(e.target.value as CertType)} className={inputCls}>
+                  <select
+                    value={pTipo}
+                    onChange={(e) => setPTipo(e.target.value as CertType)}
+                    className={inputCls}
+                  >
                     {tabelaPrecos.map((t) => (
                       <option key={t.tipo}>{t.tipo}</option>
                     ))}
                   </select>
                 </Campo>
                 <Campo label="Modalidade de validação">
-                  <select value={pModalidade} onChange={(e) => setPModalidade(e.target.value)} className={inputCls}>
+                  <select
+                    value={pModalidade}
+                    onChange={(e) => setPModalidade(e.target.value)}
+                    className={inputCls}
+                  >
                     <option>Videoconferência</option>
                     <option>Presencial no escritório do contador</option>
                     <option>Presencial na AC</option>
@@ -730,19 +829,40 @@ function MobileContador() {
                   />
                 </Campo>
                 <Campo label={cTipo === "PJ" ? "Razão social" : "Nome completo"}>
-                  <input value={cNome} onChange={(e) => setCNome(e.target.value)} className={inputCls} placeholder="Nome do cliente" />
+                  <input
+                    value={cNome}
+                    onChange={(e) => setCNome(e.target.value)}
+                    className={inputCls}
+                    placeholder="Nome do cliente"
+                  />
                 </Campo>
                 <Campo label={cTipo === "PJ" ? "CNPJ" : "CPF"}>
-                  <input value={cDoc} onChange={(e) => setCDoc(e.target.value)} className={inputCls} placeholder="Somente números" />
+                  <input
+                    value={cDoc}
+                    onChange={(e) => setCDoc(e.target.value)}
+                    className={inputCls}
+                    placeholder="Somente números"
+                  />
                 </Campo>
                 <Campo label="E-mail">
-                  <input value={cEmail} onChange={(e) => setCEmail(e.target.value)} className={inputCls} placeholder="contato@empresa.com.br" />
+                  <input
+                    value={cEmail}
+                    onChange={(e) => setCEmail(e.target.value)}
+                    className={inputCls}
+                    placeholder="contato@empresa.com.br"
+                  />
                 </Campo>
                 <Campo label="Telefone">
-                  <input value={cTel} onChange={(e) => setCTel(e.target.value)} className={inputCls} placeholder="(11) 90000-0000" />
+                  <input
+                    value={cTel}
+                    onChange={(e) => setCTel(e.target.value)}
+                    className={inputCls}
+                    placeholder="(11) 90000-0000"
+                  />
                 </Campo>
                 <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <Paperclip className="size-3" /> Documentos podem ser anexados depois, na etapa de validação.
+                  <Paperclip className="size-3" /> Documentos podem ser anexados depois, na etapa de
+                  validação.
                 </p>
                 <button type="button" onClick={salvarCliente} className={btnCls}>
                   Cadastrar na minha carteira
@@ -755,7 +875,11 @@ function MobileContador() {
             <Sheet titulo="Abrir chamado" onFechar={() => setSheet(null)}>
               <div className="space-y-3">
                 <Campo label="Cliente">
-                  <select value={chCliente} onChange={(e) => setChCliente(e.target.value)} className={inputCls}>
+                  <select
+                    value={chCliente}
+                    onChange={(e) => setChCliente(e.target.value)}
+                    className={inputCls}
+                  >
                     {carteira.map((c) => (
                       <option key={c.id}>{c.nome}</option>
                     ))}
@@ -777,7 +901,11 @@ function MobileContador() {
                   </select>
                 </Campo>
                 <Campo label="Subcategoria">
-                  <select value={chSub} onChange={(e) => setChSub(e.target.value)} className={inputCls}>
+                  <select
+                    value={chSub}
+                    onChange={(e) => setChSub(e.target.value)}
+                    className={inputCls}
+                  >
                     {subsChamado.map((s) => (
                       <option key={s}>{s}</option>
                     ))}
@@ -791,10 +919,21 @@ function MobileContador() {
                   />
                 </Campo>
                 <Campo label="Assunto">
-                  <input value={chAssunto} onChange={(e) => setChAssunto(e.target.value)} className={inputCls} placeholder="Resumo do problema" />
+                  <input
+                    value={chAssunto}
+                    onChange={(e) => setChAssunto(e.target.value)}
+                    className={inputCls}
+                    placeholder="Resumo do problema"
+                  />
                 </Campo>
                 <Campo label="Descrição">
-                  <textarea value={chDescricao} onChange={(e) => setChDescricao(e.target.value)} rows={4} className={inputCls} placeholder="Detalhe o que aconteceu, mensagens de erro, etc." />
+                  <textarea
+                    value={chDescricao}
+                    onChange={(e) => setChDescricao(e.target.value)}
+                    rows={4}
+                    className={inputCls}
+                    placeholder="Detalhe o que aconteceu, mensagens de erro, etc."
+                  />
                 </Campo>
                 {sugestoesKb.length > 0 && (
                   <MCard title="Talvez resolva agora" bodyClassName="p-0">
@@ -837,7 +976,9 @@ function MobileContador() {
                   <div className="mt-2 flex items-center gap-2">
                     <Chip tone="blue">{stageNome(pedidoAberto.stage)}</Chip>
                     <SlaBadge horas={pedidoAberto.slaRestanteHoras} />
-                    <span className="ml-auto text-[13px] font-semibold tabular">{brl(pedidoAberto.valor)}</span>
+                    <span className="ml-auto text-[13px] font-semibold tabular">
+                      {brl(pedidoAberto.valor)}
+                    </span>
                   </div>
                 </MCard>
                 <MCard title="Andamento" bodyClassName="p-0">
@@ -881,19 +1022,29 @@ function MobileContador() {
             <Sheet titulo={clienteAberto.nome} onFechar={() => setClienteSel(null)}>
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <StatTile label="Certificados ativos" value={String(clienteAberto.certificadosAtivos)} />
+                  <StatTile
+                    label="Certificados ativos"
+                    value={String(clienteAberto.certificadosAtivos)}
+                  />
                   <StatTile label="Receita no ano" value={brl(clienteAberto.receitaAno)} />
-                  <StatTile label="Próx. vencimento" value={clienteAberto.proximoVencimento} tone="primary" />
+                  <StatTile
+                    label="Próx. vencimento"
+                    value={clienteAberto.proximoVencimento}
+                    tone="primary"
+                  />
                   <StatTile label="Última emissão" value={clienteAberto.ultimaEmissao} />
                 </div>
                 <MCard title="Cadastro">
                   <p className="text-[12px] text-muted-foreground">
-                    {clienteAberto.documento} · {clienteAberto.tipoPessoa} · situação {clienteAberto.situacao}
+                    {clienteAberto.documento} · {clienteAberto.tipoPessoa} · situação{" "}
+                    {clienteAberto.situacao}
                   </p>
                 </MCard>
                 <MCard title="Pedidos do cliente" bodyClassName="p-0">
                   {pedidos.filter((p) => p.cliente === clienteAberto.nome).length === 0 && (
-                    <p className="px-4 py-4 text-[12px] text-muted-foreground">Nenhum pedido registrado.</p>
+                    <p className="px-4 py-4 text-[12px] text-muted-foreground">
+                      Nenhum pedido registrado.
+                    </p>
                   )}
                   {pedidos
                     .filter((p) => p.cliente === clienteAberto.nome)
@@ -944,7 +1095,8 @@ function MobileContador() {
                 <MCard>
                   <p className="font-display text-sm font-semibold">{chamadoAberto.assunto}</p>
                   <p className="text-[12px] text-muted-foreground">
-                    {chamadoAberto.cliente} · {chamadoAberto.categoria} / {chamadoAberto.subcategoria}
+                    {chamadoAberto.cliente} · {chamadoAberto.categoria} /{" "}
+                    {chamadoAberto.subcategoria}
                   </p>
                   <div className="mt-2 flex items-center gap-2">
                     <Chip tone={chamadoTone[chamadoAberto.status]}>{chamadoAberto.status}</Chip>
@@ -958,10 +1110,16 @@ function MobileContador() {
                   <Row title="Última atualização" subtitle={chamadoAberto.atualizadoEm} />
                 </MCard>
                 <MCard title="Responder">
-                  <textarea rows={3} placeholder="Escreva uma resposta ao suporte" className={inputCls} />
+                  <textarea
+                    rows={3}
+                    placeholder="Escreva uma resposta ao suporte"
+                    className={inputCls}
+                  />
                   <button
                     type="button"
-                    onClick={() => notificar(`Resposta registrada no chamado ${chamadoAberto.numero}.`)}
+                    onClick={() =>
+                      notificar(`Resposta registrada no chamado ${chamadoAberto.numero}.`)
+                    }
                     className={cn(btnCls, "mt-2")}
                   >
                     Enviar resposta
@@ -978,12 +1136,15 @@ function MobileContador() {
 
 const inputCls =
   "w-full rounded-xl border border-border bg-card px-3 py-2 text-[13px] outline-none focus:border-primary";
-const btnCls = "w-full rounded-xl bg-primary py-2.5 text-[13px] font-semibold text-primary-foreground";
+const btnCls =
+  "w-full rounded-xl bg-primary py-2.5 text-[13px] font-semibold text-primary-foreground";
 
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
       {children}
     </label>
   );
@@ -1050,7 +1211,12 @@ function Sheet({
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-background lg:rounded-[2rem]">
       <header className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-card px-3 py-3">
-        <button type="button" onClick={onFechar} className="grid size-8 place-items-center rounded-full bg-muted" aria-label="Voltar">
+        <button
+          type="button"
+          onClick={onFechar}
+          className="grid size-8 place-items-center rounded-full bg-muted"
+          aria-label="Voltar"
+        >
           <ArrowLeft className="size-4" />
         </button>
         <h2 className="truncate font-display text-sm font-semibold">{titulo}</h2>

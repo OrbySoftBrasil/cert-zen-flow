@@ -27,14 +27,17 @@ function toCsv(rows: Row[]) {
     const s = String(v ?? "");
     return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  return [cols.join(";"), ...rows.map((r) => cols.map((c) => esc(r[c] ?? "")).join(";"))].join("\r\n");
+  return [cols.join(";"), ...rows.map((r) => cols.map((c) => esc(r[c] ?? "")).join(";"))].join(
+    "\r\n",
+  );
 }
 
 export function exportCsv(datasets: Dataset[], base: string) {
-  const body = datasets
-    .map((d) => `#${d.nome}\r\n${toCsv(d.linhas)}`)
-    .join("\r\n\r\n");
-  download(new Blob(["\uFEFF" + body], { type: "text/csv;charset=utf-8" }), `${base}-${stamp()}.csv`);
+  const body = datasets.map((d) => `#${d.nome}\r\n${toCsv(d.linhas)}`).join("\r\n\r\n");
+  download(
+    new Blob(["\uFEFF" + body], { type: "text/csv;charset=utf-8" }),
+    `${base}-${stamp()}.csv`,
+  );
 }
 
 export function exportJson(datasets: Dataset[], base: string) {

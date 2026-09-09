@@ -11,7 +11,7 @@ import { ExportMenu } from "@/components/export-menu";
 import { FinanceTabs } from "@/components/finance-tabs";
 import { Chip, Metric, Panel } from "@/components/ui-kit";
 import type { Dataset } from "@/lib/export";
-import { dataBR, diasAte,  } from "@/lib/finance-data";
+import { dataBR, diasAte } from "@/lib/finance-data";
 import { brl } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,8 @@ export const Route = createFileRoute("/financeiro/pagar")({
       { title: "Contas a pagar — Certus AC" },
       {
         name: "description",
-        content: "Títulos a pagar, aprovações, agendamentos e calendário de vencimentos por fornecedor e centro de custo.",
+        content:
+          "Títulos a pagar, aprovações, agendamentos e calendário de vencimentos por fornecedor e centro de custo.",
       },
       { property: "og:title", content: "Contas a pagar — Certus AC" },
       { property: "og:description", content: "Aprovação, agendamento e liquidação de títulos." },
@@ -55,12 +56,18 @@ function Pagar() {
     setConfirmar(null);
   }
 
-  const lista = pagar.filter((p) => status === "todos" || (pagos.includes(p.id) ? "pago" : p.status) === status);
-  const total = pagar.filter((p) => p.status !== "pago" && !pagos.includes(p.id)).reduce((s, p) => s + p.valor, 0);
+  const lista = pagar.filter(
+    (p) => status === "todos" || (pagos.includes(p.id) ? "pago" : p.status) === status,
+  );
+  const total = pagar
+    .filter((p) => p.status !== "pago" && !pagos.includes(p.id))
+    .reduce((s, p) => s + p.valor, 0);
   const vencidos = pagar.filter((p) => p.status === "vencido" && !pagos.includes(p.id));
   const semana = pagar.filter((p) => diasAte(p.vencimento) >= 0 && diasAte(p.vencimento) <= 7);
   const aprovacao = pagar.filter((p) => p.aprovacao === "pendente");
-  const selecionadoTotal = pagar.filter((p) => selecionados.includes(p.id)).reduce((s, p) => s + p.valor, 0);
+  const selecionadoTotal = pagar
+    .filter((p) => selecionados.includes(p.id))
+    .reduce((s, p) => s + p.valor, 0);
 
   const datasets = (): Dataset[] => [
     {
@@ -97,11 +104,31 @@ function Pagar() {
 
       <div className="space-y-4">
         <div className="flex flex-wrap divide-border rounded-lg border border-border bg-card">
-          <Metric label="Total em aberto" value={brl(total)} hint={`${pagar.length - pagos.length} títulos`} />
-          <Metric label="Vence em 7 dias" value={brl(semana.reduce((s, p) => s + p.valor, 0))} hint={`${semana.length} títulos`} />
-          <Metric label="Vencidos" value={brl(vencidos.reduce((s, p) => s + p.valor, 0))} hint={`${vencidos.length} títulos`} />
-          <Metric label="Aguardando aprovação" value={String(aprovacao.length)} hint={brl(aprovacao.reduce((s, p) => s + p.valor, 0))} />
-          <Metric label="Recorrentes" value={String(pagar.filter((p) => p.recorrente).length)} hint="contratos fixos" />
+          <Metric
+            label="Total em aberto"
+            value={brl(total)}
+            hint={`${pagar.length - pagos.length} títulos`}
+          />
+          <Metric
+            label="Vence em 7 dias"
+            value={brl(semana.reduce((s, p) => s + p.valor, 0))}
+            hint={`${semana.length} títulos`}
+          />
+          <Metric
+            label="Vencidos"
+            value={brl(vencidos.reduce((s, p) => s + p.valor, 0))}
+            hint={`${vencidos.length} títulos`}
+          />
+          <Metric
+            label="Aguardando aprovação"
+            value={String(aprovacao.length)}
+            hint={brl(aprovacao.reduce((s, p) => s + p.valor, 0))}
+          />
+          <Metric
+            label="Recorrentes"
+            value={String(pagar.filter((p) => p.recorrente).length)}
+            hint="contratos fixos"
+          />
         </div>
 
         {selecionados.length > 0 && (
@@ -170,7 +197,9 @@ function Pagar() {
                               type="checkbox"
                               checked={selecionados.includes(p.id)}
                               onChange={(e) =>
-                                setSelecionados((v) => (e.target.checked ? [...v, p.id] : v.filter((i) => i !== p.id)))
+                                setSelecionados((v) =>
+                                  e.target.checked ? [...v, p.id] : v.filter((i) => i !== p.id),
+                                )
                               }
                               className="size-3.5 accent-[var(--color-primary)]"
                             />
@@ -188,13 +217,22 @@ function Pagar() {
                         </td>
                         <td className="whitespace-nowrap px-4 py-2.5 tabular">
                           {dataBR(p.vencimento)}
-                          <span className={cn("ml-1.5 text-[11px]", dias < 0 ? "text-alert" : "text-muted-foreground")}>
+                          <span
+                            className={cn(
+                              "ml-1.5 text-[11px]",
+                              dias < 0 ? "text-alert" : "text-muted-foreground",
+                            )}
+                          >
                             {dias < 0 ? `${Math.abs(dias)}d atraso` : `em ${dias}d`}
                           </span>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(p.valor)}</td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">
+                          {brl(p.valor)}
+                        </td>
                         <td className="px-4 py-2.5">
-                          <Chip tone={pago ? "deep" : statusTone[p.status]}>{pago ? "pago" : p.status}</Chip>
+                          <Chip tone={pago ? "deep" : statusTone[p.status]}>
+                            {pago ? "pago" : p.status}
+                          </Chip>
                         </td>
                         <td className="px-4 py-2.5">
                           {p.aprovacao === "pendente" ? (
@@ -247,7 +285,9 @@ function Pagar() {
                         {dataBR(p.vencimento)} · {p.fornecedor}
                       </li>
                     ))}
-                    {itens.length === 0 && <li className="text-[11px] text-muted-foreground">Sem títulos</li>}
+                    {itens.length === 0 && (
+                      <li className="text-[11px] text-muted-foreground">Sem títulos</li>
+                    )}
                   </ul>
                 </div>
               );
@@ -257,8 +297,12 @@ function Pagar() {
       </div>
       <ConfirmDialog
         open={!!confirmar}
-        title={confirmar && confirmar.ids.length > 1 ? "Gerar lote de pagamento" : "Liquidar título"}
-        {...(confirmar ? { descricao: `${confirmar.ids.length} título(s) · ${brl(confirmar.total)}` } : {})}
+        title={
+          confirmar && confirmar.ids.length > 1 ? "Gerar lote de pagamento" : "Liquidar título"
+        }
+        {...(confirmar
+          ? { descricao: `${confirmar.ids.length} título(s) · ${brl(confirmar.total)}` }
+          : {})}
         confirmLabel="Confirmar pagamento"
         onCancel={() => setConfirmar(null)}
         onConfirm={() => confirmar && liquidar(confirmar.ids)}

@@ -11,7 +11,8 @@ export const Route = createFileRoute("/recuperar-senha")({
       { title: "Recuperar acesso — Certus AC" },
       {
         name: "description",
-        content: "Solicite um link seguro de redefinição de senha para voltar a acessar a operação da Certus AC.",
+        content:
+          "Solicite um link seguro de redefinição de senha para voltar a acessar a operação da Certus AC.",
       },
       { property: "og:title", content: "Recuperar acesso — Certus AC" },
       { property: "og:description", content: "Envio de link seguro para redefinição de senha." },
@@ -45,8 +46,8 @@ function RecuperarSenha() {
           <div className="flex items-start gap-2 rounded-md bg-primary-soft px-3 py-2.5 text-sm text-primary-deep">
             <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
             <p>
-              Se <strong>{email}</strong> estiver cadastrado, o link de redefinição chega em instantes. Confira também a
-              caixa de spam.
+              Se <strong>{email}</strong> estiver cadastrado, o link de redefinição chega em
+              instantes. Confira também a caixa de spam.
             </p>
           </div>
           <Link to="/redefinir-senha">
@@ -88,7 +89,8 @@ function RecuperarSenha() {
             {carregando && <Loader2 className="size-4 animate-spin" />} Enviar link de redefinição
           </Btn>
           <p className="text-[11px] text-muted-foreground">
-            Por segurança, não informamos se o e-mail existe na base. Tentativas são registradas na trilha de auditoria.
+            Por segurança, não informamos se o e-mail existe na base. Tentativas são registradas na
+            trilha de auditoria.
           </p>
         </form>
       )}

@@ -41,7 +41,8 @@ export const Route = createFileRoute("/chat")({
       { property: "og:title", content: "Chat — atendimento com IA | Certus AC" },
       {
         property: "og:description",
-        content: "Conversas multicanal com copiloto de IA, resumo automático e handoff em um clique.",
+        content:
+          "Conversas multicanal com copiloto de IA, resumo automático e handoff em um clique.",
       },
     ],
   }),
@@ -49,7 +50,12 @@ export const Route = createFileRoute("/chat")({
 });
 
 const statusTone = { bot: "outline", fila: "alert", humano: "blue", resolvido: "neutral" } as const;
-const statusLabel = { bot: "Assistente", fila: "Na fila", humano: "Humano", resolvido: "Resolvido" } as const;
+const statusLabel = {
+  bot: "Assistente",
+  fila: "Na fila",
+  humano: "Humano",
+  resolvido: "Resolvido",
+} as const;
 const canalIcon: Record<string, typeof MessageCircle> = {
   WhatsApp: MessageCircle,
   Site: Bot,
@@ -170,7 +176,8 @@ function Chat() {
           onClick={() => setPainel((v) => !v)}
           className="flex items-center gap-2 rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:border-primary"
         >
-          <Sparkles className="size-3.5 text-primary" /> {painel ? "Ocultar copiloto" : "Mostrar copiloto"}
+          <Sparkles className="size-3.5 text-primary" />{" "}
+          {painel ? "Ocultar copiloto" : "Mostrar copiloto"}
         </button>
       }
     >
@@ -192,14 +199,18 @@ function Chat() {
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
               {busca && (
-                <button onClick={() => setBusca("")} className="text-muted-foreground hover:text-foreground">
+                <button
+                  onClick={() => setBusca("")}
+                  className="text-muted-foreground hover:text-foreground"
+                >
                   <X className="size-3.5" />
                 </button>
               )}
             </div>
             <div className="mt-2.5 flex gap-1 overflow-x-auto">
               {filtros.map((f) => {
-                const total = f.id === "todas" ? convs.length : convs.filter((c) => c.status === f.id).length;
+                const total =
+                  f.id === "todas" ? convs.length : convs.filter((c) => c.status === f.id).length;
                 return (
                   <button
                     key={f.id}
@@ -235,15 +246,23 @@ function Chat() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-2">
                         <p className="min-w-0 flex-1 truncate text-sm font-medium">{c.cliente}</p>
-                        <span className="tabular shrink-0 text-[11px] text-muted-foreground">{ultima?.quando}</span>
+                        <span className="tabular shrink-0 text-[11px] text-muted-foreground">
+                          {ultima?.quando}
+                        </span>
                       </div>
                       <div className="mt-0.5 flex items-center gap-1.5">
                         {ultima?.de !== "cliente" && (
                           <span className="shrink-0 text-primary">
-                            {ultima?.lida ? <CheckCheck className="size-3.5" /> : <Check className="size-3.5" />}
+                            {ultima?.lida ? (
+                              <CheckCheck className="size-3.5" />
+                            ) : (
+                              <Check className="size-3.5" />
+                            )}
                           </span>
                         )}
-                        <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{ultima?.texto}</p>
+                        <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                          {ultima?.texto}
+                        </p>
                         {c.naoLidas ? (
                           <span className="tabular grid h-4 min-w-4 shrink-0 place-items-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
                             {c.naoLidas}
@@ -254,7 +273,9 @@ function Chat() {
                         {c.fixada && <Pin className="size-3 text-muted-foreground" />}
                         <Chip tone={statusTone[c.status]}>{statusLabel[c.status]}</Chip>
                         {c.aguardandoMin > 0 && (
-                          <span className="tabular text-[11px] text-alert">{c.aguardandoMin} min</span>
+                          <span className="tabular text-[11px] text-alert">
+                            {c.aguardandoMin} min
+                          </span>
                         )}
                       </div>
                     </div>
@@ -263,7 +284,9 @@ function Chat() {
               );
             })}
             {lista.length === 0 && (
-              <li className="p-6 text-center text-sm text-muted-foreground">Nenhuma conversa neste filtro.</li>
+              <li className="p-6 text-center text-sm text-muted-foreground">
+                Nenhuma conversa neste filtro.
+              </li>
             )}
           </ul>
         </aside>
@@ -308,7 +331,10 @@ function Chat() {
               >
                 <Video className="size-4" />
               </button>
-              <button title="Buscar na conversa" className="grid size-8 place-items-center rounded-full hover:bg-muted hover:text-foreground">
+              <button
+                title="Buscar na conversa"
+                className="grid size-8 place-items-center rounded-full hover:bg-muted hover:text-foreground"
+              >
                 <Search className="size-4" />
               </button>
               <button
@@ -335,7 +361,9 @@ function Chat() {
             }}
           >
             <div className="mb-3 flex justify-center">
-              <span className="rounded-full bg-card px-2.5 py-1 text-[11px] text-muted-foreground shadow-sm">Hoje</span>
+              <span className="rounded-full bg-card px-2.5 py-1 text-[11px] text-muted-foreground shadow-sm">
+                Hoje
+              </span>
             </div>
 
             {ativo.mensagens.map((m, i) => {
@@ -343,7 +371,10 @@ function Chat() {
               const anterior = ativo.mensagens[i - 1];
               const agrupada = anterior?.de === m.de;
               return (
-                <div key={m.id} className={cn("flex text-foreground", meu ? "justify-end" : "justify-start")}>
+                <div
+                  key={m.id}
+                  className={cn("flex text-foreground", meu ? "justify-end" : "justify-start")}
+                >
                   <div
                     className={cn(
                       "max-w-[78%] px-3 py-2 text-sm shadow-sm",
@@ -352,14 +383,22 @@ function Chat() {
                           ? "rounded-2xl border border-dashed border-primary/40 bg-primary-soft text-primary-deep"
                           : "rounded-2xl bg-primary text-primary-foreground"
                         : "rounded-2xl bg-card",
-                      meu ? (agrupada ? "rounded-br-2xl" : "rounded-br-sm") : agrupada ? "rounded-bl-2xl" : "rounded-bl-sm",
+                      meu
+                        ? agrupada
+                          ? "rounded-br-2xl"
+                          : "rounded-br-sm"
+                        : agrupada
+                          ? "rounded-bl-2xl"
+                          : "rounded-bl-sm",
                     )}
                   >
                     {!agrupada && (
                       <p
                         className={cn(
                           "mb-0.5 text-[11px] font-medium",
-                          m.de === "agente" ? "text-primary-foreground/75" : "text-muted-foreground",
+                          m.de === "agente"
+                            ? "text-primary-foreground/75"
+                            : "text-muted-foreground",
                         )}
                       >
                         {m.de === "bot" && <Bot className="mr-1 inline size-3" />}
@@ -388,7 +427,8 @@ function Chat() {
                       )}
                     >
                       {m.quando}
-                      {meu && (m.lida ? <CheckCheck className="size-3" /> : <Check className="size-3" />)}
+                      {meu &&
+                        (m.lida ? <CheckCheck className="size-3" /> : <Check className="size-3" />)}
                     </p>
                   </div>
                 </div>
@@ -422,9 +462,13 @@ function Chat() {
                 <button
                   onClick={() => {
                     setConvs((prev) =>
-                      prev.map((c) => (c.id === ativoId ? { ...c, status: "humano", aguardandoMin: 0 } : c)),
+                      prev.map((c) =>
+                        c.id === ativoId ? { ...c, status: "humano", aguardandoMin: 0 } : c,
+                      ),
                     );
-                    toast.success("Atendimento assumido", { description: `${ativo.cliente} agora fala com você.` });
+                    toast.success("Atendimento assumido", {
+                      description: `${ativo.cliente} agora fala com você.`,
+                    });
                   }}
                   className="flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary-deep"
                 >
@@ -483,7 +527,11 @@ function Chat() {
         {/* ---------- copiloto ---------- */}
         {painel && (
           <aside className="hidden min-h-0 flex-col gap-3 overflow-y-auto border-l border-border bg-muted/30 p-3 lg:flex">
-            <Panel title="Resumo do copiloto" hint="Gerado automaticamente" actions={<Sparkles className="size-4 text-primary" />}>
+            <Panel
+              title="Resumo do copiloto"
+              hint="Gerado automaticamente"
+              actions={<Sparkles className="size-4 text-primary" />}
+            >
               <p className="text-sm text-muted-foreground">{ativo.resumo}</p>
               <div className="mt-3 space-y-2 text-sm">
                 <div className="flex items-center justify-between gap-2">
@@ -492,7 +540,9 @@ function Chat() {
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-muted-foreground">Sentimento</span>
-                  <Chip tone={ativo.sentimento === "frustrado" ? "alert" : "neutral"}>{ativo.sentimento}</Chip>
+                  <Chip tone={ativo.sentimento === "frustrado" ? "alert" : "neutral"}>
+                    {ativo.sentimento}
+                  </Chip>
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-muted-foreground">Canal</span>
@@ -506,7 +556,9 @@ function Chat() {
                 )}
               </div>
               <div className="mt-3 rounded-md border border-dashed border-primary/40 bg-primary-soft/50 p-2.5">
-                <p className="text-[11px] uppercase tracking-wide text-primary-deep">Próxima ação sugerida</p>
+                <p className="text-[11px] uppercase tracking-wide text-primary-deep">
+                  Próxima ação sugerida
+                </p>
                 <p className="mt-0.5 text-sm">{ativo.proximaAcao}</p>
               </div>
             </Panel>
@@ -545,7 +597,11 @@ function Chat() {
               </Link>
               <button
                 onClick={() =>
-                  setConvs((prev) => prev.map((c) => (c.id === ativoId ? { ...c, status: "resolvido", aguardandoMin: 0 } : c)))
+                  setConvs((prev) =>
+                    prev.map((c) =>
+                      c.id === ativoId ? { ...c, status: "resolvido", aguardandoMin: 0 } : c,
+                    ),
+                  )
                 }
                 className="flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-2 text-left text-sm transition-colors hover:border-primary"
               >

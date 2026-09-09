@@ -46,7 +46,17 @@ export const Route = createFileRoute("/portal")({
 });
 
 const prioridades: Priority[] = ["baixa", "normal", "alta", "critica"];
-const horariosBase = ["08:00", "09:00", "10:00", "11:00", "13:30", "14:00", "15:00", "16:00", "17:00"];
+const horariosBase = [
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "13:30",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+];
 const nomesDia = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const tiposCert: CertType[] = ["e-CPF A1", "e-CPF A3", "e-CNPJ A1", "e-CNPJ A3", "Nuvem PJ"];
 
@@ -75,7 +85,13 @@ interface Identificacao {
   empresa: string;
 }
 
-const identificacaoVazia: Identificacao = { nome: "", documento: "", email: "", telefone: "", empresa: "" };
+const identificacaoVazia: Identificacao = {
+  nome: "",
+  documento: "",
+  email: "",
+  telefone: "",
+  empresa: "",
+};
 
 function CampoTexto({
   label,
@@ -124,7 +140,9 @@ function BlocoIdentificacao({
   const set = (k: keyof Identificacao) => (v: string) => onChange({ ...dados, [k]: v });
   return (
     <div className="rounded-md border border-border bg-muted/40 p-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Seus dados</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Seus dados
+      </p>
       <p className="mb-3 text-[11px] text-muted-foreground">
         Precisamos identificar você para localizar o certificado e responder com segurança.
       </p>
@@ -134,7 +152,9 @@ function BlocoIdentificacao({
           valor={dados.nome}
           onChange={set("nome")}
           placeholder="Ana Paula Ribeiro"
-          {...(mostrarErros && dados.nome.trim().length < 3 ? { erro: "Informe seu nome completo" } : {})}
+          {...(mostrarErros && dados.nome.trim().length < 3
+            ? { erro: "Informe seu nome completo" }
+            : {})}
         />
         <CampoTexto
           label="CPF ou CNPJ"
@@ -142,7 +162,9 @@ function BlocoIdentificacao({
           onChange={set("documento")}
           placeholder="000.000.000-00"
           maxLength={18}
-          {...(mostrarErros && !documentoValido(dados.documento) ? { erro: "CPF ou CNPJ inválido" } : {})}
+          {...(mostrarErros && !documentoValido(dados.documento)
+            ? { erro: "CPF ou CNPJ inválido" }
+            : {})}
         />
         <CampoTexto
           label="E-mail"
@@ -157,7 +179,9 @@ function BlocoIdentificacao({
           onChange={set("telefone")}
           placeholder="(11) 90000-0000"
           maxLength={20}
-          {...(mostrarErros && !telefoneValido(dados.telefone) ? { erro: "Telefone inválido" } : {})}
+          {...(mostrarErros && !telefoneValido(dados.telefone)
+            ? { erro: "Telefone inválido" }
+            : {})}
         />
         <CampoTexto
           label="Empresa (opcional)"
@@ -172,7 +196,12 @@ function BlocoIdentificacao({
 }
 
 function identificacaoOk(d: Identificacao) {
-  return d.nome.trim().length >= 3 && documentoValido(d.documento) && emailValido(d.email) && telefoneValido(d.telefone);
+  return (
+    d.nome.trim().length >= 3 &&
+    documentoValido(d.documento) &&
+    emailValido(d.email) &&
+    telefoneValido(d.telefone)
+  );
 }
 
 function Portal() {
@@ -199,7 +228,8 @@ function Portal() {
   const sugestoes = artigos.filter((a) => a.classificacao === categoria);
 
   function enviarChamado() {
-    const formOk = identificacaoOk(identChamado) && assunto.trim().length >= 5 && descricao.trim().length >= 10;
+    const formOk =
+      identificacaoOk(identChamado) && assunto.trim().length >= 5 && descricao.trim().length >= 10;
     if (!formOk) {
       setErros(true);
       toast.error("Revise os campos destacados antes de enviar.");
@@ -237,13 +267,15 @@ function Portal() {
   const [semana, setSemana] = useState(0);
   const [diaSel, setDiaSel] = useState<string | null>(null);
   const [horaSel, setHoraSel] = useState<string | null>(null);
-  const [confirmado, setConfirmado] = useState<{ dia: string; hora: string; sala: string } | null>(null);
+  const [confirmado, setConfirmado] = useState<{ dia: string; hora: string; sala: string } | null>(
+    null,
+  );
 
   const dias = useMemo(() => {
     const out: Date[] = [];
     const base = new Date();
     base.setHours(0, 0, 0, 0);
-    let cursor = new Date(base);
+    const cursor = new Date(base);
     cursor.setDate(cursor.getDate() + 1 + semana * 5);
     while (out.length < 5) {
       if (cursor.getDay() !== 0 && cursor.getDay() !== 6) out.push(new Date(cursor));
@@ -253,7 +285,9 @@ function Portal() {
   }, [semana]);
 
   function ocupados(diaIso: string) {
-    return appointments.filter((a) => a.dia === diaIso && a.status !== "no-show").map((a) => a.hora);
+    return appointments
+      .filter((a) => a.dia === diaIso && a.status !== "no-show")
+      .map((a) => a.hora);
   }
 
   function confirmarAgendamento() {
@@ -291,7 +325,9 @@ function Portal() {
           </div>
           <div className="leading-tight">
             <p className="font-display text-sm font-semibold">Certus AC · Portal do cliente</p>
-            <p className="text-[11px] text-muted-foreground">Atendimento público — não é necessário login</p>
+            <p className="text-[11px] text-muted-foreground">
+              Atendimento público — não é necessário login
+            </p>
           </div>
           <Link to="/chamados" className="ml-auto text-xs text-primary hover:underline">
             Acesso interno
@@ -302,15 +338,17 @@ function Portal() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         <h1 className="font-display text-2xl font-semibold">Como podemos ajudar?</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Abra um chamado de suporte ou reserve o horário da sua videoconferência de validação. Atendimento das 8h às
-          20h em dias úteis.
+          Abra um chamado de suporte ou reserve o horário da sua videoconferência de validação.
+          Atendimento das 8h às 20h em dias úteis.
         </p>
 
         <div className="mt-5 inline-flex rounded-lg border border-border bg-card p-1">
-          {([
-            ["chamado", "Abrir chamado", Life],
-            ["agenda", "Agendar validação", CalendarClock],
-          ] as const).map(([id, label, Icon]) => (
+          {(
+            [
+              ["chamado", "Abrir chamado", Life],
+              ["agenda", "Agendar validação", CalendarClock],
+            ] as const
+          ).map(([id, label, Icon]) => (
             <button
               key={id}
               onClick={() => setAba(id)}
@@ -335,14 +373,19 @@ function Portal() {
                 <div className="mt-3 flex items-start gap-2 rounded-md bg-primary-soft px-3 py-2.5 text-sm text-primary-deep">
                   <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
                   <p>
-                    Chamado <strong>{protocolo}</strong> registrado. Guarde este protocolo: as atualizações chegam por
-                    e-mail e WhatsApp. Primeira resposta prevista em até {classe?.slaRespostaHoras ?? 4} horas úteis.
+                    Chamado <strong>{protocolo}</strong> registrado. Guarde este protocolo: as
+                    atualizações chegam por e-mail e WhatsApp. Primeira resposta prevista em até{" "}
+                    {classe?.slaRespostaHoras ?? 4} horas úteis.
                   </p>
                 </div>
               )}
 
               <div className="mt-4 space-y-4">
-                <BlocoIdentificacao dados={identChamado} onChange={setIdentChamado} mostrarErros={erros} />
+                <BlocoIdentificacao
+                  dados={identChamado}
+                  onChange={setIdentChamado}
+                  mostrarErros={erros}
+                />
 
                 <div>
                   <span className="text-xs text-muted-foreground">Classificação</span>
@@ -366,7 +409,9 @@ function Portal() {
                       </button>
                     ))}
                   </div>
-                  {classe?.descricao && <p className="mt-1.5 text-[11px] text-muted-foreground">{classe.descricao}</p>}
+                  {classe?.descricao && (
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">{classe.descricao}</p>
+                  )}
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -405,7 +450,9 @@ function Portal() {
                   valor={assunto}
                   onChange={setAssunto}
                   placeholder="Ex.: certificado não aparece no e-CAC"
-                  {...(erros && assunto.trim().length < 5 ? { erro: "Descreva o assunto em poucas palavras" } : {})}
+                  {...(erros && assunto.trim().length < 5
+                    ? { erro: "Descreva o assunto em poucas palavras" }
+                    : {})}
                 />
 
                 <label className="block">
@@ -421,7 +468,9 @@ function Portal() {
                       erros && descricao.trim().length < 10 ? "border-alert" : "border-border",
                     )}
                   />
-                  <span className="tabular text-[11px] text-muted-foreground">{descricao.length}/2000</span>
+                  <span className="tabular text-[11px] text-muted-foreground">
+                    {descricao.length}/2000
+                  </span>
                 </label>
 
                 {anexos.length > 0 && (
@@ -473,24 +522,35 @@ function Portal() {
             </section>
           ) : (
             <section className="rounded-lg border border-border bg-card p-5">
-              <h2 className="font-display text-sm font-semibold">Agendar videoconferência de validação</h2>
+              <h2 className="font-display text-sm font-semibold">
+                Agendar videoconferência de validação
+              </h2>
               <p className="text-xs text-muted-foreground">
-                Escolha o melhor horário. A validação leva cerca de 30 minutos e exige documento com foto em mãos.
+                Escolha o melhor horário. A validação leva cerca de 30 minutos e exige documento com
+                foto em mãos.
               </p>
 
               {confirmado && (
                 <div className="mt-3 flex items-start gap-2 rounded-md bg-primary-soft px-3 py-2.5 text-sm text-primary-deep">
                   <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
                   <p>
-                    Agendado para <strong>{confirmado.dia.slice(8, 10)}/{confirmado.dia.slice(5, 7)}</strong> às{" "}
-                    <strong>{confirmado.hora}</strong> · {confirmado.sala}. O link da sala foi enviado ao seu e-mail e
-                    WhatsApp. Você pode remarcar respondendo a essa mensagem.
+                    Agendado para{" "}
+                    <strong>
+                      {confirmado.dia.slice(8, 10)}/{confirmado.dia.slice(5, 7)}
+                    </strong>{" "}
+                    às <strong>{confirmado.hora}</strong> · {confirmado.sala}. O link da sala foi
+                    enviado ao seu e-mail e WhatsApp. Você pode remarcar respondendo a essa
+                    mensagem.
                   </p>
                 </div>
               )}
 
               <div className="mt-4 space-y-4">
-                <BlocoIdentificacao dados={identAgenda} onChange={setIdentAgenda} mostrarErros={errosAgenda} />
+                <BlocoIdentificacao
+                  dados={identAgenda}
+                  onChange={setIdentAgenda}
+                  mostrarErros={errosAgenda}
+                />
 
                 <label className="block">
                   <span className="text-xs text-muted-foreground">Tipo de certificado</span>
@@ -539,18 +599,23 @@ function Portal() {
                           key={chave}
                           className={cn(
                             "rounded-md border p-2",
-                            diaSel === chave ? "border-primary bg-primary-soft/40" : "border-border",
+                            diaSel === chave
+                              ? "border-primary bg-primary-soft/40"
+                              : "border-border",
                           )}
                         >
                           <p className="text-center text-[11px] uppercase tracking-wide text-muted-foreground">
                             {nomesDia[d.getDay()]}
                           </p>
                           <p className="tabular text-center text-sm font-semibold">
-                            {String(d.getDate()).padStart(2, "0")}/{String(d.getMonth() + 1).padStart(2, "0")}
+                            {String(d.getDate()).padStart(2, "0")}/
+                            {String(d.getMonth() + 1).padStart(2, "0")}
                           </p>
                           <div className="mt-2 space-y-1">
                             {livres.length === 0 && (
-                              <p className="py-2 text-center text-[10px] text-muted-foreground">Sem vagas</p>
+                              <p className="py-2 text-center text-[10px] text-muted-foreground">
+                                Sem vagas
+                              </p>
                             )}
                             {livres.map((h) => {
                               const ativo = diaSel === chave && horaSel === h;
@@ -622,7 +687,9 @@ function Portal() {
                   </li>
                 ))}
                 {artigos.length === 0 && (
-                  <li className="text-xs text-muted-foreground">Nenhum material publicado ainda.</li>
+                  <li className="text-xs text-muted-foreground">
+                    Nenhum material publicado ainda.
+                  </li>
                 )}
               </ul>
             </section>
@@ -639,8 +706,8 @@ function Portal() {
               </ul>
               <p className="mt-3 flex items-start gap-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground">
                 <LifeBuoy className="mt-0.5 size-3.5 shrink-0 text-primary" />
-                Acompanhamento dos chamados é enviado por e-mail e WhatsApp — este portal é público e não exibe
-                histórico por segurança.
+                Acompanhamento dos chamados é enviado por e-mail e WhatsApp — este portal é público
+                e não exibe histórico por segurança.
               </p>
             </section>
           </aside>

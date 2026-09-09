@@ -1,7 +1,15 @@
 // Tema claro/escuro da aplicação principal.
 // Telas públicas (portal de chamados) e o portal do parceiro permanecem sempre claras.
 import { useRouterState } from "@tanstack/react-router";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 const STORAGE_KEY = "certus-ac-tema-v1";
 
@@ -40,8 +48,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
-  const efetivo: "claro" | "escuro" =
-    bloqueado ? "claro" : tema === "sistema" ? (sistemaEscuro ? "escuro" : "claro") : tema;
+  const efetivo: "claro" | "escuro" = bloqueado
+    ? "claro"
+    : tema === "sistema"
+      ? sistemaEscuro
+        ? "escuro"
+        : "claro"
+      : tema;
 
   useEffect(() => {
     const el = document.documentElement;

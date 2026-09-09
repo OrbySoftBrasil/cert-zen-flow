@@ -12,7 +12,6 @@ import {
   type ReactNode,
 } from "react";
 
-
 import { cn } from "@/lib/utils";
 
 const FOCAVEIS =
@@ -125,7 +124,6 @@ export function Modal({
   );
 }
 
-
 export function Field({
   label,
   hint,
@@ -153,7 +151,9 @@ export function Field({
   );
   return (
     <label className={cn("block space-y-1", className)}>
-      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
       {campo}
       {error ? (
         <span id={erroId} role="alert" className="block text-[11px] text-alert">
@@ -169,7 +169,6 @@ export function Field({
     </label>
   );
 }
-
 
 const base =
   "w-full rounded-md border border-border bg-card px-2.5 py-2 text-sm outline-none transition-colors focus:border-primary disabled:opacity-60";
@@ -193,7 +192,8 @@ export function Btn({
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" | "danger" }) {
   const styles = {
     primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-    ghost: "border border-border text-muted-foreground hover:border-border-strong hover:text-foreground",
+    ghost:
+      "border border-border text-muted-foreground hover:border-border-strong hover:text-foreground",
     danger: "bg-alert text-primary-foreground hover:opacity-90",
   } as const;
   return (

@@ -17,6 +17,7 @@ import {
   Sparkles,
   TriangleAlert,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 import { Btn, Field, Modal, SelectInput, TextArea, TextInput } from "@/components/forms";
@@ -27,7 +28,10 @@ import {
   categoriaInfo,
   linhaRequisito,
   modoInfo,
+  motivoCompatibilidade,
+  politicaNaoAplicavelDe,
   portoesAtivos,
+  progressoChecklist,
   requisitoAtendido,
   rotuloEstadoRequisito,
   type AcaoRequisito,
@@ -40,6 +44,8 @@ import { cn } from "@/lib/utils";
 
 const tonEstado: Record<EstadoRequisito, string> = {
   nao_iniciado: "border border-border-strong text-muted-foreground",
+  informativo: "border border-dashed border-border-strong text-muted-foreground",
+  disponivel_reutilizacao: "bg-primary-soft text-primary-deep",
   em_andamento: "bg-primary-soft text-primary-deep",
   aguardando_info: "border border-border-strong text-muted-foreground",
   automatico: "bg-primary text-primary-foreground",
@@ -49,10 +55,13 @@ const tonEstado: Record<EstadoRequisito, string> = {
   rejeitado: "bg-alert-soft text-alert",
   expirado: "bg-alert-soft text-alert",
   nao_aplicavel: "bg-muted text-muted-foreground",
+  dispensado: "bg-muted text-muted-foreground",
 };
 
 const iconeEstado: Record<EstadoRequisito, typeof CheckCircle2> = {
   nao_iniciado: CircleDashed,
+  informativo: ClipboardList,
+  disponivel_reutilizacao: FileCheck2,
   em_andamento: Clock,
   aguardando_info: Clock,
   automatico: Sparkles,
@@ -62,6 +71,7 @@ const iconeEstado: Record<EstadoRequisito, typeof CheckCircle2> = {
   rejeitado: TriangleAlert,
   expirado: TriangleAlert,
   nao_aplicavel: Minus,
+  dispensado: ShieldAlert,
 };
 
 function StatusChip({ estado }: { estado: EstadoRequisito }) {
@@ -81,7 +91,15 @@ function StatusChip({ estado }: { estado: EstadoRequisito }) {
 
 // ------------------------------------------------------------------ diálogos
 
-function DlgConfirmar({ r, item, onClose }: { r: Request; item: ChecklistItem; onClose: () => void }) {
+function DlgConfirmar({
+  r,
+  item,
+  onClose,
+}: {
+  r: Request;
+  item: ChecklistItem;
+  onClose: () => void;
+}) {
   const store = useStore();
   const [obs, setObs] = useState("");
   const exige = item.observacaoObrigatoria === true;
@@ -217,6 +235,7 @@ function DlgReutilizar({
   onClose: () => void;
 }) {
   const store = useStore();
+  const cliente = store.clients.find((c) => c.id === r.clienteId);
   const [sel, setSel] = useState(linha.reutilizaveis[0]?.id ?? "");
   return (
     <Modal
@@ -264,9 +283,16 @@ function DlgReutilizar({
                 onChange={() => setSel(d.id)}
               />
               <span className="min-w-0">
-                <span className="block font-medium">{d.nome}</span>
+                <span className="block font-medium">
+                  {d.nome}
+                  {d.versao ? ` · v${d.versao}` : ""}
+                </span>
                 <span className="block text-[11px] text-muted-foreground">
                   {d.tipo} · enviado em {d.enviadoEm} · {d.status}
+                  {d.origem ? ` · origem ${d.origem}` : ""}
+                </span>
+                <span className="mt-0.5 block text-[11px] text-primary-deep">
+                  Compatível: {motivoCompatibilidade(d, linha.item, cliente)}
                 </span>
               </span>
             </label>
@@ -277,7 +303,15 @@ function DlgReutilizar({
   );
 }
 
-function DlgConsulta({ r, item, onClose }: { r: Request; item: ChecklistItem; onClose: () => void }) {
+function DlgConsulta({
+  r,
+  item,
+  onClose,
+}: {
+  r: Request;
+  item: ChecklistItem;
+  onClose: () => void;
+}) {
   const store = useStore();
   const [fonte, setFonte] = useState("Receita Federal");
   const [sujeito, setSujeito] = useState(r.cliente);
@@ -326,14 +360,27 @@ function DlgConsulta({ r, item, onClose }: { r: Request; item: ChecklistItem; on
           <span className="font-medium text-foreground">Registrado manualmente</span> — nunca como
           verificação automática.
         </p>
-        <Field label="Fonte consultada" {...(tentou && !fonte.trim() ? { error: "Informe a fonte." } : {})}>
+        <Field
+          label="Fonte consultada"
+          {...(tentou && !fonte.trim() ? { error: "Informe a fonte." } : {})}
+        >
           <TextInput value={fonte} onChange={(e) => setFonte(e.target.value)} />
         </Field>
-        <Field label="Sujeito consultado" {...(tentou && !sujeito.trim() ? { error: "Informe o sujeito." } : {})}>
+        <Field
+          label="Sujeito consultado"
+          {...(tentou && !sujeito.trim() ? { error: "Informe o sujeito." } : {})}
+        >
           <TextInput value={sujeito} onChange={(e) => setSujeito(e.target.value)} />
         </Field>
-        <Field label="Data e hora" {...(tentou && !quando ? { error: "Informe quando foi feita." } : {})}>
-          <TextInput type="datetime-local" value={quando} onChange={(e) => setQuando(e.target.value)} />
+        <Field
+          label="Data e hora"
+          {...(tentou && !quando ? { error: "Informe quando foi feita." } : {})}
+        >
+          <TextInput
+            type="datetime-local"
+            value={quando}
+            onChange={(e) => setQuando(e.target.value)}
+          />
         </Field>
         <Field label="Resultado">
           <SelectInput value={resultado} onChange={(e) => setResultado(e.target.value)}>
@@ -353,6 +400,49 @@ function DlgConsulta({ r, item, onClose }: { r: Request; item: ChecklistItem; on
   );
 }
 
+type AbaCaso = "visao" | "emissoes" | "atendimento" | "dossie" | "comercial" | "entrega";
+
+/** Cada ação estruturada aponta para a função real do Certus. */
+function destinoDaAcao(a: ChecklistItem["acaoProduto"]): {
+  aba: AbaCaso;
+  rotulo: string;
+  explicacao: string;
+} {
+  switch (a) {
+    case "registrar-validacao":
+      return {
+        aba: "emissoes",
+        rotulo: "Abrir validação da emissão",
+        explicacao: "A validação é registrada na emissão correspondente, com autoria e horário.",
+      };
+    case "registrar-pagamento-manual":
+      return {
+        aba: "comercial",
+        rotulo: "Abrir pagamentos do caso",
+        explicacao: "O pagamento manual é registrado no financeiro da emissão selecionada.",
+      };
+    case "registrar-emissao-manual":
+      return {
+        aba: "emissoes",
+        rotulo: "Abrir registro de emissão manual",
+        explicacao:
+          "O registro manual fica “Aguardando conferência” até a confirmação de um segundo operador.",
+      };
+    case "registrar-entrega":
+      return {
+        aba: "entrega",
+        rotulo: "Abrir entrega da emissão",
+        explicacao: "A entrega é registrada por emissão, com a modalidade escolhida.",
+      };
+    default:
+      return {
+        aba: "emissoes",
+        rotulo: "Abrir emissões do caso",
+        explicacao: "A ação é executada no contexto da emissão específica.",
+      };
+  }
+}
+
 function DlgAcaoProduto({
   r,
   item,
@@ -362,9 +452,8 @@ function DlgAcaoProduto({
   item: ChecklistItem;
   onClose: () => void;
 }) {
-  const store = useStore();
-  const [ref, setRef] = useState("");
   const acao = ACOES_PRODUTO.find((a) => a.id === item.acaoProduto);
+  const destino = destinoDaAcao(item.acaoProduto);
   return (
     <Modal
       open
@@ -375,43 +464,47 @@ function DlgAcaoProduto({
       footer={
         <>
           <Btn variant="ghost" onClick={onClose}>
-            Cancelar
+            Fechar
           </Btn>
-          <Btn
-            disabled={ref.trim().length < 3}
-            onClick={() => {
-              store.cumprirRequisito(r.id, item.id, {
-                tipo: item.acaoProduto ?? "acao",
-                origem: "manual",
-                referencia: ref.trim(),
-              });
-              onClose();
-            }}
+          <Link
+            to="/solicitacoes/$id"
+            params={{ id: r.id }}
+            search={{ aba: destino.aba }}
+            onClick={onClose}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep"
           >
-            Concluir a partir do resultado
-          </Btn>
+            {destino.rotulo}
+          </Link>
         </>
       }
     >
       <p className="mb-3 rounded-md bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
-        Este requisito é atendido pelo resultado da ação estruturada do Certus — não por um
-        formulário genérico.
+        Este requisito é atendido pelo resultado da ação estruturada do Certus — sem redigitar
+        referências aqui. Ao concluir a ação, o requisito é atualizado sozinho.
       </p>
-      <Field label="Referência do registro" hint="Ex.: protocolo, número do registro ou emissão">
-        <TextInput value={ref} onChange={(e) => setRef(e.target.value)} />
-      </Field>
+      <p className="text-xs text-muted-foreground">{destino.explicacao}</p>
     </Modal>
   );
 }
 
-function DlgDecisao({ r, item, onClose }: { r: Request; item: ChecklistItem; onClose: () => void }) {
+function DlgDecisao({
+  r,
+  item,
+  onClose,
+}: {
+  r: Request;
+  item: ChecklistItem;
+  onClose: () => void;
+}) {
   const store = useStore();
   const [motivo, setMotivo] = useState("");
   const [aprovador, setAprovador] = useState("");
   const [segundo, setSegundo] = useState("");
   const precisaSegundo = item.exigeSegundoOperador === true;
   const invalido =
-    motivo.trim().length < 20 || aprovador.trim().length < 3 || (precisaSegundo && segundo.trim().length < 3);
+    motivo.trim().length < 20 ||
+    aprovador.trim().length < 3 ||
+    (precisaSegundo && segundo.trim().length < 3);
   return (
     <Modal
       open
@@ -475,13 +568,26 @@ function DlgNaoAplicavel({
   onClose: () => void;
 }) {
   const store = useStore();
+  const politica = politicaNaoAplicavelDe(item);
+  const [tipo, setTipo] = useState<"regra" | "excecao">(
+    politica === "automatica" ? "regra" : "excecao",
+  );
   const [motivo, setMotivo] = useState("");
   const [regra, setRegra] = useState("Regra do produto");
+  const [alcada, setAlcada] = useState("");
+  const [segundo, setSegundo] = useState("");
+  const precisaSegundo = tipo === "excecao" && item.exigeSegundoOperador === true;
+  const bloqueada = politica === "nao_permitida";
+  const invalido =
+    bloqueada ||
+    motivo.trim().length < 5 ||
+    (tipo === "excecao" && alcada.trim().length < 3) ||
+    (precisaSegundo && segundo.trim().length < 3);
   return (
     <Modal
       open
       onClose={onClose}
-      title="Marcar como não aplicável"
+      title={tipo === "excecao" ? "Dispensar por exceção" : "Marcar como não aplicável"}
       hint={`${item.label} — não conta como concluído`}
       width="max-w-md"
       footer={
@@ -490,35 +596,90 @@ function DlgNaoAplicavel({
             Cancelar
           </Btn>
           <Btn
-            disabled={motivo.trim().length < 5}
+            disabled={invalido}
             onClick={() => {
-              store.naoAplicarRequisito(r.id, item.id, motivo.trim(), regra);
+              const detalhe =
+                tipo === "excecao"
+                  ? `${regra} · alçada ${alcada.trim()}${precisaSegundo ? ` · 2º operador ${segundo.trim()}` : ""}`
+                  : regra;
+              store.naoAplicarRequisito(r.id, item.id, motivo.trim(), detalhe, tipo);
               onClose();
             }}
           >
-            Marcar
+            {tipo === "excecao" ? "Registrar exceção" : "Marcar"}
           </Btn>
         </>
       }
     >
       <div className="space-y-3">
+        {bloqueada ? (
+          <div className="flex items-start gap-2 rounded-md bg-alert-soft px-3 py-2">
+            <ShieldAlert className="mt-0.5 size-3.5 shrink-0 text-alert" />
+            <p className="text-xs text-alert">
+              Requisito de plataforma ou da AC: a não aplicabilidade não é permitida nesta
+              configuração e não pode ser dispensada pela AR.
+            </p>
+          </div>
+        ) : (
+          <Field label="Natureza da não aplicabilidade">
+            <SelectInput
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value as "regra" | "excecao")}
+            >
+              <option value="regra">Não aplicável por regra do produto/modalidade</option>
+              {politica === "excecao_controlada" && (
+                <option value="excecao">Dispensado por exceção controlada</option>
+              )}
+            </SelectInput>
+          </Field>
+        )}
         <Field label="Motivo">
-          <TextArea rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
+          <TextArea
+            rows={2}
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            disabled={bloqueada}
+          />
         </Field>
-        <Field label="Regra que determina a não aplicabilidade">
-          <SelectInput value={regra} onChange={(e) => setRegra(e.target.value)}>
+        <Field label="Regra aplicada">
+          <SelectInput
+            value={regra}
+            onChange={(e) => setRegra(e.target.value)}
+            disabled={bloqueada}
+          >
             <option>Regra do produto</option>
             <option>Regra da modalidade</option>
             <option>Regra da unidade</option>
             <option>Regra do perfil homologado</option>
           </SelectInput>
         </Field>
+        {tipo === "excecao" && !bloqueada && (
+          <Field
+            label="Responsável pela alçada"
+            hint="A exceção fica registrada com autoria e hora"
+          >
+            <TextInput value={alcada} onChange={(e) => setAlcada(e.target.value)} />
+          </Field>
+        )}
+        {precisaSegundo && (
+          <Field label="Segundo operador">
+            <TextInput value={segundo} onChange={(e) => setSegundo(e.target.value)} />
+          </Field>
+        )}
       </div>
     </Modal>
   );
 }
 
-function DlgSolicitar({ r, item, onClose }: { r: Request; item: ChecklistItem; onClose: () => void }) {
+function DlgSolicitar({
+  r,
+  item,
+  onClose,
+}: {
+  r: Request;
+  item: ChecklistItem;
+  onClose: () => void;
+}) {
   const store = useStore();
   const [msg, setMsg] = useState(`Precisamos do item “${item.label}” para seguir com a emissão.`);
   return (
@@ -551,7 +712,15 @@ function DlgSolicitar({ r, item, onClose }: { r: Request; item: ChecklistItem; o
   );
 }
 
-function DlgReabrir({ r, item, onClose }: { r: Request; item: ChecklistItem; onClose: () => void }) {
+function DlgReabrir({
+  r,
+  item,
+  onClose,
+}: {
+  r: Request;
+  item: ChecklistItem;
+  onClose: () => void;
+}) {
   const store = useStore();
   const [motivo, setMotivo] = useState("");
   return (
@@ -589,7 +758,13 @@ function DlgReabrir({ r, item, onClose }: { r: Request; item: ChecklistItem; onC
 function DlgEvidencia({ linha, onClose }: { linha: LinhaRequisito; onClose: () => void }) {
   const e = linha.item.evidencia;
   return (
-    <Modal open onClose={onClose} title="Evidência do requisito" hint={linha.item.label} width="max-w-lg">
+    <Modal
+      open
+      onClose={onClose}
+      title="Evidência do requisito"
+      hint={linha.item.label}
+      width="max-w-lg"
+    >
       <dl className="space-y-2 text-xs">
         {[
           ["Origem", linha.origem ?? "—"],
@@ -640,14 +815,15 @@ export function RequisitosEtapa({ r, compacto = false }: { r: Request; compacto?
   );
 
   const linhas = useMemo(
-    () => r.checklist.map((i) => linhaRequisito(i, { request: r, ...(cliente ? { cliente } : {}), emissoes })),
+    () =>
+      r.checklist.map((i) =>
+        linhaRequisito(i, { request: r, ...(cliente ? { cliente } : {}), emissoes }),
+      ),
     [r, cliente, emissoes],
   );
 
-  const consideradas = linhas.filter((l) => l.item.modo !== "orientacao");
-  const atendidos = consideradas.filter(requisitoAtendido).length;
-  const total = consideradas.length;
-  const pct = total ? Math.round((atendidos / total) * 100) : 100;
+  // Orientações e itens não aplicáveis ficam fora do denominador.
+  const { atendidos, total, pct } = progressoChecklist(linhas);
   const portoes = portoesAtivos(linhas);
 
   const abrir = (tipo: AcaoRequisito["id"], linha: LinhaRequisito) => setAberto({ tipo, linha });
@@ -664,17 +840,24 @@ export function RequisitosEtapa({ r, compacto = false }: { r: Request; compacto?
         </span>
       </div>
       <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+        <div
+          className="h-full rounded-full bg-primary transition-all"
+          style={{ width: `${pct}%` }}
+        />
       </div>
 
       {portoes.length > 0 && (
         <div className="mb-2 space-y-1 rounded-md bg-alert-soft px-2.5 py-2">
           {portoes.map((p) => (
-            <p key={`${p.acao}-${p.item}`} className="flex items-start gap-1.5 text-[11px] text-alert">
+            <p
+              key={`${p.acao}-${p.item}`}
+              className="flex items-start gap-1.5 text-[11px] text-alert"
+            >
               <Lock className="mt-0.5 size-3 shrink-0" />
               <span>
                 <span className="font-medium">{p.acao}</span> bloqueado por “{p.item}” — {p.motivo}.
                 Responsável: {p.responsavel}.
+                {p.comoResolver ? <> Como resolver: {p.comoResolver}.</> : null}
               </span>
             </p>
           ))}
@@ -692,8 +875,11 @@ export function RequisitosEtapa({ r, compacto = false }: { r: Request; compacto?
                 key={l.item.id}
                 className={cn(
                   "rounded-md border border-border px-2.5 py-2",
-                  atendido && l.estado !== "nao_aplicavel" && "border-primary/40 bg-primary-soft/30",
-                  (l.estado === "expirado" || l.estado === "rejeitado") && "border-alert/40 bg-alert-soft/30",
+                  atendido &&
+                    l.estado !== "nao_aplicavel" &&
+                    "border-primary/40 bg-primary-soft/30",
+                  (l.estado === "expirado" || l.estado === "rejeitado") &&
+                    "border-alert/40 bg-alert-soft/30",
                 )}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -748,7 +934,9 @@ export function RequisitosEtapa({ r, compacto = false }: { r: Request; compacto?
       {(aberto?.tipo === "enviar-documento" || aberto?.tipo === "substituir") && (
         <DlgDocumento r={r} item={aberto.linha.item} onClose={fechar} />
       )}
-      {aberto?.tipo === "reutilizar" && <DlgReutilizar r={r} linha={aberto.linha} onClose={fechar} />}
+      {aberto?.tipo === "reutilizar" && (
+        <DlgReutilizar r={r} linha={aberto.linha} onClose={fechar} />
+      )}
       {aberto?.tipo === "registrar-consulta" && (
         <DlgConsulta r={r} item={aberto.linha.item} onClose={fechar} />
       )}

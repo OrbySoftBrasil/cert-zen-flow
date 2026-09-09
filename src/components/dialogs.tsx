@@ -73,7 +73,9 @@ export function NovaSolicitacaoDialog({
   function salvar() {
     if (!form.clienteId) return setErro("Selecione o cliente titular.");
     const nova = addRequest({ ...form, valor: Number(form.valor) || 0 });
-    toast.success(`Solicitação ${nova.protocolo} criada`, { description: `${nova.cliente} · ${nova.tipo}` });
+    toast.success(`Solicitação ${nova.protocolo} criada`, {
+      description: `${nova.cliente} · ${nova.tipo}`,
+    });
     onClose();
     navigate({ to: "/solicitacoes/$id", params: { id: nova.id } });
   }
@@ -131,7 +133,10 @@ export function NovaSolicitacaoDialog({
           />
         </Field>
         <Field label="Canal de origem">
-          <SelectInput value={form.canal} onChange={(e) => setForm({ ...form, canal: e.target.value as Channel })}>
+          <SelectInput
+            value={form.canal}
+            onChange={(e) => setForm({ ...form, canal: e.target.value as Channel })}
+          >
             {canais.map((c) => (
               <option key={c}>{c}</option>
             ))}
@@ -148,7 +153,10 @@ export function NovaSolicitacaoDialog({
           </SelectInput>
         </Field>
         <Field label="Responsável">
-          <SelectInput value={form.responsavelId} onChange={(e) => setForm({ ...form, responsavelId: e.target.value })}>
+          <SelectInput
+            value={form.responsavelId}
+            onChange={(e) => setForm({ ...form, responsavelId: e.target.value })}
+          >
             {agents.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.nome} — {a.papel}
@@ -175,14 +183,24 @@ export function NovaSolicitacaoDialog({
   );
 }
 
-export function NovaSolicitacaoButton({ clienteId, variant }: { clienteId?: string; variant?: "primary" | "ghost" }) {
+export function NovaSolicitacaoButton({
+  clienteId,
+  variant,
+}: {
+  clienteId?: string;
+  variant?: "primary" | "ghost";
+}) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <TriggerButton onClick={() => setOpen(true)} {...(variant ? { variant } : {})}>
         Nova solicitação
       </TriggerButton>
-      <NovaSolicitacaoDialog open={open} onClose={() => setOpen(false)} {...(clienteId ? { clienteId } : {})} />
+      <NovaSolicitacaoDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        {...(clienteId ? { clienteId } : {})}
+      />
     </>
   );
 }
@@ -232,8 +250,15 @@ export function NovoClienteDialog({ open, onClose }: { open: boolean; onClose: (
       }
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Nome / razão social" className="sm:col-span-2" {...(erros["nome"] ? { error: erros["nome"] } : {})}>
-          <TextInput value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+        <Field
+          label="Nome / razão social"
+          className="sm:col-span-2"
+          {...(erros["nome"] ? { error: erros["nome"] } : {})}
+        >
+          <TextInput
+            value={form.nome}
+            onChange={(e) => setForm({ ...form, nome: e.target.value })}
+          />
         </Field>
         <Field label="Tipo de pessoa">
           <SelectInput
@@ -245,19 +270,35 @@ export function NovoClienteDialog({ open, onClose }: { open: boolean; onClose: (
           </SelectInput>
         </Field>
         <Field label="CPF / CNPJ" {...(erros["documento"] ? { error: erros["documento"] } : {})}>
-          <TextInput value={form.documento} onChange={(e) => setForm({ ...form, documento: e.target.value })} />
+          <TextInput
+            value={form.documento}
+            onChange={(e) => setForm({ ...form, documento: e.target.value })}
+          />
         </Field>
         <Field label="E-mail" {...(erros["email"] ? { error: erros["email"] } : {})}>
-          <TextInput type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <TextInput
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
         </Field>
         <Field label="Telefone">
-          <TextInput value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+          <TextInput
+            value={form.telefone}
+            onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+          />
         </Field>
         <Field label="Cidade">
-          <TextInput value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} />
+          <TextInput
+            value={form.cidade}
+            onChange={(e) => setForm({ ...form, cidade: e.target.value })}
+          />
         </Field>
         <Field label="Gestor da conta">
-          <SelectInput value={form.gestor} onChange={(e) => setForm({ ...form, gestor: e.target.value })}>
+          <SelectInput
+            value={form.gestor}
+            onChange={(e) => setForm({ ...form, gestor: e.target.value })}
+          >
             {agents.map((a) => (
               <option key={a.id}>{a.nome}</option>
             ))}
@@ -348,7 +389,10 @@ export function NovoChamadoDialog({
           </SelectInput>
         </Field>
         <Field label="Assunto" className="sm:col-span-2">
-          <TextInput value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} />
+          <TextInput
+            value={form.assunto}
+            onChange={(e) => setForm({ ...form, assunto: e.target.value })}
+          />
         </Field>
         <Field label="Categoria">
           <SelectInput
@@ -365,14 +409,20 @@ export function NovoChamadoDialog({
           </SelectInput>
         </Field>
         <Field label="Subcategoria">
-          <SelectInput value={form.subcategoria} onChange={(e) => setForm({ ...form, subcategoria: e.target.value })}>
+          <SelectInput
+            value={form.subcategoria}
+            onChange={(e) => setForm({ ...form, subcategoria: e.target.value })}
+          >
             {subs.map((s) => (
               <option key={s}>{s}</option>
             ))}
           </SelectInput>
         </Field>
         <Field label="Canal">
-          <SelectInput value={form.canal} onChange={(e) => setForm({ ...form, canal: e.target.value as Channel })}>
+          <SelectInput
+            value={form.canal}
+            onChange={(e) => setForm({ ...form, canal: e.target.value as Channel })}
+          >
             {canais.map((c) => (
               <option key={c}>{c}</option>
             ))}
@@ -389,7 +439,10 @@ export function NovoChamadoDialog({
           </SelectInput>
         </Field>
         <Field label="Responsável" className="sm:col-span-2">
-          <SelectInput value={form.responsavelId} onChange={(e) => setForm({ ...form, responsavelId: e.target.value })}>
+          <SelectInput
+            value={form.responsavelId}
+            onChange={(e) => setForm({ ...form, responsavelId: e.target.value })}
+          >
             {agents.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.nome} — {a.papel}
@@ -398,7 +451,10 @@ export function NovoChamadoDialog({
           </SelectInput>
         </Field>
         <Field label="Relato do cliente" className="sm:col-span-2">
-          <TextArea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+          <TextArea
+            value={form.descricao}
+            onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+          />
         </Field>
       </div>
     </Modal>
@@ -412,7 +468,11 @@ export function NovoChamadoButton({ clienteId }: { clienteId?: string }) {
       <TriggerButton icon={LifeBuoy} onClick={() => setOpen(true)}>
         Novo chamado
       </TriggerButton>
-      <NovoChamadoDialog open={open} onClose={() => setOpen(false)} {...(clienteId ? { clienteId } : {})} />
+      <NovoChamadoDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        {...(clienteId ? { clienteId } : {})}
+      />
     </>
   );
 }
@@ -485,14 +545,20 @@ export function NovoAgendamentoDialog({
           </SelectInput>
         </Field>
         <Field label="Tipo de certificado">
-          <SelectInput value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as CertType })}>
+          <SelectInput
+            value={form.tipo}
+            onChange={(e) => setForm({ ...form, tipo: e.target.value as CertType })}
+          >
             {tiposCert.map((t) => (
               <option key={t}>{t}</option>
             ))}
           </SelectInput>
         </Field>
         <Field label="Agente responsável">
-          <SelectInput value={form.agenteId} onChange={(e) => setForm({ ...form, agenteId: e.target.value })}>
+          <SelectInput
+            value={form.agenteId}
+            onChange={(e) => setForm({ ...form, agenteId: e.target.value })}
+          >
             {agents.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.nome}
@@ -501,10 +567,18 @@ export function NovoAgendamentoDialog({
           </SelectInput>
         </Field>
         <Field label="Data">
-          <TextInput type="date" value={form.dia} onChange={(e) => setForm({ ...form, dia: e.target.value })} />
+          <TextInput
+            type="date"
+            value={form.dia}
+            onChange={(e) => setForm({ ...form, dia: e.target.value })}
+          />
         </Field>
         <Field label="Hora">
-          <TextInput type="time" value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} />
+          <TextInput
+            type="time"
+            value={form.hora}
+            onChange={(e) => setForm({ ...form, hora: e.target.value })}
+          />
         </Field>
         <Field label="Duração (min)">
           <SelectInput
@@ -519,8 +593,17 @@ export function NovoAgendamentoDialog({
           </SelectInput>
         </Field>
         <Field label="Sala">
-          <SelectInput value={form.sala} onChange={(e) => setForm({ ...form, sala: e.target.value })}>
-            {["Sala virtual 1", "Sala virtual 2", "Sala virtual 3", "Unidade Centro", "AR móvel"].map((s) => (
+          <SelectInput
+            value={form.sala}
+            onChange={(e) => setForm({ ...form, sala: e.target.value })}
+          >
+            {[
+              "Sala virtual 1",
+              "Sala virtual 2",
+              "Sala virtual 3",
+              "Unidade Centro",
+              "AR móvel",
+            ].map((s) => (
               <option key={s}>{s}</option>
             ))}
           </SelectInput>
@@ -596,28 +679,50 @@ export function NovoContadorDialog({ open, onClose }: { open: boolean; onClose: 
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Nome do escritório" {...(erros["nome"] ? { error: erros["nome"] } : {})}>
-          <TextInput value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+          <TextInput
+            value={form.nome}
+            onChange={(e) => setForm({ ...form, nome: e.target.value })}
+          />
         </Field>
         <Field label="Razão social">
-          <TextInput value={form.razaoSocial} onChange={(e) => setForm({ ...form, razaoSocial: e.target.value })} />
+          <TextInput
+            value={form.razaoSocial}
+            onChange={(e) => setForm({ ...form, razaoSocial: e.target.value })}
+          />
         </Field>
         <Field label="CNPJ" {...(erros["cnpj"] ? { error: erros["cnpj"] } : {})}>
-          <TextInput value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} />
+          <TextInput
+            value={form.cnpj}
+            onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
+          />
         </Field>
         <Field label="Registro CRC">
           <TextInput value={form.crc} onChange={(e) => setForm({ ...form, crc: e.target.value })} />
         </Field>
         <Field label="Responsável">
-          <TextInput value={form.responsavel} onChange={(e) => setForm({ ...form, responsavel: e.target.value })} />
+          <TextInput
+            value={form.responsavel}
+            onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
+          />
         </Field>
         <Field label="E-mail" {...(erros["email"] ? { error: erros["email"] } : {})}>
-          <TextInput type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <TextInput
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
         </Field>
         <Field label="Telefone">
-          <TextInput value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+          <TextInput
+            value={form.telefone}
+            onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+          />
         </Field>
         <Field label="Cidade">
-          <TextInput value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} />
+          <TextInput
+            value={form.cidade}
+            onChange={(e) => setForm({ ...form, cidade: e.target.value })}
+          />
         </Field>
         <Field label="Comissão (%)">
           <TextInput
@@ -634,7 +739,10 @@ export function NovoContadorDialog({ open, onClose }: { open: boolean; onClose: 
           />
         </Field>
         <Field label="Gestor responsável" className="sm:col-span-2">
-          <SelectInput value={form.gestor} onChange={(e) => setForm({ ...form, gestor: e.target.value })}>
+          <SelectInput
+            value={form.gestor}
+            onChange={(e) => setForm({ ...form, gestor: e.target.value })}
+          >
             {agents.map((a) => (
               <option key={a.id}>{a.nome}</option>
             ))}

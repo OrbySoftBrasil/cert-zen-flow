@@ -17,7 +17,11 @@ import { cn } from "@/lib/utils";
 import { contadorDoCliente } from "@/lib/contadores-data";
 import { brl, clientById as seedClientById, conversations } from "@/lib/mock-data";
 import { useStore } from "@/lib/store";
-import { NovaSolicitacaoButton, NovoAgendamentoButton, NovoChamadoButton } from "@/components/dialogs";
+import {
+  NovaSolicitacaoButton,
+  NovoAgendamentoButton,
+  NovoChamadoButton,
+} from "@/components/dialogs";
 import { Btn, ConfirmDialog, EmptyState, Field, TextArea } from "@/components/forms";
 import { toast } from "sonner";
 
@@ -35,8 +39,14 @@ export const Route = createFileRoute("/clientes/$id")({
         content:
           "Dossiê 360º do cliente: certificados, documentos, solicitações, conversas, financeiro e trilha de auditoria.",
       },
-      { property: "og:title", content: loaderData ? `${loaderData.nome} — Dossiê 360º` : "Cliente" },
-      { property: "og:description", content: "Certificados, documentos, financeiro e histórico em uma visão." },
+      {
+        property: "og:title",
+        content: loaderData ? `${loaderData.nome} — Dossiê 360º` : "Cliente",
+      },
+      {
+        property: "og:description",
+        content: "Certificados, documentos, financeiro e histórico em uma visão.",
+      },
     ],
   }),
   component: Dossie,
@@ -93,7 +103,11 @@ function Dossie() {
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4">
             <div className="grid size-12 place-items-center rounded-md bg-primary-soft text-primary-deep">
-              {cliente.tipoPessoa === "PJ" ? <Building2 className="size-5" /> : <User className="size-5" />}
+              {cliente.tipoPessoa === "PJ" ? (
+                <Building2 className="size-5" />
+              ) : (
+                <User className="size-5" />
+              )}
             </div>
             <div className="min-w-0">
               <p className="font-display text-base font-semibold">{cliente.nome}</p>
@@ -105,7 +119,11 @@ function Dossie() {
                 {contador ? (
                   <>
                     Indicado por{" "}
-                    <Link to="/contadores/$id" params={{ id: contador.id }} className="text-primary hover:underline">
+                    <Link
+                      to="/contadores/$id"
+                      params={{ id: contador.id }}
+                      className="text-primary hover:underline"
+                    >
                       {contador.nome}
                     </Link>
                     <Chip tone="outline">{contador.tier}</Chip>
@@ -188,7 +206,10 @@ function Dossie() {
                     ))}
                     {cliente.certificados.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                        <td
+                          colSpan={6}
+                          className="px-4 py-8 text-center text-sm text-muted-foreground"
+                        >
                           Nenhum certificado emitido para este titular.
                         </td>
                       </tr>
@@ -275,7 +296,9 @@ function Dossie() {
                   </li>
                 ))}
                 {solicitacoes.length === 0 && (
-                  <li className="px-4 py-8 text-center text-sm text-muted-foreground">Sem solicitações</li>
+                  <li className="px-4 py-8 text-center text-sm text-muted-foreground">
+                    Sem solicitações
+                  </li>
                 )}
               </ul>
             </Panel>
@@ -297,7 +320,9 @@ function Dossie() {
               ))}
               {conversas.length === 0 && (
                 <Panel>
-                  <p className="text-center text-sm text-muted-foreground">Sem conversas registradas</p>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Sem conversas registradas
+                  </p>
                 </Panel>
               )}
             </div>
@@ -320,7 +345,9 @@ function Dossie() {
                     {cliente.faturas.map((f) => (
                       <tr key={f.id} className="hover:bg-muted/50">
                         <td className="px-4 py-2.5">{f.descricao}</td>
-                        <td className="px-4 py-2.5 tabular text-muted-foreground">{f.vencimento}</td>
+                        <td className="px-4 py-2.5 tabular text-muted-foreground">
+                          {f.vencimento}
+                        </td>
                         <td className="px-4 py-2.5 text-muted-foreground">{f.metodo}</td>
                         <td className="px-4 py-2.5 tabular">{brl(f.valor)}</td>
                         <td className="px-4 py-2.5">
@@ -352,7 +379,9 @@ function Dossie() {
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-muted-foreground">Faturas em aberto</dt>
-                <dd className="tabular">{cliente.faturas.filter((f) => f.status !== "pago").length}</dd>
+                <dd className="tabular">
+                  {cliente.faturas.filter((f) => f.status !== "pago").length}
+                </dd>
               </div>
             </dl>
           </Panel>
@@ -367,7 +396,9 @@ function Dossie() {
                   </p>
                 </li>
               ))}
-              {cliente.notas.length === 0 && <li className="text-sm text-muted-foreground">Sem notas.</li>}
+              {cliente.notas.length === 0 && (
+                <li className="text-sm text-muted-foreground">Sem notas.</li>
+              )}
             </ul>
             <div className="mt-3 space-y-2 border-t border-border pt-3">
               <Field label="Nova nota interna">
@@ -405,12 +436,18 @@ function Dossie() {
             return;
           }
           setDocumentStatus(cliente.id, reprovando.docId, "reprovado", motivo.trim());
-          toast.success("Documento reprovado", { description: "O titular será notificado para reenvio." });
+          toast.success("Documento reprovado", {
+            description: "O titular será notificado para reenvio.",
+          });
           setReprovando(null);
         }}
       >
         <Field label="Motivo da reprovação">
-          <TextArea value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ex.: imagem ilegível" />
+          <TextArea
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            placeholder="Ex.: imagem ilegível"
+          />
         </Field>
       </ConfirmDialog>
 
@@ -427,7 +464,9 @@ function Dossie() {
             return;
           }
           revokeCertificate(cliente.id, revogando.certId, motivoRevog.trim());
-          toast.success("Certificado revogado", { description: "Publicado na LCR e registrado na auditoria." });
+          toast.success("Certificado revogado", {
+            description: "Publicado na LCR e registrado na auditoria.",
+          });
           setRevogando(null);
         }}
       >

@@ -7,7 +7,12 @@ import { Btn, Field, SelectInput, TextArea, TextInput } from "@/components/forms
 import { Grid, TagList, Toggle } from "@/components/settings-kit";
 import { Chip, Panel } from "@/components/ui-kit";
 import { Paginacao, usePaginacao } from "@/components/pagination";
-import { useSettings, type ClassificacaoChamado, type DocumentoConhecimento, type PrioridadeChamado } from "@/lib/settings-store";
+import {
+  useSettings,
+  type ClassificacaoChamado,
+  type DocumentoConhecimento,
+  type PrioridadeChamado,
+} from "@/lib/settings-store";
 
 const prioridades: PrioridadeChamado[] = ["baixa", "normal", "alta", "critica"];
 
@@ -51,7 +56,9 @@ export function SecaoClassificacoes() {
     replace("classificacoes", [...lista, nova]);
     setAberta(nova.id);
     setNovoNome("");
-    toast.success("Classificação criada", { description: `${nome} já aparece na abertura de chamados.` });
+    toast.success("Classificação criada", {
+      description: `${nome} já aparece na abertura de chamados.`,
+    });
   }
 
   return (
@@ -91,7 +98,9 @@ export function SecaoClassificacoes() {
                       {c.subcategorias.length} subcategorias · {c.papelResponsavel}
                     </span>
                   </span>
-                  <Chip tone={c.prioridadePadrao === "critica" ? "alert" : "neutral"}>{c.prioridadePadrao}</Chip>
+                  <Chip tone={c.prioridadePadrao === "critica" ? "alert" : "neutral"}>
+                    {c.prioridadePadrao}
+                  </Chip>
                   <Chip tone="blue">
                     SLA {c.slaRespostaHoras}h / {c.slaResolucaoHoras}h
                   </Chip>
@@ -103,7 +112,10 @@ export function SecaoClassificacoes() {
                   <div className="space-y-4 border-t border-border bg-muted/30 px-4 py-4">
                     <Grid>
                       <Field label="Nome">
-                        <TextInput value={c.nome} onChange={(e) => patch(c.id, { nome: e.target.value })} />
+                        <TextInput
+                          value={c.nome}
+                          onChange={(e) => patch(c.id, { nome: e.target.value })}
+                        />
                       </Field>
                       <Field label="Papel responsável">
                         <SelectInput
@@ -129,7 +141,9 @@ export function SecaoClassificacoes() {
                       <Field label="Prioridade padrão">
                         <SelectInput
                           value={c.prioridadePadrao}
-                          onChange={(e) => patch(c.id, { prioridadePadrao: e.target.value as PrioridadeChamado })}
+                          onChange={(e) =>
+                            patch(c.id, { prioridadePadrao: e.target.value as PrioridadeChamado })
+                          }
                         >
                           {prioridades.map((p) => (
                             <option key={p}>{p}</option>
@@ -141,7 +155,9 @@ export function SecaoClassificacoes() {
                           type="number"
                           min={1}
                           value={c.slaRespostaHoras}
-                          onChange={(e) => patch(c.id, { slaRespostaHoras: Number(e.target.value) })}
+                          onChange={(e) =>
+                            patch(c.id, { slaRespostaHoras: Number(e.target.value) })
+                          }
                         />
                       </Field>
                       <Field label="SLA resolução (h)">
@@ -149,12 +165,17 @@ export function SecaoClassificacoes() {
                           type="number"
                           min={1}
                           value={c.slaResolucaoHoras}
-                          onChange={(e) => patch(c.id, { slaResolucaoHoras: Number(e.target.value) })}
+                          onChange={(e) =>
+                            patch(c.id, { slaResolucaoHoras: Number(e.target.value) })
+                          }
                         />
                       </Field>
                     </Grid>
 
-                    <Field label="Subcategorias" hint="Aparecem como assunto específico na abertura do chamado">
+                    <Field
+                      label="Subcategorias"
+                      hint="Aparecem como assunto específico na abertura do chamado"
+                    >
                       <TagList
                         values={c.subcategorias}
                         onChange={(v) => patch(c.id, { subcategorias: v })}
@@ -181,7 +202,10 @@ export function SecaoClassificacoes() {
                       <Btn
                         variant="danger"
                         onClick={() => {
-                          replace("classificacoes", lista.filter((x) => x.id !== c.id));
+                          replace(
+                            "classificacoes",
+                            lista.filter((x) => x.id !== c.id),
+                          );
                           toast.success("Classificação removida");
                         }}
                       >
@@ -207,10 +231,16 @@ export function SecaoConhecimento() {
   const [busca, setBusca] = useState("");
   const [classificacao, setClassificacao] = useState(classificacoes[0]?.nome ?? "Outros");
   const [titulo, setTitulo] = useState("");
-  const [arquivo, setArquivo] = useState<{ nome: string; formato: string; tamanhoKb: number } | null>(null);
+  const [arquivo, setArquivo] = useState<{
+    nome: string;
+    formato: string;
+    tamanhoKb: number;
+  } | null>(null);
   const [publicar, setPublicar] = useState(true);
 
-  const filtrados = docs.filter((d) => `${d.titulo} ${d.classificacao} ${d.arquivo}`.toLowerCase().includes(busca.toLowerCase()));
+  const filtrados = docs.filter((d) =>
+    `${d.titulo} ${d.classificacao} ${d.arquivo}`.toLowerCase().includes(busca.toLowerCase()),
+  );
   const pag = usePaginacao(filtrados, 10);
 
   function selecionar(file: File | undefined) {
@@ -239,7 +269,9 @@ export function SecaoConhecimento() {
       downloads: 0,
     };
     replace("conhecimento", [novo, ...docs]);
-    toast.success("Documento publicado na base", { description: `${novo.titulo} · ${novo.formato}` });
+    toast.success("Documento publicado na base", {
+      description: `${novo.titulo} · ${novo.formato}`,
+    });
     setTitulo("");
     setArquivo(null);
     if (inputRef.current) inputRef.current.value = "";
@@ -247,7 +279,10 @@ export function SecaoConhecimento() {
 
   return (
     <div className="space-y-4">
-      <Panel title="Enviar documento" hint="Suba um material já pronto (PDF, DOCX, PPTX). O arquivo fica disponível para a equipe e, se publicado, no portal do cliente.">
+      <Panel
+        title="Enviar documento"
+        hint="Suba um material já pronto (PDF, DOCX, PPTX). O arquivo fica disponível para a equipe e, se publicado, no portal do cliente."
+      >
         <div className="space-y-3">
           <button
             type="button"
@@ -259,7 +294,9 @@ export function SecaoConhecimento() {
               {arquivo ? arquivo.nome : "Clique para selecionar o arquivo"}
             </span>
             <span className="text-[11px] text-muted-foreground">
-              {arquivo ? `${arquivo.formato} · ${arquivo.tamanhoKb} KB` : "PDF, DOCX, PPTX ou XLSX — até 20 MB"}
+              {arquivo
+                ? `${arquivo.formato} · ${arquivo.tamanhoKb} KB`
+                : "PDF, DOCX, PPTX ou XLSX — até 20 MB"}
             </span>
           </button>
           <input
@@ -272,7 +309,11 @@ export function SecaoConhecimento() {
 
           <Grid>
             <Field label="Título do documento">
-              <TextInput value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Guia de instalação do token" />
+              <TextInput
+                value={titulo}
+                onChange={(e) => setTitulo(e.target.value)}
+                placeholder="Guia de instalação do token"
+              />
             </Field>
             <Field label="Classificação">
               <SelectInput value={classificacao} onChange={(e) => setClassificacao(e.target.value)}>
@@ -342,14 +383,20 @@ export function SecaoConhecimento() {
                   <td className="px-3 py-2.5">
                     <Chip>{d.classificacao}</Chip>
                   </td>
-                  <td className="tabular px-3 py-2.5 text-xs text-muted-foreground">{d.atualizadoEm}</td>
-                  <td className="tabular px-3 py-2.5 text-right text-xs">{d.downloads.toLocaleString("pt-BR")}</td>
+                  <td className="tabular px-3 py-2.5 text-xs text-muted-foreground">
+                    {d.atualizadoEm}
+                  </td>
+                  <td className="tabular px-3 py-2.5 text-right text-xs">
+                    {d.downloads.toLocaleString("pt-BR")}
+                  </td>
                   <td className="px-3 py-2.5">
                     <button
                       onClick={() =>
                         replace(
                           "conhecimento",
-                          docs.map((x) => (x.id === d.id ? { ...x, publicadoNoPortal: !x.publicadoNoPortal } : x)),
+                          docs.map((x) =>
+                            x.id === d.id ? { ...x, publicadoNoPortal: !x.publicadoNoPortal } : x,
+                          ),
                         )
                       }
                       className="text-xs text-primary hover:underline"
@@ -368,7 +415,10 @@ export function SecaoConhecimento() {
                       </button>
                       <button
                         onClick={() => {
-                          replace("conhecimento", docs.filter((x) => x.id !== d.id));
+                          replace(
+                            "conhecimento",
+                            docs.filter((x) => x.id !== d.id),
+                          );
                           toast.success("Documento removido da base");
                         }}
                         aria-label="Remover"

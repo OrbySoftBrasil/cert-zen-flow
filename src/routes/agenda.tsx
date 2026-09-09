@@ -22,7 +22,10 @@ export const Route = createFileRoute("/agenda")({
           "Agenda de videoconferências de validação: disponibilidade por agente, confirmações, remarcações e controle de no-show.",
       },
       { property: "og:title", content: "Agenda operacional — Certus AC" },
-      { property: "og:description", content: "Disponibilidade, confirmações e no-show por agente." },
+      {
+        property: "og:description",
+        content: "Disponibilidade, confirmações e no-show por agente.",
+      },
     ],
   }),
   component: Agenda,
@@ -106,7 +109,9 @@ function Agenda() {
       return;
     }
     updateAppointment(remarcando.id, { dia: novoDia, hora: novaHora, status: "remarcado" });
-    toast.success("Atendimento remarcado", { description: `${remarcando.cliente} · ${novoDia} às ${novaHora}` });
+    toast.success("Atendimento remarcado", {
+      description: `${remarcando.cliente} · ${novoDia} às ${novaHora}`,
+    });
     setRemarcando(null);
   }
 
@@ -131,7 +136,9 @@ function Agenda() {
                 onClick={() => setVista(v)}
                 className={cn(
                   "rounded px-2.5 py-1 text-xs transition-colors",
-                  vista === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                  vista === v
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {v === "dia" ? "Dia" : "Mês"}
@@ -146,10 +153,16 @@ function Agenda() {
                   onClick={() => setDia(d)}
                   className={cn(
                     "rounded px-2.5 py-1 text-xs tabular transition-colors",
-                    dia === d ? "bg-primary-soft text-primary-deep" : "text-muted-foreground hover:text-foreground",
+                    dia === d
+                      ? "bg-primary-soft text-primary-deep"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {d === hojeISO ? "Hoje" : i === 0 ? d.slice(8) + "/" + d.slice(5, 7) : d.slice(8) + "/" + d.slice(5, 7)}
+                  {d === hojeISO
+                    ? "Hoje"
+                    : i === 0
+                      ? d.slice(8) + "/" + d.slice(5, 7)
+                      : d.slice(8) + "/" + d.slice(5, 7)}
                 </button>
               ))}
             </div>
@@ -176,300 +189,331 @@ function Agenda() {
       }
     >
       {vista === "dia" && (
-      <>
-      <div className="mb-4 flex flex-wrap divide-border rounded-lg border border-border bg-card">
-        <Metric label="Agendamentos do dia" value={String(doDia.length)} />
-        <Metric label="Confirmados" value={String(doDia.filter((a) => a.status === "confirmado").length)} />
-        <Metric label="Pendentes" value={String(doDia.filter((a) => a.status === "pendente").length)} />
-        <Metric label="No-show" value={String(doDia.filter((a) => a.status === "no-show").length)} hint="hoje" />
-      </div>
+        <>
+          <div className="mb-4 flex flex-wrap divide-border rounded-lg border border-border bg-card">
+            <Metric label="Agendamentos do dia" value={String(doDia.length)} />
+            <Metric
+              label="Confirmados"
+              value={String(doDia.filter((a) => a.status === "confirmado").length)}
+            />
+            <Metric
+              label="Pendentes"
+              value={String(doDia.filter((a) => a.status === "pendente").length)}
+            />
+            <Metric
+              label="No-show"
+              value={String(doDia.filter((a) => a.status === "no-show").length)}
+              hint="hoje"
+            />
+          </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-
-        <Panel title="Grade por agente" hint={`Dia ${dia}`} bodyClassName="overflow-x-auto p-0">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="w-20 px-3 py-2 font-medium">Hora</th>
-                {agentesAtivos.map((a) => (
-                  <th key={a.id} className="px-3 py-2 font-medium">
-                    {a.nome}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {horas.map((h) => (
-                <tr key={h}>
-                  <td className="px-3 py-2 tabular text-xs text-muted-foreground">{h}</td>
-                  {agentesAtivos.map((a) => {
-                    const slot = doDia.find((x) => x.hora === h && x.agenteId === a.id);
-                    return (
-                      <td key={a.id} className="px-2 py-1.5 align-top">
-                        {slot ? (
-                          <div
-                            className={cn(
-                              "rounded-md border p-2",
-                              slot.status === "no-show"
-                                ? "border-alert/40 bg-alert-soft"
-                                : slot.status === "confirmado"
-                                  ? "border-primary/40 bg-primary-soft"
-                                  : "border-border bg-muted/60",
+          <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+            <Panel title="Grade por agente" hint={`Dia ${dia}`} bodyClassName="overflow-x-auto p-0">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="w-20 px-3 py-2 font-medium">Hora</th>
+                    {agentesAtivos.map((a) => (
+                      <th key={a.id} className="px-3 py-2 font-medium">
+                        {a.nome}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {horas.map((h) => (
+                    <tr key={h}>
+                      <td className="px-3 py-2 tabular text-xs text-muted-foreground">{h}</td>
+                      {agentesAtivos.map((a) => {
+                        const slot = doDia.find((x) => x.hora === h && x.agenteId === a.id);
+                        return (
+                          <td key={a.id} className="px-2 py-1.5 align-top">
+                            {slot ? (
+                              <div
+                                className={cn(
+                                  "rounded-md border p-2",
+                                  slot.status === "no-show"
+                                    ? "border-alert/40 bg-alert-soft"
+                                    : slot.status === "confirmado"
+                                      ? "border-primary/40 bg-primary-soft"
+                                      : "border-border bg-muted/60",
+                                )}
+                              >
+                                <p className="truncate text-xs font-medium">{slot.cliente}</p>
+                                <p className="truncate text-[11px] text-muted-foreground">
+                                  {slot.tipo} · {slot.duracaoMin} min
+                                </p>
+                                <div className="mt-1 flex items-center gap-1">
+                                  <Chip tone={statusTone[slot.status]}>{slot.status}</Chip>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="h-10 rounded-md border border-dashed border-border" />
                             )}
-                          >
-                            <p className="truncate text-xs font-medium">{slot.cliente}</p>
-                            <p className="truncate text-[11px] text-muted-foreground">
-                              {slot.tipo} · {slot.duracaoMin} min
-                            </p>
-                            <div className="mt-1 flex items-center gap-1">
-                              <Chip tone={statusTone[slot.status]}>{slot.status}</Chip>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="h-10 rounded-md border border-dashed border-border" />
-                        )}
-                      </td>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Panel>
+
+            <div className="space-y-4">
+              <Panel title="Próximos atendimentos" bodyClassName="p-0">
+                <ul className="divide-y divide-border">
+                  {doDia.length === 0 && (
+                    <li>
+                      <EmptyState
+                        titulo="Nenhum atendimento neste dia"
+                        descricao="Agende uma videoconferência de validação para preencher a grade."
+                      />
+                    </li>
+                  )}
+                  {doDia.map((a) => (
+                    <li key={a.id} className="px-3 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="tabular text-sm font-semibold">{a.hora}</span>
+                        <Link
+                          to="/clientes/$id"
+                          params={{ id: a.clienteId }}
+                          className="min-w-0 flex-1 truncate text-sm hover:text-primary hover:underline"
+                        >
+                          {a.cliente}
+                        </Link>
+                        <Chip tone={statusTone[a.status]}>{a.status}</Chip>
+                      </div>
+                      <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Video className="size-3" /> {a.sala}
+                      </p>
+                      <div className="mt-2 flex gap-1.5">
+                        <button
+                          onClick={() => atualizar(a.id, "confirmado")}
+                          className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] transition-colors hover:border-primary"
+                        >
+                          <CalendarCheck2 className="size-3" /> Confirmar
+                        </button>
+                        <button
+                          onClick={() => {
+                            setRemarcando(a);
+                            setNovoDia(a.dia);
+                            setNovaHora(a.hora);
+                          }}
+                          className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] transition-colors hover:border-primary"
+                        >
+                          <Clock3 className="size-3" /> Remarcar
+                        </button>
+                        <button
+                          onClick={() => atualizar(a.id, "no-show")}
+                          className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] text-alert transition-colors hover:border-alert"
+                        >
+                          <CalendarX2 className="size-3" /> No-show
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
+
+              <Panel title="Disponibilidade" hint="Capacidade declarada por agente">
+                <ul className="space-y-2.5 text-sm">
+                  {agentesAtivos.map((a) => {
+                    const ocupados = doDia.filter((x) => x.agenteId === a.id).length;
+                    return (
+                      <li key={a.id}>
+                        <div className="flex justify-between">
+                          <span>{a.nome}</span>
+                          <span className="tabular text-muted-foreground">{ocupados}/6 slots</span>
+                        </div>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full bg-primary"
+                            style={{ width: `${(ocupados / 6) * 100}%` }}
+                          />
+                        </div>
+                      </li>
                     );
                   })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Panel>
-
-        <div className="space-y-4">
-          <Panel title="Próximos atendimentos" bodyClassName="p-0">
-            <ul className="divide-y divide-border">
-              {doDia.length === 0 && (
-                <li>
-                  <EmptyState
-                    titulo="Nenhum atendimento neste dia"
-                    descricao="Agende uma videoconferência de validação para preencher a grade."
-                  />
-                </li>
-              )}
-              {doDia.map((a) => (
-                <li key={a.id} className="px-3 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="tabular text-sm font-semibold">{a.hora}</span>
-                    <Link
-                      to="/clientes/$id"
-                      params={{ id: a.clienteId }}
-                      className="min-w-0 flex-1 truncate text-sm hover:text-primary hover:underline"
-                    >
-                      {a.cliente}
-                    </Link>
-                    <Chip tone={statusTone[a.status]}>{a.status}</Chip>
-                  </div>
-                  <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
-                    <Video className="size-3" /> {a.sala}
-                  </p>
-                  <div className="mt-2 flex gap-1.5">
-                    <button
-                      onClick={() => atualizar(a.id, "confirmado")}
-                      className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] transition-colors hover:border-primary"
-                    >
-                      <CalendarCheck2 className="size-3" /> Confirmar
-                    </button>
-                    <button
-                      onClick={() => {
-                        setRemarcando(a);
-                        setNovoDia(a.dia);
-                        setNovaHora(a.hora);
-                      }}
-                      className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] transition-colors hover:border-primary"
-                    >
-                      <Clock3 className="size-3" /> Remarcar
-                    </button>
-                    <button
-                      onClick={() => atualizar(a.id, "no-show")}
-                      className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] text-alert transition-colors hover:border-alert"
-                    >
-                      <CalendarX2 className="size-3" /> No-show
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </Panel>
-
-          <Panel title="Disponibilidade" hint="Capacidade declarada por agente">
-            <ul className="space-y-2.5 text-sm">
-              {agentesAtivos.map((a) => {
-                const ocupados = doDia.filter((x) => x.agenteId === a.id).length;
-                return (
-                  <li key={a.id}>
-                    <div className="flex justify-between">
-                      <span>{a.nome}</span>
-                      <span className="tabular text-muted-foreground">{ocupados}/6 slots</span>
-                    </div>
-                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full bg-primary" style={{ width: `${(ocupados / 6) * 100}%` }} />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </Panel>
-        </div>
-      </div>
-      </>
+                </ul>
+              </Panel>
+            </div>
+          </div>
+        </>
       )}
-
 
       {vista === "mes" && (
         <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
           <div className="min-w-0 space-y-4">
-          <Panel
-            title={`${nomesMes[cursor.mes]} ${cursor.ano}`}
-            hint={`${doMes.length} agendamentos no mês`}
-            bodyClassName="p-3"
-            actions={
-              <div className="flex rounded-md border border-border p-0.5">
-                {([
-                  ["resumo", "Resumo"],
-                  ["completo", "Mostrar todos"],
-                ] as const).map(([v, label]) => (
-                  <button
-                    key={v}
-                    onClick={() => setDensidadeMes(v)}
-                    className={cn(
-                      "rounded px-2 py-1 text-[11px] transition-colors",
-                      densidadeMes === v
-                        ? "bg-primary-soft font-medium text-primary-deep"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            }
-          >
-            <div className="grid grid-cols-7 gap-1.5">
-              {nomesDiaSemana.map((d) => (
-                <div key={d} className="pb-1 text-center text-[11px] uppercase tracking-wide text-muted-foreground">
-                  {d}
-                </div>
-              ))}
-              {celulas.map((d) => {
-                const chave = iso(d);
-                const doDiaCel = items.filter((a) => a.dia === chave);
-                const foraDoMes = d.getMonth() !== cursor.mes;
-                const ehHoje = chave === hojeISO;
-                const noShow = doDiaCel.some((a) => a.status === "no-show");
-                return (
-                  <button
-                    key={chave}
-                    onClick={() => {
-                      setDia(chave);
-                      setVista("dia");
-                    }}
-                    className={cn(
-                      "flex flex-col rounded-md border p-1.5 text-left transition-colors hover:border-primary",
-                      densidadeMes === "completo" ? "min-h-28" : "min-h-24",
-                      foraDoMes ? "border-border/60 bg-muted/30 opacity-60" : "border-border bg-card",
-                      chave === dia && "border-primary",
-                    )}
-                  >
-                    <span
+            <Panel
+              title={`${nomesMes[cursor.mes]} ${cursor.ano}`}
+              hint={`${doMes.length} agendamentos no mês`}
+              bodyClassName="p-3"
+              actions={
+                <div className="flex rounded-md border border-border p-0.5">
+                  {(
+                    [
+                      ["resumo", "Resumo"],
+                      ["completo", "Mostrar todos"],
+                    ] as const
+                  ).map(([v, label]) => (
+                    <button
+                      key={v}
+                      onClick={() => setDensidadeMes(v)}
                       className={cn(
-                        "tabular mb-1 grid size-5 place-items-center rounded-full text-[11px]",
-                        ehHoje ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground",
+                        "rounded px-2 py-1 text-[11px] transition-colors",
+                        densidadeMes === v
+                          ? "bg-primary-soft font-medium text-primary-deep"
+                          : "text-muted-foreground hover:text-foreground",
                       )}
                     >
-                      {d.getDate()}
-                    </span>
-                    <span className="flex-1 space-y-0.5">
-                      {(densidadeMes === "completo" ? doDiaCel : doDiaCel.slice(0, 2)).map((a) => (
-                        <span
-                          key={a.id}
-                          className={cn(
-                            "block truncate rounded px-1 py-0.5 text-[10px]",
-                            a.status === "no-show"
-                              ? "bg-alert-soft text-alert"
-                              : a.status === "confirmado"
-                                ? "bg-primary-soft text-primary-deep"
-                                : "bg-muted text-muted-foreground",
-                          )}
-                        >
-                          {a.hora} {a.cliente}
-                        </span>
-                      ))}
-                      {densidadeMes === "resumo" && doDiaCel.length > 2 && (
-                        <span className="block px-1 text-[10px] text-muted-foreground">
-                          +{doDiaCel.length - 2} agendamentos
-                        </span>
-                      )}
-                    </span>
-                    {noShow && <span className="mt-0.5 h-0.5 w-full rounded bg-alert" />}
-                  </button>
-                );
-              })}
-            </div>
-          </Panel>
-
-          <Panel
-            title="Agendamentos do mês"
-            hint="Lista completa, ordenada por data e hora — clique para abrir o dia."
-            bodyClassName="p-0"
-            actions={
-              <button
-                onClick={() => setSomenteFuturos((v) => !v)}
-                className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
-              >
-                {somenteFuturos ? "Somente futuros" : "Mês inteiro"}
-              </button>
-            }
-          >
-            <ul className="divide-y divide-border">
-              {pagMes.visiveis.map((a) => (
-                <li key={a.id}>
-                  <button
-                    onClick={() => {
-                      setDia(a.dia);
-                      setVista("dia");
-                    }}
-                    className="flex w-full flex-wrap items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              }
+            >
+              <div className="grid grid-cols-7 gap-1.5">
+                {nomesDiaSemana.map((d) => (
+                  <div
+                    key={d}
+                    className="pb-1 text-center text-[11px] uppercase tracking-wide text-muted-foreground"
                   >
-                    <span className="tabular w-14 shrink-0 text-xs text-muted-foreground">
-                      {a.dia.slice(8, 10)}/{a.dia.slice(5, 7)}
-                    </span>
-                    <span className="tabular w-12 shrink-0 text-sm font-medium">{a.hora}</span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm">{a.cliente}</span>
-                      <span className="block truncate text-[11px] text-muted-foreground">
-                        {a.tipo} · {a.sala} · {a.duracaoMin} min
+                    {d}
+                  </div>
+                ))}
+                {celulas.map((d) => {
+                  const chave = iso(d);
+                  const doDiaCel = items.filter((a) => a.dia === chave);
+                  const foraDoMes = d.getMonth() !== cursor.mes;
+                  const ehHoje = chave === hojeISO;
+                  const noShow = doDiaCel.some((a) => a.status === "no-show");
+                  return (
+                    <button
+                      key={chave}
+                      onClick={() => {
+                        setDia(chave);
+                        setVista("dia");
+                      }}
+                      className={cn(
+                        "flex flex-col rounded-md border p-1.5 text-left transition-colors hover:border-primary",
+                        densidadeMes === "completo" ? "min-h-28" : "min-h-24",
+                        foraDoMes
+                          ? "border-border/60 bg-muted/30 opacity-60"
+                          : "border-border bg-card",
+                        chave === dia && "border-primary",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "tabular mb-1 grid size-5 place-items-center rounded-full text-[11px]",
+                          ehHoje
+                            ? "bg-primary text-primary-foreground font-semibold"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {d.getDate()}
                       </span>
-                    </span>
-                    <Chip tone={statusTone[a.status]}>{a.status}</Chip>
-                  </button>
-                </li>
-              ))}
-              {listaMes.length === 0 && (
-                <li className="px-3 py-8 text-center text-sm text-muted-foreground">
-                  Nenhum agendamento neste período.
-                </li>
-              )}
-            </ul>
-            <Paginacao {...pagMes} rotulo="agendamentos" />
-          </Panel>
+                      <span className="flex-1 space-y-0.5">
+                        {(densidadeMes === "completo" ? doDiaCel : doDiaCel.slice(0, 2)).map(
+                          (a) => (
+                            <span
+                              key={a.id}
+                              className={cn(
+                                "block truncate rounded px-1 py-0.5 text-[10px]",
+                                a.status === "no-show"
+                                  ? "bg-alert-soft text-alert"
+                                  : a.status === "confirmado"
+                                    ? "bg-primary-soft text-primary-deep"
+                                    : "bg-muted text-muted-foreground",
+                              )}
+                            >
+                              {a.hora} {a.cliente}
+                            </span>
+                          ),
+                        )}
+                        {densidadeMes === "resumo" && doDiaCel.length > 2 && (
+                          <span className="block px-1 text-[10px] text-muted-foreground">
+                            +{doDiaCel.length - 2} agendamentos
+                          </span>
+                        )}
+                      </span>
+                      {noShow && <span className="mt-0.5 h-0.5 w-full rounded bg-alert" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </Panel>
+
+            <Panel
+              title="Agendamentos do mês"
+              hint="Lista completa, ordenada por data e hora — clique para abrir o dia."
+              bodyClassName="p-0"
+              actions={
+                <button
+                  onClick={() => setSomenteFuturos((v) => !v)}
+                  className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+                >
+                  {somenteFuturos ? "Somente futuros" : "Mês inteiro"}
+                </button>
+              }
+            >
+              <ul className="divide-y divide-border">
+                {pagMes.visiveis.map((a) => (
+                  <li key={a.id}>
+                    <button
+                      onClick={() => {
+                        setDia(a.dia);
+                        setVista("dia");
+                      }}
+                      className="flex w-full flex-wrap items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
+                    >
+                      <span className="tabular w-14 shrink-0 text-xs text-muted-foreground">
+                        {a.dia.slice(8, 10)}/{a.dia.slice(5, 7)}
+                      </span>
+                      <span className="tabular w-12 shrink-0 text-sm font-medium">{a.hora}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm">{a.cliente}</span>
+                        <span className="block truncate text-[11px] text-muted-foreground">
+                          {a.tipo} · {a.sala} · {a.duracaoMin} min
+                        </span>
+                      </span>
+                      <Chip tone={statusTone[a.status]}>{a.status}</Chip>
+                    </button>
+                  </li>
+                ))}
+                {listaMes.length === 0 && (
+                  <li className="px-3 py-8 text-center text-sm text-muted-foreground">
+                    Nenhum agendamento neste período.
+                  </li>
+                )}
+              </ul>
+              <Paginacao {...pagMes} rotulo="agendamentos" />
+            </Panel>
           </div>
 
           <div className="space-y-4">
             <Panel title="Resumo do mês">
               <ul className="space-y-2 text-sm">
-                {(["confirmado", "pendente", "concluido", "remarcado", "no-show"] as const).map((s) => (
-                  <li key={s} className="flex items-center justify-between">
-                    <Chip tone={statusTone[s]}>{s}</Chip>
-                    <span className="tabular text-muted-foreground">{doMes.filter((a) => a.status === s).length}</span>
-                  </li>
-                ))}
+                {(["confirmado", "pendente", "concluido", "remarcado", "no-show"] as const).map(
+                  (s) => (
+                    <li key={s} className="flex items-center justify-between">
+                      <Chip tone={statusTone[s]}>{s}</Chip>
+                      <span className="tabular text-muted-foreground">
+                        {doMes.filter((a) => a.status === s).length}
+                      </span>
+                    </li>
+                  ),
+                )}
               </ul>
               <p className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
                 Taxa de no-show do mês:{" "}
                 <span className="tabular font-medium text-alert">
-                  {doMes.length ? Math.round((doMes.filter((a) => a.status === "no-show").length / doMes.length) * 100) : 0}%
+                  {doMes.length
+                    ? Math.round(
+                        (doMes.filter((a) => a.status === "no-show").length / doMes.length) * 100,
+                      )
+                    : 0}
+                  %
                 </span>
               </p>
             </Panel>
@@ -478,7 +522,10 @@ function Agenda() {
               <ul className="space-y-2.5 text-sm">
                 {agentesAtivos.map((a) => {
                   const total = doMes.filter((x) => x.agenteId === a.id).length;
-                  const maior = Math.max(1, ...agentesAtivos.map((g) => doMes.filter((x) => x.agenteId === g.id).length));
+                  const maior = Math.max(
+                    1,
+                    ...agentesAtivos.map((g) => doMes.filter((x) => x.agenteId === g.id).length),
+                  );
                   return (
                     <li key={a.id}>
                       <div className="flex justify-between">
@@ -486,7 +533,10 @@ function Agenda() {
                         <span className="tabular text-muted-foreground">{total} sessões</span>
                       </div>
                       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-                        <div className="h-full bg-primary" style={{ width: `${(total / maior) * 100}%` }} />
+                        <div
+                          className="h-full bg-primary"
+                          style={{ width: `${(total / maior) * 100}%` }}
+                        />
                       </div>
                     </li>
                   );
@@ -541,6 +591,5 @@ function Agenda() {
         </div>
       </ConfirmDialog>
     </AppShell>
-
   );
 }

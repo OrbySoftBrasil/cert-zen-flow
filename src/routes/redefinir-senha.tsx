@@ -14,10 +14,14 @@ export const Route = createFileRoute("/redefinir-senha")({
       { title: "Definir nova senha — Certus AC" },
       {
         name: "description",
-        content: "Crie uma nova senha para sua conta da Certus AC seguindo a política de segurança da operação.",
+        content:
+          "Crie uma nova senha para sua conta da Certus AC seguindo a política de segurança da operação.",
       },
       { property: "og:title", content: "Definir nova senha — Certus AC" },
-      { property: "og:description", content: "Criação de nova senha com política de complexidade." },
+      {
+        property: "og:description",
+        content: "Criação de nova senha com política de complexidade.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -27,7 +31,10 @@ export const Route = createFileRoute("/redefinir-senha")({
 
 const regras = [
   { label: "Pelo menos 10 caracteres", ok: (s: string) => s.length >= 10 },
-  { label: "Letras maiúsculas e minúsculas", ok: (s: string) => /[A-Z]/.test(s) && /[a-z]/.test(s) },
+  {
+    label: "Letras maiúsculas e minúsculas",
+    ok: (s: string) => /[A-Z]/.test(s) && /[a-z]/.test(s),
+  },
   { label: "Ao menos um número", ok: (s: string) => /\d/.test(s) },
   { label: "Ao menos um caractere especial", ok: (s: string) => /[^A-Za-z0-9]/.test(s) },
 ];
@@ -98,7 +105,10 @@ function RedefinirSenha() {
               return (
                 <li
                   key={r.label}
-                  className={cn("flex items-center gap-1.5 text-[11px]", ok ? "text-primary" : "text-muted-foreground")}
+                  className={cn(
+                    "flex items-center gap-1.5 text-[11px]",
+                    ok ? "text-primary" : "text-muted-foreground",
+                  )}
                 >
                   <Check className={cn("size-3", !ok && "opacity-40")} /> {r.label}
                 </li>

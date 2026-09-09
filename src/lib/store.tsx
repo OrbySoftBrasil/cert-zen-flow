@@ -36,7 +36,15 @@ import {
   type TicketCategoria,
   type TimelineEvent,
 } from "@/lib/mock-data";
-import { categoriaInfo, origemLabel } from "@/lib/checklist-model";
+import {
+  avaliarAcao,
+  categoriaInfo,
+  documentosCompativeis,
+  origemLabel,
+  politicaNaoAplicavelDe,
+} from "@/lib/checklist-model";
+import { emissoesDoCaso } from "@/lib/caso-model";
+import { MARCO_POR_STAGE, itensDoPerfil, type PerfilOperacional } from "@/lib/opconfig-model";
 import { cenarioAppointments, cenarioRegistros, cenarioRequests } from "@/lib/cenarios";
 import {
   type AutorRegistro,
@@ -235,7 +243,22 @@ interface Actions {
   // solicitações
   addRequest: (input: NovaSolicitacaoInput) => Request;
   updateRequest: (id: string, patch: Partial<Request>) => void;
-  moveRequest: (id: string, stage: StageId, detalhe?: string) => void;
+  /**
+   * Move a etapa. Quando `guard.acao` é informado, o portão do checklist é
+   * reavaliado no momento da execução e a transição é recusada se bloqueada.
+   */
+  moveRequest: (
+    id: string,
+    stage: StageId,
+    detalhe?: string,
+    guard?: { acao: string; emissaoId?: string },
+  ) => void;
+  /** Avaliação central de portões para uma ação protegida do caso. */
+  avaliarAcaoDoCaso: (
+    requestId: string,
+    acao: string,
+    emissaoId?: string,
+  ) => import("@/lib/checklist-model").AvaliacaoAcao;
   /** Satisfaz um requisito com a evidência do modo configurado. */
   cumprirRequisito: (
     requestId: string,
@@ -245,12 +268,16 @@ interface Actions {
   ) => void;
   /** Vincula um documento já existente do dossiê ao requisito (sem duplicar arquivo). */
   reutilizarDocumento: (requestId: string, itemId: string, documentoId: string) => void;
-  /** Marca o requisito como não aplicável, com motivo e regra. */
+  /**
+   * Marca o requisito como não aplicável por regra do produto ou dispensado por
+   * exceção controlada. Requisitos de plataforma/AC recusam a dispensa.
+   */
   naoAplicarRequisito: (
     requestId: string,
     itemId: string,
     motivo: string,
     regra: string,
+    tipo?: "regra" | "excecao",
   ) => void;
   /** Pede o item ao cliente — o requisito fica aguardando informação. */
   solicitarAoCliente: (requestId: string, itemId: string, mensagem: string) => void;
@@ -359,38 +386,134 @@ const checklistPorEtapa: Record<StageId, EspecItem[]> = {
     },
   ],
   documentacao: [
-    { label: "Documento de identidade", modo: "documento", categoriaDoc: "identidade", escopo: "titular", bloqueia: "Enviar dossiê para verificação" },
-    { label: "Comprovante de endereço", modo: "documento", categoriaDoc: "endereco", escopo: "titular", validadeDias: 90, bloqueia: "Enviar dossiê para verificação" },
-    { label: "Contrato social / procuração", modo: "documento", categoriaDoc: "contrato-social", escopo: "organizacao", obrigatorio: false },
+    {
+      label: "Documento de identidade",
+      modo: "documento",
+      categoriaDoc: "identidade",
+      escopo: "titular",
+      bloqueia: "Enviar dossiê para verificação",
+    },
+    {
+      label: "Comprovante de endereço",
+      modo: "documento",
+      categoriaDoc: "endereco",
+      escopo: "titular",
+      validadeDias: 90,
+      bloqueia: "Enviar dossiê para verificação",
+    },
+    {
+      label: "Contrato social / procuração",
+      modo: "documento",
+      categoriaDoc: "contrato-social",
+      escopo: "organizacao",
+      obrigatorio: false,
+    },
   ],
   validacao: [
-    { label: "Consulta à Lista Negativa", modo: "acao", acaoProduto: "registrar-consulta", escopo: "titular", bloqueia: "Aprovar emissão" },
-    { label: "Resultado da validação", modo: "acao", acaoProduto: "registrar-validacao", escopo: "emissao", bloqueia: "Aprovar emissão" },
-    { label: "Parecer do agente de registro", modo: "decisao", escopo: "caso", exigeAprovacao: true, bloqueia: "Aprovar emissão" },
+    {
+      label: "Consulta à Lista Negativa",
+      modo: "acao",
+      acaoProduto: "registrar-consulta",
+      escopo: "titular",
+      bloqueia: "Aprovar emissão",
+    },
+    {
+      label: "Resultado da validação",
+      modo: "acao",
+      acaoProduto: "registrar-validacao",
+      escopo: "emissao",
+      bloqueia: "Aprovar emissão",
+    },
+    {
+      label: "Parecer do agente de registro",
+      modo: "decisao",
+      escopo: "caso",
+      exigeAprovacao: true,
+      bloqueia: "Aprovar emissão",
+    },
   ],
   agendamento: [
-    { label: "Agendamento criado", modo: "derivado", chaveDerivada: "agendamento", escopo: "atendimento" },
-    { label: "Titular orientado sobre o horário", modo: "confirmacao", escopo: "atendimento", obrigatorio: false },
+    {
+      label: "Agendamento criado",
+      modo: "derivado",
+      chaveDerivada: "agendamento",
+      escopo: "atendimento",
+    },
+    {
+      label: "Titular orientado sobre o horário",
+      modo: "confirmacao",
+      escopo: "atendimento",
+      obrigatorio: false,
+    },
   ],
   videoconferencia: [
-    { label: "Gravação da sessão", modo: "documento", categoriaDoc: "gravacao", escopo: "atendimento" },
-    { label: "Termo de titularidade assinado", modo: "documento", categoriaDoc: "termo-assinado", escopo: "titular" },
+    {
+      label: "Gravação da sessão",
+      modo: "documento",
+      categoriaDoc: "gravacao",
+      escopo: "atendimento",
+    },
+    {
+      label: "Termo de titularidade assinado",
+      modo: "documento",
+      categoriaDoc: "termo-assinado",
+      escopo: "titular",
+    },
   ],
   emissao: [
-    { label: "Emissão registrada", modo: "acao", acaoProduto: "registrar-emissao-manual", escopo: "emissao", bloqueia: "Liberar entrega" },
+    {
+      label: "Emissão registrada",
+      modo: "acao",
+      acaoProduto: "registrar-emissao-manual",
+      escopo: "emissao",
+      bloqueia: "Liberar entrega",
+    },
     { label: "Entrega confirmada", modo: "derivado", chaveDerivada: "entrega", escopo: "emissao" },
   ],
   concluido: [
-    { label: "Instalação e funcionamento confirmados", modo: "derivado", chaveDerivada: "instalacao", escopo: "emissao" },
-    { label: "Orientar o titular a manter o token conectado", modo: "orientacao", obrigatorio: false },
+    {
+      label: "Instalação e funcionamento confirmados",
+      modo: "derivado",
+      chaveDerivada: "instalacao",
+      escopo: "emissao",
+    },
+    {
+      label: "Orientar o titular a manter o token conectado",
+      modo: "orientacao",
+      obrigatorio: false,
+    },
   ],
-  bloqueado: [
-    { label: "Registrar impedimento", modo: "confirmacao", observacaoObrigatoria: true },
-  ],
+  bloqueado: [{ label: "Registrar impedimento", modo: "confirmacao", observacaoObrigatoria: true }],
 };
 
+/** Lê o perfil operacional PUBLICADO (a mesma fonte de "Operação & perfis"). */
+function perfilPublicado(): { versao: string; perfil: PerfilOperacional } | null {
+  try {
+    const raw = window.localStorage.getItem("certus-opconfig-v1");
+    if (!raw) return null;
+    const p = JSON.parse(raw) as { publicada?: PerfilOperacional & { numero?: string } };
+    if (!p.publicada?.etapas?.length) return null;
+    return { versao: p.publicada.numero ?? "v1", perfil: p.publicada };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Requisitos da etapa. A configuração publicada é a fonte; a lista interna só
+ * atende ambientes sem configuração salva (primeiro acesso).
+ */
 function itensDeEtapa(stage: StageId) {
-  return itensChecklist(checklistPorEtapa[stage] ?? []).map((i) => ({ ...i, id: uid("ck") }));
+  const pub = perfilPublicado();
+  const marco = MARCO_POR_STAGE[stage];
+  const doPerfil = pub && marco ? itensDoPerfil(pub.perfil, marco) : [];
+  const base = doPerfil.length > 0 ? doPerfil : (checklistPorEtapa[stage] ?? []);
+  return itensChecklist(base as never).map((i) => ({ ...i, id: uid("ck") }));
+}
+
+/** Versão do perfil que originou o fluxo do caso (casos antigos não mudam). */
+function versaoPerfilAtual() {
+  return perfilPublicado()?.versao ?? "v1";
 }
 
 function comHistorico(
@@ -541,6 +664,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           slaRestanteHoras: input.slaHoras,
           tags: ["nova"],
           checklist: itensDeEtapa("novo"),
+          perfilVersao: versaoPerfilAtual(),
           timeline: [
             evento("Solicitação criada", `${input.tipo} · canal ${input.canal}`, "sistema"),
             ...(input.observacao ? [evento("Observação de abertura", input.observacao)] : []),
@@ -552,8 +676,47 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
       updateRequest: (id, patch) => patchRequest(id, (r) => ({ ...r, ...patch })),
 
-      moveRequest: (id, stage, detalhe) =>
+      avaliarAcaoDoCaso: (requestId, acao, emissaoId) => {
+        const r = state.requests.find((x) => x.id === requestId);
+        if (!r) return { permitida: true, portoes: [], explicacao: null };
+        const cli = state.clients.find((c) => c.id === r.clienteId);
+        return avaliarAcao(
+          acao,
+          {
+            request: r,
+            ...(cli ? { cliente: cli } : {}),
+            emissoes: emissoesDoCaso(r, state.emissoesExtras[r.id] ?? []),
+          },
+          emissaoId ? { emissaoId } : {},
+        );
+      },
+
+      moveRequest: (id, stage, detalhe, guard) =>
         patchRequest(id, (r) => {
+          // Revalidação no momento da execução: uma tela desatualizada não
+          // pode contornar um portão obrigatório.
+          if (guard?.acao) {
+            const cli = state.clients.find((c) => c.id === r.clienteId);
+            const ctx = {
+              request: r,
+              ...(cli ? { cliente: cli } : {}),
+              emissoes: emissoesDoCaso(r, state.emissoesExtras[r.id] ?? []),
+            };
+            const av = avaliarAcao(
+              guard.acao,
+              ctx,
+              guard.emissaoId ? { emissaoId: guard.emissaoId } : {},
+            );
+            if (!av.permitida) {
+              return {
+                ...r,
+                timeline: [
+                  ...r.timeline,
+                  evento(`Ação bloqueada: ${guard.acao}`, av.explicacao ?? undefined, "alerta"),
+                ],
+              };
+            }
+          }
           const nome = stages.find((s) => s.id === stage)?.nome ?? stage;
           const novos = itensDeEtapa(stage).filter(
             (n) => !r.checklist.some((c) => c.label === n.label),
@@ -594,9 +757,10 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
             .filter(Boolean)
             .join(" · ");
           // Só novos envios viram documento do dossiê. Reutilização nunca duplica arquivo.
-          const anexo = opcoes?.anexarAoDossie !== false && evidencia.origem === "nova"
-            ? evidencia.arquivo
-            : undefined;
+          const anexo =
+            opcoes?.anexarAoDossie !== false && evidencia.origem === "nova"
+              ? evidencia.arquivo
+              : undefined;
           const categoria = item.categoriaDoc
             ? categoriaInfo(item.categoriaDoc).nome
             : (evidencia.referencia ?? item.label);
@@ -663,7 +827,30 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           const item = req?.checklist.find((c) => c.id === itemId);
           const cliente = s.clients.find((c) => c.id === req?.clienteId);
           const doc = cliente?.documentos.find((d) => d.id === documentoId);
-          if (!req || !item || !doc) return s;
+          if (!req || !item || !doc || !cliente) return s;
+          // Reutilização só vale se o documento continuar compatível em
+          // categoria, escopo, sujeito, validade, status e política.
+          const compativel = documentosCompativeis(item, cliente).some((d) => d.id === doc.id);
+          if (!compativel) {
+            return {
+              ...s,
+              requests: s.requests.map((r) =>
+                r.id === requestId
+                  ? {
+                      ...r,
+                      timeline: [
+                        ...r.timeline,
+                        evento(
+                          `Reutilização recusada: ${item.label}`,
+                          `${doc.nome} não é compatível com o requisito (categoria, escopo, sujeito, validade ou status).`,
+                          "alerta",
+                        ),
+                      ],
+                    }
+                  : r,
+              ),
+            };
+          }
           const evidencia: EvidenciaRequisito = {
             tipo: item.categoriaDoc ?? "documento",
             origem: "reutilizada",
@@ -708,9 +895,25 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           };
         }),
 
-      naoAplicarRequisito: (requestId, itemId, motivo, regra) =>
+      naoAplicarRequisito: (requestId, itemId, motivo, regra, tipo = "regra") =>
         patchRequest(requestId, (r) => {
           const item = r.checklist.find((c) => c.id === itemId);
+          if (!item) return r;
+          // Regra de plataforma ou AC nunca é dispensada pelo tenant.
+          if (politicaNaoAplicavelDe(item) === "nao_permitida") {
+            return {
+              ...r,
+              timeline: [
+                ...r.timeline,
+                evento(
+                  `Dispensa recusada: ${item.label}`,
+                  "Requisito de plataforma/AC — a não aplicabilidade não é permitida nesta configuração.",
+                  "alerta",
+                ),
+              ],
+            };
+          }
+          const rotulo = tipo === "excecao" ? "Dispensado por exceção" : "Não aplicável por regra";
           return {
             ...r,
             checklist: r.checklist.map((c) =>
@@ -718,17 +921,25 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
                 ? {
                     ...c,
                     done: false,
-                    naoAplicavel: { motivo, regra },
-                    historico: comHistorico(c, "Marcado como não aplicável", `${motivo} · ${regra}`),
+                    naoAplicavel: {
+                      motivo,
+                      regra,
+                      tipo,
+                      por: USUARIO_ATUAL.nome,
+                      quando: agora(),
+                    },
+                    historico: comHistorico(c, rotulo, `${motivo} · ${regra}`),
                   }
                 : c,
             ),
-            timeline: item
-              ? [
-                  ...r.timeline,
-                  evento(`Requisito não aplicável: ${item.label}`, `${motivo} · ${regra}`, "sistema"),
-                ]
-              : r.timeline,
+            timeline: [
+              ...r.timeline,
+              evento(
+                `${rotulo}: ${item.label}`,
+                `${motivo} · ${regra} · ${USUARIO_ATUAL.nome}`,
+                tipo === "excecao" ? "alerta" : "sistema",
+              ),
+            ],
           };
         }),
 

@@ -55,7 +55,10 @@ export const Route = createFileRoute("/financeiro/")({
           "Painel de BI financeiro da autoridade certificadora: caixa, DRE, MRR, inadimplência, orçado x realizado e relatórios em CSV, XLSX e PDF.",
       },
       { property: "og:title", content: "BI financeiro — Certus AC" },
-      { property: "og:description", content: "Caixa, DRE, MRR, inadimplência e relatórios exportáveis." },
+      {
+        property: "og:description",
+        content: "Caixa, DRE, MRR, inadimplência e relatórios exportáveis.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -63,7 +66,13 @@ export const Route = createFileRoute("/financeiro/")({
   component: FinanceiroBI,
 });
 
-const PIE = ["var(--color-chart-1)", "var(--color-chart-2)", "var(--color-chart-3)", "var(--color-chart-4)", "var(--color-chart-5)"];
+const PIE = [
+  "var(--color-chart-1)",
+  "var(--color-chart-2)",
+  "var(--color-chart-3)",
+  "var(--color-chart-4)",
+  "var(--color-chart-5)",
+];
 
 const tooltipStyle = {
   borderRadius: 8,
@@ -93,9 +102,24 @@ function datasets(): Dataset[] {
     { nome: "DRE", linhas: dre.map((d) => ({ Linha: d.linha, Valor: d.valor })) },
     {
       nome: "Serie mensal",
-      linhas: serieFinanceira.map((s) => ({ Mês: s.mes, Receita: s.receita, Despesa: s.despesa, EBITDA: s.ebitda, Caixa: s.caixa })),
+      linhas: serieFinanceira.map((s) => ({
+        Mês: s.mes,
+        Receita: s.receita,
+        Despesa: s.despesa,
+        EBITDA: s.ebitda,
+        Caixa: s.caixa,
+      })),
     },
-    { nome: "Contas", linhas: contas.map((c) => ({ Conta: c.nome, Banco: c.banco, Tipo: c.tipo, Saldo: c.saldo, "Conciliado até": c.conciliadoAte })) },
+    {
+      nome: "Contas",
+      linhas: contas.map((c) => ({
+        Conta: c.nome,
+        Banco: c.banco,
+        Tipo: c.tipo,
+        Saldo: c.saldo,
+        "Conciliado até": c.conciliadoAte,
+      })),
+    },
     {
       nome: "Lancamentos",
       linhas: lancamentos.map((l) => ({
@@ -141,22 +165,58 @@ function datasets(): Dataset[] {
         Documento: p.documento,
       })),
     },
-    { nome: "Aging", linhas: aging.map((a) => ({ Faixa: a.faixa, Valor: a.valor, Títulos: a.titulos })) },
+    {
+      nome: "Aging",
+      linhas: aging.map((a) => ({ Faixa: a.faixa, Valor: a.valor, Títulos: a.titulos })),
+    },
     {
       nome: "Planos",
-      linhas: planos.map((p) => ({ Plano: p.nome, Público: p.publico, Preço: p.preco, Ciclo: p.ciclo, Assinantes: p.assinantes, MRR: p.mrr, "Churn (%)": p.churn, "Margem (%)": p.margem })),
+      linhas: planos.map((p) => ({
+        Plano: p.nome,
+        Público: p.publico,
+        Preço: p.preco,
+        Ciclo: p.ciclo,
+        Assinantes: p.assinantes,
+        MRR: p.mrr,
+        "Churn (%)": p.churn,
+        "Margem (%)": p.margem,
+      })),
     },
     {
       nome: "Contratos",
-      linhas: contratos.map((c) => ({ Cliente: c.cliente, Plano: c.plano, Início: c.inicio, Fim: c.fim, "Valor mensal": Math.round(c.valorMensal), Faturamento: c.faturamento, Status: c.status, Responsável: c.responsavel })),
+      linhas: contratos.map((c) => ({
+        Cliente: c.cliente,
+        Plano: c.plano,
+        Início: c.inicio,
+        Fim: c.fim,
+        "Valor mensal": Math.round(c.valorMensal),
+        Faturamento: c.faturamento,
+        Status: c.status,
+        Responsável: c.responsavel,
+      })),
     },
     {
       nome: "Comissoes",
-      linhas: comissoes.map((c) => ({ Beneficiário: c.beneficiario, Tipo: c.tipo, Competência: c.competencia, Base: c.baseCalculo, "%": c.percentual, Valor: c.valor, Emissões: c.emissoes, Status: c.status, Pagamento: c.pagamento })),
+      linhas: comissoes.map((c) => ({
+        Beneficiário: c.beneficiario,
+        Tipo: c.tipo,
+        Competência: c.competencia,
+        Base: c.baseCalculo,
+        "%": c.percentual,
+        Valor: c.valor,
+        Emissões: c.emissoes,
+        Status: c.status,
+        Pagamento: c.pagamento,
+      })),
     },
     {
       nome: "Centros de custo",
-      linhas: centrosCusto.map((c) => ({ "Centro de custo": c.nome, Orçado: c.orcado, Realizado: c.realizado, "Variação (%)": Math.round(((c.realizado - c.orcado) / c.orcado) * 1000) / 10 })),
+      linhas: centrosCusto.map((c) => ({
+        "Centro de custo": c.nome,
+        Orçado: c.orcado,
+        Realizado: c.realizado,
+        "Variação (%)": Math.round(((c.realizado - c.orcado) / c.orcado) * 1000) / 10,
+      })),
     },
   ];
 }
@@ -166,7 +226,9 @@ function FinanceiroBI() {
   const aPagar = pagar.filter((p) => p.status !== "pago").reduce((s, p) => s + p.valor, 0);
   const vencidos = pagar.filter((p) => p.status === "vencido");
   const atrasados = receber.filter((r) => r.status === "em atraso");
-  const comissoesAbertas = comissoes.filter((c) => c.status !== "paga").reduce((s, c) => s + c.valor, 0);
+  const comissoesAbertas = comissoes
+    .filter((c) => c.status !== "paga")
+    .reduce((s, c) => s + c.valor, 0);
 
   return (
     <AppShell
@@ -185,21 +247,74 @@ function FinanceiroBI() {
 
       <div className="space-y-4">
         <div className="flex flex-wrap divide-border rounded-lg border border-border bg-card">
-          <Metric label="Saldo consolidado" value={brl(indicadores.saldoTotal)} hint={`${contas.length} contas`} />
-          <Metric label="Receita do mês" value={brl(indicadores.receitaMes)} delta={indicadores.receitaVar} hint="vs. julho" />
-          <Metric label="Despesa do mês" value={brl(indicadores.despesaMes)} delta={indicadores.despesaVar} hint="vs. julho" />
-          <Metric label="EBITDA" value={brl(indicadores.ebitda)} delta={indicadores.margemVar} hint={`margem ${indicadores.margemEbitda}%`} />
-          <Metric label="MRR contratado" value={brl(indicadores.mrr)} delta={indicadores.mrrVar} hint="planos + contratos" />
-          <Metric label="Inadimplência" value={`${indicadores.inadimplencia}%`} delta={indicadores.inadimplenciaVar} hint="carteira total" />
+          <Metric
+            label="Saldo consolidado"
+            value={brl(indicadores.saldoTotal)}
+            hint={`${contas.length} contas`}
+          />
+          <Metric
+            label="Receita do mês"
+            value={brl(indicadores.receitaMes)}
+            delta={indicadores.receitaVar}
+            hint="vs. julho"
+          />
+          <Metric
+            label="Despesa do mês"
+            value={brl(indicadores.despesaMes)}
+            delta={indicadores.despesaVar}
+            hint="vs. julho"
+          />
+          <Metric
+            label="EBITDA"
+            value={brl(indicadores.ebitda)}
+            delta={indicadores.margemVar}
+            hint={`margem ${indicadores.margemEbitda}%`}
+          />
+          <Metric
+            label="MRR contratado"
+            value={brl(indicadores.mrr)}
+            delta={indicadores.mrrVar}
+            hint="planos + contratos"
+          />
+          <Metric
+            label="Inadimplência"
+            value={`${indicadores.inadimplencia}%`}
+            delta={indicadores.inadimplenciaVar}
+            hint="carteira total"
+          />
         </div>
 
         <div className="flex flex-wrap divide-border rounded-lg border border-border bg-card">
-          <Metric label="A receber em aberto" value={brl(aReceber)} hint={`${receber.length - 1} títulos`} />
-          <Metric label="A pagar em aberto" value={brl(aPagar)} hint={`${vencidos.length} vencido(s)`} />
-          <Metric label="Comissões a liquidar" value={brl(comissoesAbertas)} hint="competência 07/2026" />
-          <Metric label="PMR / PMP" value={`${indicadores.prazoMedioRecebimento}/${indicadores.prazoMedioPagamento}d`} hint="ciclo financeiro" />
-          <Metric label="Runway" value={`${indicadores.runwayMeses} meses`} hint="com caixa atual" />
-          <Metric label="LTV / CAC" value={`${indicadores.ltvCac}x`} hint={`CAC ${brl(indicadores.cac)}`} />
+          <Metric
+            label="A receber em aberto"
+            value={brl(aReceber)}
+            hint={`${receber.length - 1} títulos`}
+          />
+          <Metric
+            label="A pagar em aberto"
+            value={brl(aPagar)}
+            hint={`${vencidos.length} vencido(s)`}
+          />
+          <Metric
+            label="Comissões a liquidar"
+            value={brl(comissoesAbertas)}
+            hint="competência 07/2026"
+          />
+          <Metric
+            label="PMR / PMP"
+            value={`${indicadores.prazoMedioRecebimento}/${indicadores.prazoMedioPagamento}d`}
+            hint="ciclo financeiro"
+          />
+          <Metric
+            label="Runway"
+            value={`${indicadores.runwayMeses} meses`}
+            hint="com caixa atual"
+          />
+          <Metric
+            label="LTV / CAC"
+            value={`${indicadores.ltvCac}x`}
+            hint={`CAC ${brl(indicadores.cac)}`}
+          />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
@@ -217,7 +332,13 @@ function FinanceiroBI() {
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={serieFinanceira} margin={{ left: -8, right: 8, top: 8 }}>
                   <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                  <XAxis dataKey="mes" tickLine={false} axisLine={false} fontSize={12} stroke="var(--color-muted-foreground)" />
+                  <XAxis
+                    dataKey="mes"
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={12}
+                    stroke="var(--color-muted-foreground)"
+                  />
                   <YAxis
                     tickLine={false}
                     axisLine={false}
@@ -227,9 +348,28 @@ function FinanceiroBI() {
                   />
                   <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => brl(v)} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar name="Receita" dataKey="receita" fill="var(--color-chart-2)" radius={[4, 4, 0, 0]} barSize={18} />
-                  <Bar name="Despesa" dataKey="despesa" fill="var(--color-chart-4)" radius={[4, 4, 0, 0]} barSize={18} />
-                  <Line name="EBITDA" type="monotone" dataKey="ebitda" stroke="var(--color-chart-1)" strokeWidth={2} dot={false} />
+                  <Bar
+                    name="Receita"
+                    dataKey="receita"
+                    fill="var(--color-chart-2)"
+                    radius={[4, 4, 0, 0]}
+                    barSize={18}
+                  />
+                  <Bar
+                    name="Despesa"
+                    dataKey="despesa"
+                    fill="var(--color-chart-4)"
+                    radius={[4, 4, 0, 0]}
+                    barSize={18}
+                  />
+                  <Line
+                    name="EBITDA"
+                    type="monotone"
+                    dataKey="ebitda"
+                    stroke="var(--color-chart-1)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -246,7 +386,13 @@ function FinanceiroBI() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                  <XAxis dataKey="dia" tickLine={false} axisLine={false} fontSize={11} stroke="var(--color-muted-foreground)" />
+                  <XAxis
+                    dataKey="dia"
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={11}
+                    stroke="var(--color-muted-foreground)"
+                  />
                   <YAxis
                     tickLine={false}
                     axisLine={false}
@@ -255,7 +401,13 @@ function FinanceiroBI() {
                     tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
                   />
                   <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => brl(v)} />
-                  <Area type="monotone" dataKey="saldo" stroke="var(--color-chart-2)" strokeWidth={2} fill="url(#cx)" />
+                  <Area
+                    type="monotone"
+                    dataKey="saldo"
+                    stroke="var(--color-chart-2)"
+                    strokeWidth={2}
+                    fill="url(#cx)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -267,7 +419,14 @@ function FinanceiroBI() {
             <div className="h-60">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={receitaPorLinha} dataKey="valor" nameKey="linha" innerRadius={48} outerRadius={80} paddingAngle={2}>
+                  <Pie
+                    data={receitaPorLinha}
+                    dataKey="valor"
+                    nameKey="linha"
+                    innerRadius={48}
+                    outerRadius={80}
+                    paddingAngle={2}
+                  >
                     {receitaPorLinha.map((_, i) => (
                       <Cell key={i} fill={PIE[i % PIE.length]} />
                     ))}
@@ -294,19 +453,34 @@ function FinanceiroBI() {
                     width={86}
                     stroke="var(--color-muted-foreground)"
                   />
-                  <Tooltip cursor={{ fill: "var(--color-muted)" }} contentStyle={tooltipStyle} formatter={(v: number) => brl(v)} />
-                  <Bar dataKey="valor" fill="var(--color-chart-2)" radius={[0, 4, 4, 0]} barSize={14} />
+                  <Tooltip
+                    cursor={{ fill: "var(--color-muted)" }}
+                    contentStyle={tooltipStyle}
+                    formatter={(v: number) => brl(v)}
+                  />
+                  <Bar
+                    dataKey="valor"
+                    fill="var(--color-chart-2)"
+                    radius={[0, 4, 4, 0]}
+                    barSize={14}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </Panel>
 
-          <Panel title="Aging da carteira" hint="Recebíveis por faixa de atraso" bodyClassName="p-4">
+          <Panel
+            title="Aging da carteira"
+            hint="Recebíveis por faixa de atraso"
+            bodyClassName="p-4"
+          >
             <div className="space-y-3">
               {aging.map((a, i) => (
                 <div key={a.faixa}>
                   <div className="flex items-baseline justify-between text-sm">
-                    <span className={cn("text-muted-foreground", i > 1 && "text-alert")}>{a.faixa}</span>
+                    <span className={cn("text-muted-foreground", i > 1 && "text-alert")}>
+                      {a.faixa}
+                    </span>
                     <span className="tabular font-medium">{brl(a.valor)}</span>
                   </div>
                   <div className="mt-1.5">
@@ -329,11 +503,16 @@ function FinanceiroBI() {
                       key={d.linha}
                       className={cn(
                         d.tipo === "subtotal" && "bg-muted/40 font-medium",
-                        d.tipo === "resultado" && "bg-primary-soft/60 font-semibold text-primary-deep",
+                        d.tipo === "resultado" &&
+                          "bg-primary-soft/60 font-semibold text-primary-deep",
                       )}
                     >
                       <td className="px-4 py-2">{d.linha}</td>
-                      <td className={cn("px-4 py-2 text-right tabular", d.valor < 0 && "text-alert")}>{brlFull(d.valor)}</td>
+                      <td
+                        className={cn("px-4 py-2 text-right tabular", d.valor < 0 && "text-alert")}
+                      >
+                        {brlFull(d.valor)}
+                      </td>
                       <td className="w-20 px-4 py-2 text-right text-xs text-muted-foreground tabular">
                         {Math.round((Math.abs(d.valor) / 259_400) * 100)}%
                       </td>
@@ -344,7 +523,11 @@ function FinanceiroBI() {
             </div>
           </Panel>
 
-          <Panel title="Orçado x realizado" hint="Centros de custo — mês corrente" bodyClassName="p-0">
+          <Panel
+            title="Orçado x realizado"
+            hint="Centros de custo — mês corrente"
+            bodyClassName="p-0"
+          >
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -364,7 +547,12 @@ function FinanceiroBI() {
                         <td className="px-4 py-2.5">{c.nome}</td>
                         <td className="px-4 py-2.5 tabular">{brl(c.orcado)}</td>
                         <td className="px-4 py-2.5 tabular">{brl(c.realizado)}</td>
-                        <td className={cn("px-4 py-2.5 tabular", varPct > 0 ? "text-alert" : "text-primary")}>
+                        <td
+                          className={cn(
+                            "px-4 py-2.5 tabular",
+                            varPct > 0 ? "text-alert" : "text-primary",
+                          )}
+                        >
                           {varPct > 0 ? "+" : ""}
                           {varPct.toFixed(1)}%
                         </td>
@@ -394,7 +582,9 @@ function FinanceiroBI() {
                     <TrendingDown className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">Pagamento vencido — {p.fornecedor}</p>
+                    <p className="truncate text-sm font-medium">
+                      Pagamento vencido — {p.fornecedor}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {p.descricao} · venceu em {dataBR(p.vencimento)}
                     </p>
@@ -414,7 +604,9 @@ function FinanceiroBI() {
                     <Banknote className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">Recebível em atraso — {r.cliente}</p>
+                    <p className="truncate text-sm font-medium">
+                      Recebível em atraso — {r.cliente}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {r.descricao} · venceu em {dataBR(r.vencimento)}
                     </p>
@@ -435,7 +627,10 @@ function FinanceiroBI() {
             title="Saldos por conta"
             hint="Posição bancária consolidada"
             actions={
-              <Link to="/financeiro/caixa" className="text-xs font-medium text-primary hover:underline">
+              <Link
+                to="/financeiro/caixa"
+                className="text-xs font-medium text-primary hover:underline"
+              >
                 Abrir caixa
               </Link>
             }
@@ -458,7 +653,8 @@ function FinanceiroBI() {
         </div>
 
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <ArrowUpRight className="size-3.5" /> Dados fictícios de demonstração. Exportações em CSV, XLSX, JSON e PDF.
+          <ArrowUpRight className="size-3.5" /> Dados fictícios de demonstração. Exportações em CSV,
+          XLSX, JSON e PDF.
         </p>
       </div>
     </AppShell>

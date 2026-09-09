@@ -20,7 +20,14 @@ function ck(items: ([string, boolean] | EspecItem)[], prefixo = "dck"): Checklis
   return itensChecklist(items, prefixo);
 }
 
-function ev(id: string, quando: string, autor: string, titulo: string, tipo: TimelineEvent["tipo"], detalhe?: string): TimelineEvent {
+function ev(
+  id: string,
+  quando: string,
+  autor: string,
+  titulo: string,
+  tipo: TimelineEvent["tipo"],
+  detalhe?: string,
+): TimelineEvent {
   return { id, quando, autor, titulo, tipo, ...(detalhe ? { detalhe } : {}) };
 }
 
@@ -63,7 +70,8 @@ const c1: Cenario = {
   id: "d1",
   slug: "fluxo-direto",
   titulo: "1 · Fluxo direto",
-  resumo: "Pagamento confirmado, validação concluída e aprovação direta na mesma janela de atendimento.",
+  resumo:
+    "Pagamento confirmado, validação concluída e aprovação direta na mesma janela de atendimento.",
   observar: [
     "Todas as frentes de prontidão em verde, sem exceções aplicadas",
     "Emissão única com pagamento próprio confirmado",
@@ -93,10 +101,38 @@ const c1: Cenario = {
     ]),
     timeline: [
       ev("d1t1", dia(-2) + " 09:04", "Sistema", "Pedido criado pelo site", "sistema"),
-      ev("d1t2", dia(-2) + " 09:11", "Financeiro", "Pagamento Pix confirmado", "sistema", "R$ 159,00 · conciliado automaticamente"),
-      ev("d1t3", dia(-2) + " 10:32", "Marina Duarte", "Validação concluída", "humano", "Videoconferência de 12 min, biometria aprovada"),
-      ev("d1t4", dia(-2) + " 10:40", "Marina Duarte", "Aprovação direta", "humano", "Dossiê suficiente, sem nova coleta"),
-      ev("d1t5", dia(-2) + " 10:52", "Sistema", "Emissão confirmada e instruções enviadas", "sistema", "Série S-448120 · instruções de acesso enviadas pela AC"),
+      ev(
+        "d1t2",
+        dia(-2) + " 09:11",
+        "Financeiro",
+        "Pagamento Pix confirmado",
+        "sistema",
+        "R$ 159,00 · conciliado automaticamente",
+      ),
+      ev(
+        "d1t3",
+        dia(-2) + " 10:32",
+        "Marina Duarte",
+        "Validação concluída",
+        "humano",
+        "Videoconferência de 12 min, biometria aprovada",
+      ),
+      ev(
+        "d1t4",
+        dia(-2) + " 10:40",
+        "Marina Duarte",
+        "Aprovação direta",
+        "humano",
+        "Dossiê suficiente, sem nova coleta",
+      ),
+      ev(
+        "d1t5",
+        dia(-2) + " 10:52",
+        "Sistema",
+        "Emissão confirmada e instruções enviadas",
+        "sistema",
+        "Série S-448120 · instruções de acesso enviadas pela AC",
+      ),
     ],
   },
   emissoes: [
@@ -128,7 +164,8 @@ const c2: Cenario = {
   id: "d2",
   slug: "pagamento-pendente",
   titulo: "2 · Pagamento pendente",
-  resumo: "Atendimento e videoconferência concluídos, mas a aprovação está travada aguardando liberação comercial.",
+  resumo:
+    "Atendimento e videoconferência concluídos, mas a aprovação está travada aguardando liberação comercial.",
   observar: [
     "Prontidão de atendimento e regulatória concluídas",
     "Prontidão financeira pendente bloqueia a emissão",
@@ -158,8 +195,22 @@ const c2: Cenario = {
     ]),
     timeline: [
       ev("d2t1", dia(-3) + " 08:15", "Diego Nunes", "Atendimento iniciado", "humano"),
-      ev("d2t2", dia(-2) + " 15:00", "Marina Duarte", "Videoconferência concluída", "humano", "Titular identificado, ata arquivada"),
-      ev("d2t3", dia(-1) + " 09:00", "Sistema", "Emissão retida", "alerta", "Boleto da própria emissão ainda não compensado"),
+      ev(
+        "d2t2",
+        dia(-2) + " 15:00",
+        "Marina Duarte",
+        "Videoconferência concluída",
+        "humano",
+        "Titular identificado, ata arquivada",
+      ),
+      ev(
+        "d2t3",
+        dia(-1) + " 09:00",
+        "Sistema",
+        "Emissão retida",
+        "alerta",
+        "Boleto da própria emissão ainda não compensado",
+      ),
     ],
   },
   emissoes: [
@@ -212,7 +263,8 @@ const c3: Cenario = {
   id: "d3",
   slug: "dossie-divergente",
   titulo: "3 · Dossiê divergente",
-  resumo: "Validação concluída, dossiê enviado e devolvido pela verificadora com motivo estruturado.",
+  resumo:
+    "Validação concluída, dossiê enviado e devolvido pela verificadora com motivo estruturado.",
   observar: [
     "Aba Dossiê mostra o item divergente, a versão e a origem",
     "Histórico de devoluções com autor, data e motivo estruturado",
@@ -240,10 +292,23 @@ const c3: Cenario = {
       ["Comprovante de endereço legível", false],
     ]),
     timeline: [
-      ev("d3t1", dia(-4) + " 10:00", "Parceiro Cert+", "Caso encaminhado pela contabilidade", "sistema"),
+      ev(
+        "d3t1",
+        dia(-4) + " 10:00",
+        "Parceiro Cert+",
+        "Caso encaminhado pela contabilidade",
+        "sistema",
+      ),
       ev("d3t2", dia(-2) + " 11:20", "Marina Duarte", "Validação concluída", "humano"),
       ev("d3t3", dia(-2) + " 11:35", "Carolina Ito", "Dossiê enviado para verificação", "sistema"),
-      ev("d3t4", dia(-1) + " 08:45", "Rafael Bastos", "Dossiê devolvido pela verificadora", "alerta", "Motivo: comprovante de endereço com data superior a 90 dias"),
+      ev(
+        "d3t4",
+        dia(-1) + " 08:45",
+        "Rafael Bastos",
+        "Dossiê devolvido pela verificadora",
+        "alerta",
+        "Motivo: comprovante de endereço com data superior a 90 dias",
+      ),
     ],
   },
   emissoes: [
@@ -271,9 +336,30 @@ const c3: Cenario = {
     montadora: "Carolina Ito",
     verificadora: "Rafael Bastos",
     itens: [
-      { id: "d3-i1", nome: "Contrato social consolidado", obrigatorio: true, versao: 2, origem: "Contabilidade parceira", status: "aprovado" },
-      { id: "d3-i2", nome: "Documento de identidade do representante", obrigatorio: true, versao: 1, origem: "Portal do cliente", status: "aprovado" },
-      { id: "d3-i3", nome: "CPF do representante", obrigatorio: true, versao: 1, origem: "Portal do cliente", status: "aprovado" },
+      {
+        id: "d3-i1",
+        nome: "Contrato social consolidado",
+        obrigatorio: true,
+        versao: 2,
+        origem: "Contabilidade parceira",
+        status: "aprovado",
+      },
+      {
+        id: "d3-i2",
+        nome: "Documento de identidade do representante",
+        obrigatorio: true,
+        versao: 1,
+        origem: "Portal do cliente",
+        status: "aprovado",
+      },
+      {
+        id: "d3-i3",
+        nome: "CPF do representante",
+        obrigatorio: true,
+        versao: 1,
+        origem: "Portal do cliente",
+        status: "aprovado",
+      },
       {
         id: "d3-i4",
         nome: "Comprovante de endereço",
@@ -281,13 +367,31 @@ const c3: Cenario = {
         versao: 3,
         origem: "WhatsApp",
         status: "divergente",
-        divergencia: "Documento com emissão superior a 90 dias — exigência da política de validação",
+        divergencia:
+          "Documento com emissão superior a 90 dias — exigência da política de validação",
       },
-      { id: "d3-i5", nome: "Procuração (se aplicável)", obrigatorio: false, versao: 1, origem: "Balcão", status: "aprovado" },
+      {
+        id: "d3-i5",
+        nome: "Procuração (se aplicável)",
+        obrigatorio: false,
+        versao: 1,
+        origem: "Balcão",
+        status: "aprovado",
+      },
     ],
     devolucoes: [
-      { id: "d3-dev1", quando: dia(-1) + " 08:45", por: "Rafael Bastos (verificadora)", motivo: "Comprovante de endereço vencido — reenviar documento com até 90 dias" },
-      { id: "d3-dev2", quando: dia(-3) + " 16:10", por: "Rafael Bastos (verificadora)", motivo: "Contrato social sem a última alteração registrada" },
+      {
+        id: "d3-dev1",
+        quando: dia(-1) + " 08:45",
+        por: "Rafael Bastos (verificadora)",
+        motivo: "Comprovante de endereço vencido — reenviar documento com até 90 dias",
+      },
+      {
+        id: "d3-dev2",
+        quando: dia(-3) + " 16:10",
+        por: "Rafael Bastos (verificadora)",
+        motivo: "Contrato social sem a última alteração registrada",
+      },
     ],
     segregacaoOk: true,
   },
@@ -309,7 +413,8 @@ const c4: Cenario = {
   id: "d4",
   slug: "bird-mais-produto",
   titulo: "4 · BIRD + produto final",
-  resumo: "BIRD ID concluído e gratuito; o e-CNPJ relacionado continua em preparação, com pagamento próprio.",
+  resumo:
+    "BIRD ID concluído e gratuito; o e-CNPJ relacionado continua em preparação, com pagamento próprio.",
   observar: [
     "Duas emissões no mesmo caso, com ciclos totalmente separados",
     "O valor zero do BIRD não libera nada na segunda emissão",
@@ -338,9 +443,30 @@ const c4: Cenario = {
       ["Procuração do responsável técnico", false],
     ]),
     timeline: [
-      ev("d4t1", dia(-2) + " 14:10", "Diego Nunes", "Caso aberto com dois produtos", "humano", "BIRD ID cortesia + e-CNPJ A1 faturado"),
-      ev("d4t2", dia(-2) + " 15:02", "Sistema", "BIRD ID emitido", "sistema", "Cortesia autorizada · R$ 0,00"),
-      ev("d4t3", dia(-1) + " 09:30", "Sistema", "e-CNPJ aguardando pagamento próprio", "alerta", "Cortesia do BIRD não se aplica a esta emissão"),
+      ev(
+        "d4t1",
+        dia(-2) + " 14:10",
+        "Diego Nunes",
+        "Caso aberto com dois produtos",
+        "humano",
+        "BIRD ID cortesia + e-CNPJ A1 faturado",
+      ),
+      ev(
+        "d4t2",
+        dia(-2) + " 15:02",
+        "Sistema",
+        "BIRD ID emitido",
+        "sistema",
+        "Cortesia autorizada · R$ 0,00",
+      ),
+      ev(
+        "d4t3",
+        dia(-1) + " 09:30",
+        "Sistema",
+        "e-CNPJ aguardando pagamento próprio",
+        "alerta",
+        "Cortesia do BIRD não se aplica a esta emissão",
+      ),
     ],
   },
   emissoes: [
@@ -370,7 +496,10 @@ const c4: Cenario = {
       modalidade: "A1 · arquivo",
       condicaoComercial: "Proposta comercial em aprovação · R$ 289,00",
       valor: 289,
-      pagamento: { estado: "pendente", detalhe: "Pagamento próprio — não herda a cortesia do BIRD" },
+      pagamento: {
+        estado: "pendente",
+        detalhe: "Pagamento próprio — não herda a cortesia do BIRD",
+      },
       validacao: "pendente",
       dossie: "pendente",
       emissao: "bloqueado",
@@ -435,9 +564,29 @@ const c5: Cenario = {
       ["Titular presente na videoconferência", false],
     ]),
     timeline: [
-      ev("d5t1", dia(-3) + " 10:00", "Sistema", "Videoconferência agendada", "sistema", dia(-1) + " às 15:00"),
-      ev("d5t2", dia(-1) + " 15:15", "Marina Duarte", "No-show registrado", "alerta", "Titular ausente após 15 min de tolerância"),
-      ev("d5t3", dia(-1) + " 15:16", "Sistema", "Tarefa de reagendamento criada para a VI", "sistema"),
+      ev(
+        "d5t1",
+        dia(-3) + " 10:00",
+        "Sistema",
+        "Videoconferência agendada",
+        "sistema",
+        dia(-1) + " às 15:00",
+      ),
+      ev(
+        "d5t2",
+        dia(-1) + " 15:15",
+        "Marina Duarte",
+        "No-show registrado",
+        "alerta",
+        "Titular ausente após 15 min de tolerância",
+      ),
+      ev(
+        "d5t3",
+        dia(-1) + " 15:16",
+        "Sistema",
+        "Tarefa de reagendamento criada para a VI",
+        "sistema",
+      ),
     ],
   },
   emissoes: [
@@ -468,7 +617,10 @@ const c5: Cenario = {
       falta: ["Reagendar a videoconferência com o titular"],
       quemAge: "Vendas Indiretas (VI)",
     },
-    regulatoria: { estado: "bloqueado", falta: ["Identificação do titular não realizada (no-show)"] },
+    regulatoria: {
+      estado: "bloqueado",
+      falta: ["Identificação do titular não realizada (no-show)"],
+    },
   },
   tarefa: {
     acao: "Reagendar videoconferência",
@@ -530,9 +682,30 @@ const c6: Cenario = {
       ["Entrega confirmada pelo titular", false],
     ]),
     timeline: [
-      ev("d6t1", dia(-2) + " 11:00", "Marina Duarte", "Certificado emitido", "humano", "Série S-771043"),
-      ev("d6t2", dia(-2) + " 11:02", "Sistema", "Falha no envio automático", "alerta", "Integração de e-mail retornou 550 — o endereço do titular recusou a mensagem de instruções"),
-      ev("d6t3", dia(-2) + " 11:05", "Sistema", "Tarefa de envio manual criada", "sistema", "Atribuída ao suporte de entrega"),
+      ev(
+        "d6t1",
+        dia(-2) + " 11:00",
+        "Marina Duarte",
+        "Certificado emitido",
+        "humano",
+        "Série S-771043",
+      ),
+      ev(
+        "d6t2",
+        dia(-2) + " 11:02",
+        "Sistema",
+        "Falha no envio automático",
+        "alerta",
+        "Integração de e-mail retornou 550 — o endereço do titular recusou a mensagem de instruções",
+      ),
+      ev(
+        "d6t3",
+        dia(-2) + " 11:05",
+        "Sistema",
+        "Tarefa de envio manual criada",
+        "sistema",
+        "Atribuída ao suporte de entrega",
+      ),
     ],
   },
   emissoes: [
@@ -582,7 +755,8 @@ const c7: Cenario = {
   id: "d7",
   slug: "revogacao-posterior",
   titulo: "7 · Revogação posterior",
-  resumo: "Caso operacionalmente concluído; a revogação foi aberta depois, sem apagar nem reabrir a conclusão original.",
+  resumo:
+    "Caso operacionalmente concluído; a revogação foi aberta depois, sem apagar nem reabrir a conclusão original.",
   observar: [
     "A conclusão original permanece registrada e datada",
     "A revogação aparece como ciclo próprio da emissão",
@@ -610,10 +784,37 @@ const c7: Cenario = {
       ["Entrega confirmada pelo titular", true],
     ]),
     timeline: [
-      ev("d7t1", dia(-28) + " 16:20", "Marina Duarte", "Certificado emitido e entregue", "humano", "Série S-330912 · válido por 3 anos"),
-      ev("d7t2", dia(-28) + " 16:45", "Cliente", "Funcionamento confirmado pelo titular", "cliente"),
-      ev("d7t3", dia(-1) + " 09:10", "Helena Prado", "Pedido de revogação aberto", "alerta", "Desligamento do responsável técnico — solicitação formal da empresa"),
-      ev("d7t4", dia(-1) + " 09:12", "Sistema", "Conclusão original preservada", "sistema", "A revogação é um ciclo novo da mesma emissão"),
+      ev(
+        "d7t1",
+        dia(-28) + " 16:20",
+        "Marina Duarte",
+        "Certificado emitido e entregue",
+        "humano",
+        "Série S-330912 · válido por 3 anos",
+      ),
+      ev(
+        "d7t2",
+        dia(-28) + " 16:45",
+        "Cliente",
+        "Funcionamento confirmado pelo titular",
+        "cliente",
+      ),
+      ev(
+        "d7t3",
+        dia(-1) + " 09:10",
+        "Helena Prado",
+        "Pedido de revogação aberto",
+        "alerta",
+        "Desligamento do responsável técnico — solicitação formal da empresa",
+      ),
+      ev(
+        "d7t4",
+        dia(-1) + " 09:12",
+        "Sistema",
+        "Conclusão original preservada",
+        "sistema",
+        "A revogação é um ciclo novo da mesma emissão",
+      ),
     ],
   },
   emissoes: [
@@ -632,12 +833,19 @@ const c7: Cenario = {
       emissao: "concluido",
       entrega: "concluido",
       instalacao: "concluido",
-      revogacao: { estado: "pendente", detalhe: "Pedido aberto em " + dia(-1) + " — aguardando autorização da conformidade" },
+      revogacao: {
+        estado: "pendente",
+        detalhe: "Pedido aberto em " + dia(-1) + " — aguardando autorização da conformidade",
+      },
       principal: true,
     },
   ],
   prontidao: {
-    entrega: { estado: "concluido", concluido: ["Certificado entregue e confirmado pelo titular"], falta: [] },
+    entrega: {
+      estado: "concluido",
+      concluido: ["Certificado entregue e confirmado pelo titular"],
+      falta: [],
+    },
   },
   tarefa: {
     acao: "Autorizar revogação",
@@ -657,7 +865,8 @@ const c8: Cenario = {
   id: "d8",
   slug: "suspeita-de-fraude",
   titulo: "8 · Suspeita de fraude",
-  resumo: "Emissão bloqueada, visibilidade restrita, evidências registradas — nenhuma exceção comercial libera o caso.",
+  resumo:
+    "Emissão bloqueada, visibilidade restrita, evidências registradas — nenhuma exceção comercial libera o caso.",
   observar: [
     "Bloqueio absoluto: a exceção comercial aparece indisponível",
     "Visibilidade restrita à conformidade, com aviso explícito",
@@ -685,9 +894,30 @@ const c8: Cenario = {
       ["Parecer da conformidade", false],
     ]),
     timeline: [
-      ev("d8t1", dia(-2) + " 13:40", "Sistema", "Divergência biométrica detectada", "alerta", "Score de similaridade 0,42 — abaixo do mínimo de 0,80"),
-      ev("d8t2", dia(-2) + " 14:05", "Helena Prado", "Suspeita de fraude escalada", "alerta", "Caso congelado e visibilidade restrita à conformidade"),
-      ev("d8t3", dia(-1) + " 10:00", "Helena Prado", "Exceção comercial recusada pelo sistema", "alerta", "Bloqueio de conformidade não pode ser superado por alçada comercial"),
+      ev(
+        "d8t1",
+        dia(-2) + " 13:40",
+        "Sistema",
+        "Divergência biométrica detectada",
+        "alerta",
+        "Score de similaridade 0,42 — abaixo do mínimo de 0,80",
+      ),
+      ev(
+        "d8t2",
+        dia(-2) + " 14:05",
+        "Helena Prado",
+        "Suspeita de fraude escalada",
+        "alerta",
+        "Caso congelado e visibilidade restrita à conformidade",
+      ),
+      ev(
+        "d8t3",
+        dia(-1) + " 10:00",
+        "Helena Prado",
+        "Exceção comercial recusada pelo sistema",
+        "alerta",
+        "Bloqueio de conformidade não pode ser superado por alçada comercial",
+      ),
     ],
   },
   emissoes: [
@@ -732,14 +962,29 @@ const c8: Cenario = {
   proximaAcao: "Concluir apuração de fraude",
   bloqueioAbsoluto:
     "Caso congelado por suspeita de fraude. Nenhuma exceção comercial, desconto ou alçada libera a emissão — só o parecer da conformidade.",
-  visibilidadeRestrita: "Visível apenas para Conformidade e Direção. Demais perfis veem apenas o número do caso.",
+  visibilidadeRestrita:
+    "Visível apenas para Conformidade e Direção. Demais perfis veem apenas o número do caso.",
   evidencias: [
-    { id: "d8-ev1", quando: dia(-2) + " 13:40", por: "Motor antifraude", texto: "Selfie e documento com score de similaridade 0,42 (mínimo 0,80)." },
-    { id: "d8-ev2", quando: dia(-2) + " 13:55", por: "Helena Prado", texto: "Contrato social apresenta assinatura divergente da base pública." },
-    { id: "d8-ev3", quando: dia(-1) + " 10:00", por: "Sistema", texto: "Tentativa de exceção comercial registrada e recusada automaticamente." },
+    {
+      id: "d8-ev1",
+      quando: dia(-2) + " 13:40",
+      por: "Motor antifraude",
+      texto: "Selfie e documento com score de similaridade 0,42 (mínimo 0,80).",
+    },
+    {
+      id: "d8-ev2",
+      quando: dia(-2) + " 13:55",
+      por: "Helena Prado",
+      texto: "Contrato social apresenta assinatura divergente da base pública.",
+    },
+    {
+      id: "d8-ev3",
+      quando: dia(-1) + " 10:00",
+      por: "Sistema",
+      texto: "Tentativa de exceção comercial registrada e recusada automaticamente.",
+    },
   ],
 };
-
 
 // --------------------------------- 9 a 15 · ciclo da emissão ponto a ponto
 
@@ -775,7 +1020,8 @@ function demo(d: DemoInput): Cenario {
     id: emissaoId,
     produto: d.produto,
     titular: d.cliente,
-    papelTitular: d.produto.includes("CNPJ") || d.produto.includes("PJ") ? "Representante legal" : "Titular",
+    papelTitular:
+      d.produto.includes("CNPJ") || d.produto.includes("PJ") ? "Representante legal" : "Titular",
     ac: "AC Certus RFB",
     modalidade: d.produto.endsWith("A3") ? "A3 · mídia criptográfica" : "A1 · arquivo",
     condicaoComercial: `Tabela balcão · ${d.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
@@ -875,14 +1121,23 @@ const c9 = demo({
     aguardando: "Segundo operador precisa conferir os dados e o comprovante",
     proximoResponsavel: "Carolina Ito",
   },
-  historico: [["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9009, série S-909442, aguardando conferência"]],
+  historico: [
+    [
+      "t1",
+      "09:20",
+      "Marina Duarte",
+      "humano",
+      "Emissão manual registrada — protocolo AC-9009, série S-909442, aguardando conferência",
+    ],
+  ],
 });
 
 const c10 = demo({
   n: 10,
   slug: "emissao-devolvida",
   titulo: "Emissão devolvida pelo segundo operador",
-  resumo: "A conferência apontou divergência entre o número de série e o comprovante e devolveu o registro.",
+  resumo:
+    "A conferência apontou divergência entre o número de série e o comprovante e devolveu o registro.",
   observar: [
     "Motivo da devolução visível no registro e na trilha",
     "Entrega continua bloqueada",
@@ -914,7 +1169,13 @@ const c10 = demo({
   },
   historico: [
     ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — série S-9010442"],
-    ["t2", "10:05", "Carolina Ito", "alerta", "Emissão devolvida na conferência — série não confere com o comprovante"],
+    [
+      "t2",
+      "10:05",
+      "Carolina Ito",
+      "alerta",
+      "Emissão devolvida na conferência — série não confere com o comprovante",
+    ],
   ],
 });
 
@@ -922,7 +1183,8 @@ const c11 = demo({
   n: 11,
   slug: "entrega-pela-ac",
   titulo: "AC responsável pelo envio",
-  resumo: "Emissão confirmada e entrega definida como responsabilidade da AC, que comunica o titular pelos canais dela.",
+  resumo:
+    "Emissão confirmada e entrega definida como responsabilidade da AC, que comunica o titular pelos canais dela.",
   observar: [
     "Forma de entrega registrada: a AC enviará as instruções",
     "A AR acompanha a confirmação, sem transportar o certificado",
@@ -938,7 +1200,11 @@ const c11 = demo({
   proximaAcao: "Confirmar instalação e funcionamento",
   registro: {
     conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "10:10") },
-    entrega: { modo: "ac-envia", referencia: "AC-ENV-3391", por: autor("a2", "Rafael Bastos", "10:20") },
+    entrega: {
+      modo: "ac-envia",
+      referencia: "AC-ENV-3391",
+      por: autor("a2", "Rafael Bastos", "10:20"),
+    },
   },
   tarefa: {
     acao: "Acompanhar comunicação da AC",
@@ -951,7 +1217,13 @@ const c11 = demo({
   historico: [
     ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9011"],
     ["t2", "10:10", "Carolina Ito", "humano", "Emissão conferida e confirmada — entrega liberada"],
-    ["t3", "10:20", "Rafael Bastos", "humano", "Entrega definida — a AC enviará as instruções ao titular"],
+    [
+      "t3",
+      "10:20",
+      "Rafael Bastos",
+      "humano",
+      "Entrega definida — a AC enviará as instruções ao titular",
+    ],
   ],
 });
 
@@ -959,7 +1231,8 @@ const c12 = demo({
   n: 12,
   slug: "entrega-link-certus",
   titulo: "Instruções por link seguro da Certus",
-  resumo: "Entrega pelo canal homologado da Certus: apenas instruções e link seguro, nunca o arquivo do certificado.",
+  resumo:
+    "Entrega pelo canal homologado da Certus: apenas instruções e link seguro, nunca o arquivo do certificado.",
   observar: [
     "Forma de entrega: Certus envia instruções e link seguro aprovado",
     "Nenhum campo pede senha, PIN ou arquivo do certificado",
@@ -975,7 +1248,11 @@ const c12 = demo({
   proximaAcao: "Confirmar entrega ao titular",
   registro: {
     conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "11:02") },
-    entrega: { modo: "certus-link", referencia: "ENV-2026-4471", por: autor("a2", "Rafael Bastos", "11:14") },
+    entrega: {
+      modo: "certus-link",
+      referencia: "ENV-2026-4471",
+      por: autor("a2", "Rafael Bastos", "11:14"),
+    },
   },
   tarefa: {
     acao: "Confirmar recebimento com o titular",
@@ -988,7 +1265,13 @@ const c12 = demo({
   historico: [
     ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9012"],
     ["t2", "11:02", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
-    ["t3", "11:14", "Rafael Bastos", "humano", "Instruções e link seguro enviados pelo canal Certus"],
+    [
+      "t3",
+      "11:14",
+      "Rafael Bastos",
+      "humano",
+      "Instruções e link seguro enviados pelo canal Certus",
+    ],
   ],
 });
 
@@ -996,7 +1279,8 @@ const c13 = demo({
   n: 13,
   slug: "falha-envio-tarefa-manual",
   titulo: "Falha de envio com tarefa manual",
-  resumo: "O disparo no portal da AC falhou e a operação abriu tarefa manual de reenvio para o suporte.",
+  resumo:
+    "O disparo no portal da AC falhou e a operação abriu tarefa manual de reenvio para o suporte.",
   observar: [
     "Falha registrada dentro do ciclo da emissão",
     "Emissão segue confirmada; apenas a entrega está pendente",
@@ -1031,7 +1315,13 @@ const c13 = demo({
   historico: [
     ["t1", "08:20", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9013"],
     ["t2", "08:40", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
-    ["t3", "08:55", "Sistema", "alerta", "Falha no disparo das instruções — erro 550 no portal da AC"],
+    [
+      "t3",
+      "08:55",
+      "Sistema",
+      "alerta",
+      "Falha no disparo das instruções — erro 550 no portal da AC",
+    ],
   ],
 });
 
@@ -1039,7 +1329,8 @@ const c14 = demo({
   n: 14,
   slug: "emitido-nao-instalado",
   titulo: "Emitido, entregue e ainda não instalado",
-  resumo: "O titular recebeu as instruções, mas ainda não confirmou instalação e funcionamento. O caso não conclui.",
+  resumo:
+    "O titular recebeu as instruções, mas ainda não confirmou instalação e funcionamento. O caso não conclui.",
   observar: [
     "Estado da emissão: Entregue",
     "Caso permanece aberto — conclusão exige todas as emissões em uso",
@@ -1055,7 +1346,11 @@ const c14 = demo({
   proximaAcao: "Confirmar instalação e funcionamento",
   registro: {
     conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "14:05") },
-    entrega: { modo: "certus-link", referencia: "ENV-2026-4480", por: autor("a2", "Rafael Bastos", "14:20") },
+    entrega: {
+      modo: "certus-link",
+      referencia: "ENV-2026-4480",
+      por: autor("a2", "Rafael Bastos", "14:20"),
+    },
     entregue: autor("a2", "Rafael Bastos", "15:02"),
   },
   tarefa: {
@@ -1069,7 +1364,13 @@ const c14 = demo({
   historico: [
     ["t1", "13:40", "Marina Duarte", "humano", "Emissão manual registrada — protocolo AC-9014"],
     ["t2", "14:05", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
-    ["t3", "15:02", "Rafael Bastos", "humano", "Entrega confirmada — instruções acessadas pelo titular"],
+    [
+      "t3",
+      "15:02",
+      "Rafael Bastos",
+      "humano",
+      "Entrega confirmada — instruções acessadas pelo titular",
+    ],
   ],
 });
 
@@ -1077,7 +1378,8 @@ const c15 = demo({
   n: 15,
   slug: "duas-emissoes-estados-diferentes",
   titulo: "Duas emissões no mesmo caso em estados diferentes",
-  resumo: "A emissão do e-CNPJ já está em uso; a segunda, criada por elegibilidade, está travada no próprio pagamento.",
+  resumo:
+    "A emissão do e-CNPJ já está em uso; a segunda, criada por elegibilidade, está travada no próprio pagamento.",
   observar: [
     "Cada emissão mostra o próprio ciclo, pagamento e bloqueio",
     "O caso não conclui enquanto a segunda emissão não estiver em uso",
@@ -1094,9 +1396,16 @@ const c15 = demo({
   bloqueio: "Segunda emissão parada no próprio pagamento",
   registro: {
     conferencia: { decisao: "confirmada", por: autor("a3", "Carolina Ito", "09:50") },
-    entrega: { modo: "ac-envia", referencia: "AC-ENV-3400", por: autor("a2", "Rafael Bastos", "10:00") },
+    entrega: {
+      modo: "ac-envia",
+      referencia: "AC-ENV-3400",
+      por: autor("a2", "Rafael Bastos", "10:00"),
+    },
     entregue: autor("a2", "Rafael Bastos", "10:30"),
-    instalacao: { ...autor("a2", "Rafael Bastos", "11:00"), observacao: "Assinatura de teste validada com o titular." },
+    instalacao: {
+      ...autor("a2", "Rafael Bastos", "11:00"),
+      observacao: "Assinatura de teste validada com o titular.",
+    },
     emUso: autor("a2", "Rafael Bastos", "11:05"),
   },
   tarefa: {
@@ -1111,7 +1420,13 @@ const c15 = demo({
     ["t1", "09:20", "Marina Duarte", "humano", "Emissão manual registrada — e-CNPJ A1"],
     ["t2", "09:50", "Carolina Ito", "humano", "Emissão conferida e confirmada"],
     ["t3", "11:05", "Rafael Bastos", "humano", "Certificado em uso pelo titular"],
-    ["t4", "11:30", "Helena Prado", "alerta", "Segunda emissão criada por elegibilidade — pagamento próprio em aberto"],
+    [
+      "t4",
+      "11:30",
+      "Helena Prado",
+      "alerta",
+      "Segunda emissão criada por elegibilidade — pagamento próprio em aberto",
+    ],
   ],
   extra: [
     {
@@ -1123,7 +1438,10 @@ const c15 = demo({
       modalidade: "A1 · arquivo",
       condicaoComercial: "Tabela balcão · R$ 159,00",
       valor: 159,
-      pagamento: { estado: "pendente", detalhe: "Boleto em aberto — pagamento próprio desta emissão" },
+      pagamento: {
+        estado: "pendente",
+        detalhe: "Boleto em aberto — pagamento próprio desta emissão",
+      },
       validacao: "pendente",
       dossie: "pendente",
       emissao: "bloqueado",
@@ -1186,6 +1504,8 @@ const c16: Cenario = {
         validadeDias: 90,
         bloqueia: "Enviar dossiê para verificação",
         responsavel: "Montadora de dossiê",
+        origemRegra: "ac",
+        politicaNaoAplicavel: "nao_permitida",
       },
       {
         label: "Contrato social da empresa",
@@ -1193,9 +1513,11 @@ const c16: Cenario = {
         categoriaDoc: "contrato-social",
         escopo: "organizacao",
         obrigatorio: false,
+        politicaNaoAplicavel: "automatica",
         naoAplicavel: {
           motivo: "Produto e-CPF não exige documentação societária.",
           regra: "Regra do produto — e-CPF pessoa física",
+          tipo: "regra",
         },
       },
       {
@@ -1292,9 +1614,30 @@ const c16: Cenario = {
     ]),
     timeline: [
       ev("d16t1", dia(-3) + " 08:40", "Sistema", "Pedido criado por telefone", "sistema"),
-      ev("d16t2", dia(-1) + " 09:02", "Integração Certus", "Retorno automático da Receita Federal", "sistema", "CPF regular"),
-      ev("d16t3", dia(-1) + " 14:22", "Marina Duarte", "Consulta à Lista Negativa registrada manualmente", "humano", "Nada consta · protocolo LN-88213"),
-      ev("d16t4", dia(-1) + " 10:44", "Carolina Ito", "Requisito reaberto: Termo de titularidade assinado", "alerta", "Histórico e evidência anteriores preservados"),
+      ev(
+        "d16t2",
+        dia(-1) + " 09:02",
+        "Integração Certus",
+        "Retorno automático da Receita Federal",
+        "sistema",
+        "CPF regular",
+      ),
+      ev(
+        "d16t3",
+        dia(-1) + " 14:22",
+        "Marina Duarte",
+        "Consulta à Lista Negativa registrada manualmente",
+        "humano",
+        "Nada consta · protocolo LN-88213",
+      ),
+      ev(
+        "d16t4",
+        dia(-1) + " 10:44",
+        "Carolina Ito",
+        "Requisito reaberto: Termo de titularidade assinado",
+        "alerta",
+        "Histórico e evidência anteriores preservados",
+      ),
     ],
   },
   emissoes: [
@@ -1327,7 +1670,10 @@ const c16: Cenario = {
       modalidade: "A1 · arquivo",
       condicaoComercial: "Tabela balcão · R$ 289,00",
       valor: 289,
-      pagamento: { estado: "pendente", detalhe: "Boleto em aberto — pagamento próprio desta emissão" },
+      pagamento: {
+        estado: "pendente",
+        detalhe: "Boleto em aberto — pagamento próprio desta emissão",
+      },
       validacao: "pendente",
       dossie: "pendente",
       emissao: "bloqueado",
@@ -1351,7 +1697,24 @@ const c16: Cenario = {
   },
 };
 
-export const cenarios: Cenario[] = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16];
+export const cenarios: Cenario[] = [
+  c1,
+  c2,
+  c3,
+  c4,
+  c5,
+  c6,
+  c7,
+  c8,
+  c9,
+  c10,
+  c11,
+  c12,
+  c13,
+  c14,
+  c15,
+  c16,
+];
 
 export const cenarioRegistros = cenarios.flatMap((c) => c.registros ?? []);
 

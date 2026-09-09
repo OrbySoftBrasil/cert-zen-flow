@@ -36,7 +36,8 @@ export const MARCOS: MarcoCanonico[] = [
     nome: "Preparação",
     proposito:
       "Dossiê, agendamento e pré-requisitos. Subfluxo condicional: pode correr em paralelo à validação quando o perfil homologado permitir.",
-    invariante: "Precede obrigatoriamente a Validação.",
+    invariante:
+      "Subfluxo regulado condicional: a validação pode ocorrer antes do dossiê completo quando o perfil homologado permitir, mas a emissão segue protegida pelos portões aplicáveis.",
   },
   {
     id: "validacao",
@@ -236,11 +237,7 @@ let seq = 0;
 const uid = (p: string) =>
   `${p}-${(seq += 1).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-function ck(
-  label: string,
-  obrigatorio = true,
-  cfg: Partial<ItemChecklist> = {},
-): ItemChecklist {
+function ck(label: string, obrigatorio = true, cfg: Partial<ItemChecklist> = {}): ItemChecklist {
   return {
     id: uid("ck"),
     label,
@@ -690,6 +687,58 @@ export function validarPublicacao(perfil: PerfilOperacional): AchadoPublicacao[]
     }
   }
 
+  // Consistência dos itens tipados: o modo escolhido precisa ter o que executar.
+  for (const e of ativas) {
+    for (const i of e.checklist) {
+      const falta =
+        (i.modo === "documento" && !i.categoriaDoc && "categoria documental") ||
+        (i.modo === "derivado" && !i.chaveDerivada && "estado do sistema de origem") ||
+        (i.modo === "acao" && !i.acaoProduto && "ação estruturada do produto") ||
+        null;
+      if (falta) {
+        achados.push({
+          id: `modo-${e.id}-${i.id}`,
+          tipo: "erro",
+          titulo: `“${i.label}” sem ${falta}`,
+          detalhe: `Item configurado como ${i.modo} na etapa “${e.nome}” mas sem o que o cumpre.`,
+          comoResolver: `Abra “Como este item é cumprido?” e informe a ${falta}.`,
+        });
+      }
+      if (i.obrigatorio && !i.bloqueia && i.modo !== "orientacao") {
+        achados.push({
+          id: `gate-${e.id}-${i.id}`,
+          tipo: "aviso",
+          titulo: `“${i.label}” é obrigatório mas não protege nenhuma ação`,
+          detalhe: "Um requisito obrigatório sem ação protegida não bloqueia nada na operação.",
+          comoResolver: "Escolha a ação que este requisito bloqueia enquanto estiver pendente.",
+        });
+      }
+      if (i.modo === "orientacao" && i.obrigatorio) {
+        achados.push({
+          id: `orient-${e.id}-${i.id}`,
+          tipo: "erro",
+          titulo: `Orientação “${i.label}” marcada como obrigatória`,
+          detalhe: "Orientações são informativas e não possuem ação de conclusão.",
+          comoResolver: "Desmarque a obrigatoriedade ou escolha outro modo de cumprimento.",
+        });
+      }
+      if (
+        !ORIGENS[i.origemItem].editavel &&
+        i.reutilizacao === "permitida" &&
+        i.modo === "documento" &&
+        !i.validadeDias
+      ) {
+        achados.push({
+          id: `val-${e.id}-${i.id}`,
+          tipo: "aviso",
+          titulo: `“${i.label}” reutilizável sem validade definida`,
+          detalhe: "Regra de plataforma ou da AC deve limitar a idade da evidência reaproveitada.",
+          comoResolver: "Informe a validade máxima da evidência.",
+        });
+      }
+    }
+  }
+
   for (const m of MARCOS) {
     if (!ativas.some((e) => e.marco === m.id)) {
       achados.push({
@@ -999,4 +1048,49 @@ export function simular(perfil: PerfilOperacional, cenario: Cenario): ResultadoS
         },
     proximaAcao: cenario.proximaAcao,
   };
+}
+
+/* ------------------------------------ Perfil publicado -> checklist do caso */
+
+/** Etapa operacional do Kanban -> marco canônico da configuração. */
+export const MARCO_POR_STAGE: Record<string, MarcoId> = {
+  novo: "captacao",
+  documentacao: "preparacao",
+  agendamento: "preparacao",
+  validacao: "validacao",
+  videoconferencia: "validacao",
+  emissao: "emissao",
+  entrega: "entrega",
+  concluido: "em-uso",
+  bloqueado: "captacao",
+};
+
+/**
+ * Converte os itens configurados do marco em requisitos do caso.
+ * Nada aqui é inferido pelo texto: o modo vem da configuração publicada.
+ */
+export function itensDoPerfil(perfil: PerfilOperacional, marco: MarcoId) {
+  return perfil.etapas
+    .filter((e) => e.ativa && e.marco === marco)
+    .flatMap((e) =>
+      e.checklist.map((i) => ({
+        label: i.label,
+        obrigatorio: i.obrigatorio,
+        modo: i.modo,
+        escopo: i.escopo,
+        responsavel: e.papel,
+        origemRegra: (i.origemItem === "plataforma" || i.origemItem === "ac"
+          ? i.origemItem
+          : "tenant") as "plataforma" | "ac" | "tenant",
+        reutilizacao: i.reutilizacao,
+        ...(i.categoriaDoc ? { categoriaDoc: i.categoriaDoc } : {}),
+        ...(i.chaveDerivada ? { chaveDerivada: i.chaveDerivada } : {}),
+        ...(i.acaoProduto ? { acaoProduto: i.acaoProduto } : {}),
+        ...(i.bloqueia ? { bloqueia: i.bloqueia } : {}),
+        ...(i.validadeDias ? { validadeDias: i.validadeDias } : {}),
+        ...(i.observacaoObrigatoria ? { observacaoObrigatoria: true } : {}),
+        ...(i.exigeAprovacao ? { exigeAprovacao: true } : {}),
+        ...(i.exigeSegundoOperador ? { exigeSegundoOperador: true } : {}),
+      })),
+    );
 }

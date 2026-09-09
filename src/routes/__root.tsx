@@ -94,14 +94,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Dashboard executivo e operacional — Certus AC" },
       {
         property: "og:description",
-        content: "Visão geral da operação da autoridade certificadora: receita, emissões, backlog por etapa, chamados, SLA, agenda e renovações com exportação em CSV, XLSX e JSON.",
+        content:
+          "Visão geral da operação da autoridade certificadora: receita, emissões, backlog por etapa, chamados, SLA, agenda e renovações com exportação em CSV, XLSX e JSON.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Dashboard executivo e operacional — Certus AC" },
-      { name: "twitter:description", content: "Visão geral da operação da autoridade certificadora: receita, emissões, backlog por etapa, chamados, SLA, agenda e renovações com exportação em CSV, XLSX e JSON." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/62655729-cd02-420f-aab9-76562f9c10e1/id-preview-dfa360f1--67fa6c8d-bbb9-4008-9e33-eb1e9275b1cc.lovable.app-1785706081108.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/62655729-cd02-420f-aab9-76562f9c10e1/id-preview-dfa360f1--67fa6c8d-bbb9-4008-9e33-eb1e9275b1cc.lovable.app-1785706081108.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Visão geral da operação da autoridade certificadora: receita, emissões, backlog por etapa, chamados, SLA, agenda e renovações com exportação em CSV, XLSX e JSON.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/62655729-cd02-420f-aab9-76562f9c10e1/id-preview-dfa360f1--67fa6c8d-bbb9-4008-9e33-eb1e9275b1cc.lovable.app-1785706081108.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/62655729-cd02-420f-aab9-76562f9c10e1/id-preview-dfa360f1--67fa6c8d-bbb9-4008-9e33-eb1e9275b1cc.lovable.app-1785706081108.png",
+      },
     ],
     links: [
       {
@@ -143,19 +156,19 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-      <DensidadeProvider>
-      <AuthProvider>
-      <AppStoreProvider>
-        <SettingsProvider>
-        <OpConfigProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-          <Toaster position="bottom-right" richColors closeButton />
-        </OpConfigProvider>
-        </SettingsProvider>
-      </AppStoreProvider>
-      </AuthProvider>
-      </DensidadeProvider>
+        <DensidadeProvider>
+          <AuthProvider>
+            <AppStoreProvider>
+              <SettingsProvider>
+                <OpConfigProvider>
+                  {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                  <Outlet />
+                  <Toaster position="bottom-right" richColors closeButton />
+                </OpConfigProvider>
+              </SettingsProvider>
+            </AppStoreProvider>
+          </AuthProvider>
+        </DensidadeProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

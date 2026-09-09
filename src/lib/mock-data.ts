@@ -71,11 +71,19 @@ export interface ChecklistItem {
   exigeAprovacao?: boolean;
   exigeSegundoOperador?: boolean;
   origemRegra?: import("@/lib/checklist-model").OrigemRegra;
-  naoAplicavel?: { motivo: string; regra: string };
+  /** Se e como o requisito pode deixar de se aplicar. */
+  politicaNaoAplicavel?: import("@/lib/checklist-model").PoliticaNaoAplicavel;
+  naoAplicavel?: {
+    motivo: string;
+    regra: string;
+    /** "regra" = determinado pelo produto; "excecao" = dispensa autorizada. */
+    tipo?: "regra" | "excecao";
+    por?: string;
+    quando?: string;
+  };
   evidencia?: EvidenciaRequisito;
   historico?: RegistroHistoricoRequisito[];
 }
-
 
 export interface TimelineEvent {
   id: string;
@@ -104,6 +112,8 @@ export interface Request {
   tags: string[];
   checklist: ChecklistItem[];
   timeline: TimelineEvent[];
+  /** Versão do perfil operacional que originou o fluxo deste caso. */
+  perfilVersao?: string;
 }
 
 export interface Certificate {
@@ -135,6 +145,18 @@ export interface DocumentFile {
   substituido?: boolean;
   /** Documento reaproveitado de outro requisito (nunca duplicamos o arquivo). */
   reutilizadoDe?: string;
+  /** Categoria documental controlada — não inferida pelo nome do arquivo. */
+  categoria?: import("@/lib/checklist-model").CategoriaDoc;
+  /** Escopo a que o documento pertence (titular, organização, representante...). */
+  escopo?: import("@/lib/checklist-model").EscopoRequisito;
+  /** Sujeito proprietário: id do titular, representante ou organização. */
+  sujeitoId?: string;
+  sujeitoNome?: string;
+  /** Emissão a que a evidência está vinculada, quando o escopo é por emissão. */
+  emissaoId?: string;
+  versao?: number;
+  origem?: string;
+  tenantId?: string;
 }
 
 export interface Client {
@@ -184,7 +206,6 @@ export interface Conversation {
   tags?: string[];
 }
 
-
 export interface Appointment {
   id: string;
   clienteId: string;
@@ -210,11 +231,46 @@ export const stages: { id: StageId; nome: string; descricao: string }[] = [
 ];
 
 export const agents: Agent[] = [
-  { id: "a1", nome: "Marina Duarte", iniciais: "MD", papel: "Agente de Registro", emissoes: 148, tempoMedioMin: 26 },
-  { id: "a2", nome: "Rafael Bastos", iniciais: "RB", papel: "Agente de Registro", emissoes: 121, tempoMedioMin: 31 },
-  { id: "a3", nome: "Carolina Ito", iniciais: "CI", papel: "Validação Documental", emissoes: 97, tempoMedioMin: 22 },
-  { id: "a4", nome: "Diego Nunes", iniciais: "DN", papel: "Atendimento", emissoes: 64, tempoMedioMin: 38 },
-  { id: "a5", nome: "Helena Prado", iniciais: "HP", papel: "Compliance", emissoes: 41, tempoMedioMin: 44 },
+  {
+    id: "a1",
+    nome: "Marina Duarte",
+    iniciais: "MD",
+    papel: "Agente de Registro",
+    emissoes: 148,
+    tempoMedioMin: 26,
+  },
+  {
+    id: "a2",
+    nome: "Rafael Bastos",
+    iniciais: "RB",
+    papel: "Agente de Registro",
+    emissoes: 121,
+    tempoMedioMin: 31,
+  },
+  {
+    id: "a3",
+    nome: "Carolina Ito",
+    iniciais: "CI",
+    papel: "Validação Documental",
+    emissoes: 97,
+    tempoMedioMin: 22,
+  },
+  {
+    id: "a4",
+    nome: "Diego Nunes",
+    iniciais: "DN",
+    papel: "Atendimento",
+    emissoes: 64,
+    tempoMedioMin: 38,
+  },
+  {
+    id: "a5",
+    nome: "Helena Prado",
+    iniciais: "HP",
+    papel: "Compliance",
+    emissoes: 41,
+    tempoMedioMin: 44,
+  },
 ];
 
 export function agentById(id: string): Agent {
@@ -242,22 +298,109 @@ export const clients: Client[] = [
     saude: 87,
     gestor: "Marina Duarte",
     certificados: [
-      { id: "cert1", tipo: "e-CNPJ A1", serie: "AC-2024-88120", emitidoEm: "2024-08-02", validoAte: diaOffset(21), status: "a vencer" },
-      { id: "cert2", tipo: "e-CNPJ A3", serie: "AC-2022-51004", emitidoEm: "2022-07-19", validoAte: "2025-07-19", status: "expirado" },
-      { id: "cert3", tipo: "Nuvem PJ", serie: "AC-2025-90311", emitidoEm: "2025-11-05", validoAte: "2026-11-05", status: "ativo" },
+      {
+        id: "cert1",
+        tipo: "e-CNPJ A1",
+        serie: "AC-2024-88120",
+        emitidoEm: "2024-08-02",
+        validoAte: diaOffset(21),
+        status: "a vencer",
+      },
+      {
+        id: "cert2",
+        tipo: "e-CNPJ A3",
+        serie: "AC-2022-51004",
+        emitidoEm: "2022-07-19",
+        validoAte: "2025-07-19",
+        status: "expirado",
+      },
+      {
+        id: "cert3",
+        tipo: "Nuvem PJ",
+        serie: "AC-2025-90311",
+        emitidoEm: "2025-11-05",
+        validoAte: "2026-11-05",
+        status: "ativo",
+      },
     ],
     faturas: [
-      { id: "f1", descricao: "Renovação e-CNPJ A1", valor: 289, vencimento: diaOffset(9), status: "aberto", metodo: "Boleto" },
-      { id: "f2", descricao: "Emissão Nuvem PJ", valor: 429, vencimento: "2025-11-05", status: "pago", metodo: "Pix" },
-      { id: "f3", descricao: "Suporte anual", valor: 180, vencimento: diaOffset(-14), status: "vencido", metodo: "Boleto" },
+      {
+        id: "f1",
+        descricao: "Renovação e-CNPJ A1",
+        valor: 289,
+        vencimento: diaOffset(9),
+        status: "aberto",
+        metodo: "Boleto",
+      },
+      {
+        id: "f2",
+        descricao: "Emissão Nuvem PJ",
+        valor: 429,
+        vencimento: "2025-11-05",
+        status: "pago",
+        metodo: "Pix",
+      },
+      {
+        id: "f3",
+        descricao: "Suporte anual",
+        valor: 180,
+        vencimento: diaOffset(-14),
+        status: "vencido",
+        metodo: "Boleto",
+      },
     ],
     documentos: [
-      { id: "d1", nome: "Contrato social consolidado.pdf", tipo: "Constituição", enviadoEm: diaOffset(-3), status: "aprovado" },
-      { id: "d2", nome: "RG representante legal.jpg", tipo: "Identificação", enviadoEm: diaOffset(-2), status: "reprovado", motivo: "Imagem com reflexo, dados ilegíveis" },
-      { id: "d3", nome: "Comprovante de endereço.pdf", tipo: "Endereço", enviadoEm: diaOffset(-1), status: "em análise" },
+      {
+        id: "d1",
+        nome: "Contrato social consolidado.pdf",
+        tipo: "Constituição",
+        enviadoEm: diaOffset(-3),
+        status: "aprovado",
+        categoria: "contrato-social",
+        escopo: "organizacao",
+        sujeitoId: "c1",
+        sujeitoNome: "Meridian Contabilidade Ltda",
+        versao: 2,
+        origem: "portal do cliente",
+        tenantId: "t1",
+      },
+      {
+        id: "d2",
+        nome: "RG representante legal.jpg",
+        tipo: "Identificação",
+        enviadoEm: diaOffset(-2),
+        status: "reprovado",
+        motivo: "Imagem com reflexo, dados ilegíveis",
+        categoria: "identidade",
+        escopo: "representante",
+        sujeitoId: "c1",
+        sujeitoNome: "Representante legal",
+        versao: 1,
+        origem: "portal do cliente",
+        tenantId: "t1",
+      },
+      {
+        id: "d3",
+        nome: "Comprovante de endereço.pdf",
+        tipo: "Endereço",
+        enviadoEm: diaOffset(-1),
+        status: "em análise",
+        categoria: "endereco",
+        escopo: "organizacao",
+        sujeitoId: "c1",
+        sujeitoNome: "Meridian Contabilidade Ltda",
+        versao: 1,
+        origem: "portal do cliente",
+        tenantId: "t1",
+      },
     ],
     notas: [
-      { id: "n1", quando: diaOffset(-2), autor: "Marina Duarte", texto: "Cliente pediu emissão antes do fechamento fiscal. Prioridade alta." },
+      {
+        id: "n1",
+        quando: diaOffset(-2),
+        autor: "Marina Duarte",
+        texto: "Cliente pediu emissão antes do fechamento fiscal. Prioridade alta.",
+      },
     ],
   },
   {
@@ -273,13 +416,49 @@ export const clients: Client[] = [
     saude: 62,
     gestor: "Rafael Bastos",
     certificados: [
-      { id: "cert4", tipo: "e-CPF A1", serie: "AC-2025-77120", emitidoEm: "2025-02-11", validoAte: diaOffset(48), status: "ativo" },
+      {
+        id: "cert4",
+        tipo: "e-CPF A1",
+        serie: "AC-2025-77120",
+        emitidoEm: "2025-02-11",
+        validoAte: diaOffset(48),
+        status: "ativo",
+      },
     ],
-    faturas: [{ id: "f4", descricao: "e-CPF A1", valor: 159, vencimento: diaOffset(3), status: "aberto", metodo: "Pix" }],
+    faturas: [
+      {
+        id: "f4",
+        descricao: "e-CPF A1",
+        valor: 159,
+        vencimento: diaOffset(3),
+        status: "aberto",
+        metodo: "Pix",
+      },
+    ],
     documentos: [
-      { id: "d4", nome: "CNH digital.pdf", tipo: "Identificação", enviadoEm: diaOffset(-1), status: "em análise" },
+      {
+        id: "d4",
+        nome: "CNH digital.pdf",
+        tipo: "Identificação",
+        enviadoEm: diaOffset(-1),
+        status: "em análise",
+        categoria: "identidade",
+        escopo: "titular",
+        sujeitoId: "c2",
+        sujeitoNome: "Ana Beatriz Cardoso",
+        versao: 1,
+        origem: "portal do cliente",
+        tenantId: "t1",
+      },
     ],
-    notas: [{ id: "n2", quando: diaOffset(-1), autor: "Diego Nunes", texto: "Já teve no-show em agendamento anterior." }],
+    notas: [
+      {
+        id: "n2",
+        quando: diaOffset(-1),
+        autor: "Diego Nunes",
+        texto: "Já teve no-show em agendamento anterior.",
+      },
+    ],
   },
   {
     id: "c3",
@@ -294,12 +473,57 @@ export const clients: Client[] = [
     saude: 44,
     gestor: "Carolina Ito",
     certificados: [
-      { id: "cert5", tipo: "e-CNPJ A1", serie: "AC-2024-44190", emitidoEm: "2024-12-18", validoAte: diaOffset(6), status: "a vencer" },
-      { id: "cert6", tipo: "e-CPF A3", serie: "AC-2023-31002", emitidoEm: "2023-04-04", validoAte: "2026-04-04", status: "revogado" },
+      {
+        id: "cert5",
+        tipo: "e-CNPJ A1",
+        serie: "AC-2024-44190",
+        emitidoEm: "2024-12-18",
+        validoAte: diaOffset(6),
+        status: "a vencer",
+      },
+      {
+        id: "cert6",
+        tipo: "e-CPF A3",
+        serie: "AC-2023-31002",
+        emitidoEm: "2023-04-04",
+        validoAte: "2026-04-04",
+        status: "revogado",
+      },
     ],
-    faturas: [{ id: "f5", descricao: "Renovação e-CNPJ", valor: 289, vencimento: diaOffset(-6), status: "vencido", metodo: "Boleto" }],
-    documentos: [{ id: "d5", nome: "Procuração.pdf", tipo: "Representação", enviadoEm: diaOffset(-5), status: "aprovado" }],
-    notas: [{ id: "n3", quando: diaOffset(-6), autor: "Helena Prado", texto: "Revogação registrada a pedido do titular (troca de sócio)." }],
+    faturas: [
+      {
+        id: "f5",
+        descricao: "Renovação e-CNPJ",
+        valor: 289,
+        vencimento: diaOffset(-6),
+        status: "vencido",
+        metodo: "Boleto",
+      },
+    ],
+    documentos: [
+      {
+        id: "d5",
+        nome: "Procuração.pdf",
+        tipo: "Representação",
+        enviadoEm: diaOffset(-5),
+        status: "aprovado",
+        categoria: "procuracao",
+        escopo: "representante",
+        sujeitoId: "c3",
+        sujeitoNome: "Clínica Bem Viver ME",
+        versao: 1,
+        origem: "atendimento presencial",
+        tenantId: "t1",
+      },
+    ],
+    notas: [
+      {
+        id: "n3",
+        quando: diaOffset(-6),
+        autor: "Helena Prado",
+        texto: "Revogação registrada a pedido do titular (troca de sócio).",
+      },
+    ],
   },
   {
     id: "c4",
@@ -314,12 +538,57 @@ export const clients: Client[] = [
     saude: 93,
     gestor: "Marina Duarte",
     certificados: [
-      { id: "cert7", tipo: "Nuvem PJ", serie: "AC-2026-10233", emitidoEm: "2026-01-15", validoAte: "2027-01-15", status: "ativo" },
-      { id: "cert8", tipo: "e-CNPJ A3", serie: "AC-2024-66120", emitidoEm: "2024-06-11", validoAte: diaOffset(72), status: "ativo" },
+      {
+        id: "cert7",
+        tipo: "Nuvem PJ",
+        serie: "AC-2026-10233",
+        emitidoEm: "2026-01-15",
+        validoAte: "2027-01-15",
+        status: "ativo",
+      },
+      {
+        id: "cert8",
+        tipo: "e-CNPJ A3",
+        serie: "AC-2024-66120",
+        emitidoEm: "2024-06-11",
+        validoAte: diaOffset(72),
+        status: "ativo",
+      },
     ],
-    faturas: [{ id: "f6", descricao: "Contrato corporativo trimestral", valor: 3480, vencimento: diaOffset(18), status: "aberto", metodo: "Transferência" }],
-    documentos: [{ id: "d6", nome: "Estatuto social.pdf", tipo: "Constituição", enviadoEm: diaOffset(-30), status: "aprovado" }],
-    notas: [{ id: "n4", quando: diaOffset(-10), autor: "Marina Duarte", texto: "Conta corporativa: 26 certificados sob o mesmo contrato." }],
+    faturas: [
+      {
+        id: "f6",
+        descricao: "Contrato corporativo trimestral",
+        valor: 3480,
+        vencimento: diaOffset(18),
+        status: "aberto",
+        metodo: "Transferência",
+      },
+    ],
+    documentos: [
+      {
+        id: "d6",
+        nome: "Estatuto social.pdf",
+        tipo: "Constituição",
+        enviadoEm: diaOffset(-30),
+        status: "aprovado",
+        categoria: "contrato-social",
+        escopo: "organizacao",
+        sujeitoId: "c4",
+        sujeitoNome: "Transportes Aurora S/A",
+        versao: 3,
+        origem: "portal do cliente",
+        tenantId: "t1",
+      },
+    ],
+    notas: [
+      {
+        id: "n4",
+        quando: diaOffset(-10),
+        autor: "Marina Duarte",
+        texto: "Conta corporativa: 26 certificados sob o mesmo contrato.",
+      },
+    ],
   },
   {
     id: "c5",
@@ -333,11 +602,55 @@ export const clients: Client[] = [
     ltv: 318,
     saude: 71,
     gestor: "Rafael Bastos",
-    certificados: [{ id: "cert9", tipo: "e-CPF A3", serie: "AC-2024-99011", emitidoEm: "2024-11-11", validoAte: diaOffset(88), status: "ativo" }],
-    faturas: [{ id: "f7", descricao: "e-CPF A3 + token", valor: 318, vencimento: "2024-11-11", status: "pago", metodo: "Cartão" }],
+    certificados: [
+      {
+        id: "cert9",
+        tipo: "e-CPF A3",
+        serie: "AC-2024-99011",
+        emitidoEm: "2024-11-11",
+        validoAte: diaOffset(88),
+        status: "ativo",
+      },
+    ],
+    faturas: [
+      {
+        id: "f7",
+        descricao: "e-CPF A3 + token",
+        valor: 318,
+        vencimento: "2024-11-11",
+        status: "pago",
+        metodo: "Cartão",
+      },
+    ],
     documentos: [
-      { id: "d7", nome: "OAB frente e verso.pdf", tipo: "Identificação", enviadoEm: diaOffset(-20), status: "aprovado" },
-      { id: "d8", nome: "Conta de energia 2025.pdf", tipo: "Endereço", enviadoEm: diaOffset(-200), status: "aprovado" },
+      {
+        id: "d7",
+        nome: "OAB frente e verso.pdf",
+        tipo: "Identificação",
+        enviadoEm: diaOffset(-20),
+        status: "aprovado",
+        categoria: "identidade",
+        escopo: "titular",
+        sujeitoId: "c5",
+        sujeitoNome: "Paulo Sérgio Almeida",
+        versao: 1,
+        origem: "atendimento presencial",
+        tenantId: "t1",
+      },
+      {
+        id: "d8",
+        nome: "Conta de energia 2025.pdf",
+        tipo: "Endereço",
+        enviadoEm: diaOffset(-200),
+        status: "aprovado",
+        categoria: "endereco",
+        escopo: "titular",
+        sujeitoId: "c5",
+        sujeitoNome: "Paulo Sérgio Almeida",
+        versao: 1,
+        origem: "portal do cliente",
+        tenantId: "t1",
+      },
     ],
     notas: [],
   },
@@ -393,11 +706,42 @@ export const requests: Request[] = [
       ["Consulta de restrições", true],
     ]),
     timeline: [
-      { id: "t1", quando: diaOffset(-3) + " 09:12", autor: "Bot de atendimento", titulo: "Solicitação criada via WhatsApp", tipo: "sistema" },
-      { id: "t2", quando: diaOffset(-3) + " 09:20", autor: "Diego Nunes", titulo: "Atendimento assumido", tipo: "humano" },
-      { id: "t3", quando: diaOffset(-2) + " 14:03", autor: "Cliente", titulo: "Documentos enviados (3 arquivos)", tipo: "cliente" },
-      { id: "t4", quando: diaOffset(-2) + " 16:41", autor: "Carolina Ito", titulo: "RG reprovado", detalhe: "Imagem com reflexo, dados ilegíveis", tipo: "alerta" },
-      { id: "t5", quando: diaOffset(-1) + " 08:00", autor: "Sistema", titulo: "SLA de validação estourado", tipo: "alerta" },
+      {
+        id: "t1",
+        quando: diaOffset(-3) + " 09:12",
+        autor: "Bot de atendimento",
+        titulo: "Solicitação criada via WhatsApp",
+        tipo: "sistema",
+      },
+      {
+        id: "t2",
+        quando: diaOffset(-3) + " 09:20",
+        autor: "Diego Nunes",
+        titulo: "Atendimento assumido",
+        tipo: "humano",
+      },
+      {
+        id: "t3",
+        quando: diaOffset(-2) + " 14:03",
+        autor: "Cliente",
+        titulo: "Documentos enviados (3 arquivos)",
+        tipo: "cliente",
+      },
+      {
+        id: "t4",
+        quando: diaOffset(-2) + " 16:41",
+        autor: "Carolina Ito",
+        titulo: "RG reprovado",
+        detalhe: "Imagem com reflexo, dados ilegíveis",
+        tipo: "alerta",
+      },
+      {
+        id: "t5",
+        quando: diaOffset(-1) + " 08:00",
+        autor: "Sistema",
+        titulo: "SLA de validação estourado",
+        tipo: "alerta",
+      },
     ],
   },
   {
@@ -422,8 +766,20 @@ export const requests: Request[] = [
       ["Horário escolhido pelo titular", false],
     ]),
     timeline: [
-      { id: "t6", quando: diaOffset(-1) + " 11:40", autor: "Sistema", titulo: "Pedido criado pelo site", tipo: "sistema" },
-      { id: "t7", quando: diaOffset(-1) + " 12:02", autor: "Rafael Bastos", titulo: "Documento validado", tipo: "humano" },
+      {
+        id: "t6",
+        quando: diaOffset(-1) + " 11:40",
+        autor: "Sistema",
+        titulo: "Pedido criado pelo site",
+        tipo: "sistema",
+      },
+      {
+        id: "t7",
+        quando: diaOffset(-1) + " 12:02",
+        autor: "Rafael Bastos",
+        titulo: "Documento validado",
+        tipo: "humano",
+      },
     ],
   },
   {
@@ -448,8 +804,21 @@ export const requests: Request[] = [
       ["Consulta de restrições", true],
     ]),
     timeline: [
-      { id: "t8", quando: diaOffset(-6) + " 10:00", autor: "Parceiro Cert+", titulo: "Solicitação encaminhada", tipo: "sistema" },
-      { id: "t9", quando: diaOffset(-5) + " 09:15", autor: "Financeiro", titulo: "Bloqueio por inadimplência", detalhe: "Fatura F5 vencida há 6 dias", tipo: "alerta" },
+      {
+        id: "t8",
+        quando: diaOffset(-6) + " 10:00",
+        autor: "Parceiro Cert+",
+        titulo: "Solicitação encaminhada",
+        tipo: "sistema",
+      },
+      {
+        id: "t9",
+        quando: diaOffset(-5) + " 09:15",
+        autor: "Financeiro",
+        titulo: "Bloqueio por inadimplência",
+        detalhe: "Fatura F5 vencida há 6 dias",
+        tipo: "alerta",
+      },
     ],
   },
   {
@@ -475,8 +844,20 @@ export const requests: Request[] = [
       ["Biometria capturada", false],
     ]),
     timeline: [
-      { id: "t10", quando: diaOffset(-2) + " 15:20", autor: "Marina Duarte", titulo: "Solicitação criada em lote (12 titulares)", tipo: "humano" },
-      { id: "t11", quando: diaOffset(-1) + " 09:45", autor: "Sistema", titulo: "Videoconferência confirmada", tipo: "sistema" },
+      {
+        id: "t10",
+        quando: diaOffset(-2) + " 15:20",
+        autor: "Marina Duarte",
+        titulo: "Solicitação criada em lote (12 titulares)",
+        tipo: "humano",
+      },
+      {
+        id: "t11",
+        quando: diaOffset(-1) + " 09:45",
+        autor: "Sistema",
+        titulo: "Videoconferência confirmada",
+        tipo: "sistema",
+      },
     ],
   },
   {
@@ -501,7 +882,13 @@ export const requests: Request[] = [
       ["Termo de titularidade assinado", false],
     ]),
     timeline: [
-      { id: "t12", quando: diaOffset(-1) + " 08:31", autor: "Sistema", titulo: "Validação concluída", tipo: "sistema" },
+      {
+        id: "t12",
+        quando: diaOffset(-1) + " 08:31",
+        autor: "Sistema",
+        titulo: "Validação concluída",
+        tipo: "sistema",
+      },
     ],
   },
   {
@@ -524,7 +911,15 @@ export const requests: Request[] = [
       ["Identificar titular", true],
       ["Confirmar tipo de certificado", false],
     ]),
-    timeline: [{ id: "t13", quando: diaOffset(0) + " 08:05", autor: "Bot de atendimento", titulo: "Pedido registrado", tipo: "sistema" }],
+    timeline: [
+      {
+        id: "t13",
+        quando: diaOffset(0) + " 08:05",
+        autor: "Bot de atendimento",
+        titulo: "Pedido registrado",
+        tipo: "sistema",
+      },
+    ],
   },
   {
     id: "r7",
@@ -547,7 +942,15 @@ export const requests: Request[] = [
       ["Solicitar identificação", false],
       ["Solicitar comprovante", false],
     ]),
-    timeline: [{ id: "t14", quando: diaOffset(0) + " 10:22", autor: "Sistema", titulo: "Checklist de documentos enviado", tipo: "sistema" }],
+    timeline: [
+      {
+        id: "t14",
+        quando: diaOffset(0) + " 10:22",
+        autor: "Sistema",
+        titulo: "Checklist de documentos enviado",
+        tipo: "sistema",
+      },
+    ],
   },
   {
     id: "r8",
@@ -570,7 +973,15 @@ export const requests: Request[] = [
       ["Validação presencial concluída", true],
       ["Certificado entregue", true],
     ]),
-    timeline: [{ id: "t15", quando: diaOffset(-7) + " 17:10", autor: "Marina Duarte", titulo: "Certificado emitido e entregue", tipo: "humano" }],
+    timeline: [
+      {
+        id: "t15",
+        quando: diaOffset(-7) + " 17:10",
+        autor: "Marina Duarte",
+        titulo: "Certificado emitido e entregue",
+        tipo: "humano",
+      },
+    ],
   },
   {
     id: "r9",
@@ -592,7 +1003,15 @@ export const requests: Request[] = [
       ["Documento de identidade validado", true],
       ["Selfie de prova de vida", false],
     ]),
-    timeline: [{ id: "t16", quando: diaOffset(0) + " 07:50", autor: "Sistema", titulo: "Documentos recebidos", tipo: "sistema" }],
+    timeline: [
+      {
+        id: "t16",
+        quando: diaOffset(0) + " 07:50",
+        autor: "Sistema",
+        titulo: "Documentos recebidos",
+        tipo: "sistema",
+      },
+    ],
   },
 ];
 
@@ -623,7 +1042,13 @@ export const conversations: Conversation[] = [
       "Sobre a fatura em aberto, consigo gerar a 2ª via agora mesmo.",
     ],
     mensagens: [
-      { id: "m1", de: "cliente", autor: "Vale Norte", quando: "09:02", texto: "Bom dia, reenviei o RG. Conseguem validar hoje?" },
+      {
+        id: "m1",
+        de: "cliente",
+        autor: "Vale Norte",
+        quando: "09:02",
+        texto: "Bom dia, reenviei o RG. Conseguem validar hoje?",
+      },
       {
         id: "m1b",
         de: "cliente",
@@ -632,9 +1057,29 @@ export const conversations: Conversation[] = [
         texto: "Segue o arquivo novo, agora sem reflexo.",
         anexo: { nome: "RG-representante-v2.jpg", tipo: "Imagem · 1,8 MB" },
       },
-      { id: "m2", de: "bot", autor: "Assistente AC", quando: "09:03", texto: "Bom dia! Recebi seu arquivo. Vou verificar o status da validação e já retorno.", lida: true },
-      { id: "m2b", de: "bot", autor: "Assistente AC", quando: "09:04", texto: "Identifiquei o protocolo SOL-20418 (e-CNPJ A1) em etapa de Documentação.", lida: true },
-      { id: "m3", de: "cliente", autor: "Vale Norte", quando: "09:15", texto: "Preciso emitir antes do fechamento fiscal, já está atrasado." },
+      {
+        id: "m2",
+        de: "bot",
+        autor: "Assistente AC",
+        quando: "09:03",
+        texto: "Bom dia! Recebi seu arquivo. Vou verificar o status da validação e já retorno.",
+        lida: true,
+      },
+      {
+        id: "m2b",
+        de: "bot",
+        autor: "Assistente AC",
+        quando: "09:04",
+        texto: "Identifiquei o protocolo SOL-20418 (e-CNPJ A1) em etapa de Documentação.",
+        lida: true,
+      },
+      {
+        id: "m3",
+        de: "cliente",
+        autor: "Vale Norte",
+        quando: "09:15",
+        texto: "Preciso emitir antes do fechamento fiscal, já está atrasado.",
+      },
     ],
   },
   {
@@ -649,13 +1094,37 @@ export const conversations: Conversation[] = [
     protocolo: "SOL-20422",
     naoLidas: 1,
     tags: ["Aguarda pagamento"],
-    resumo: "Titular quer escolher horário para validação presencial remota. Pagamento ainda não confirmado.",
+    resumo:
+      "Titular quer escolher horário para validação presencial remota. Pagamento ainda não confirmado.",
     proximaAcao: "Confirmar pagamento antes de liberar a agenda",
-    sugestoes: ["Assim que o pagamento for confirmado, libero os horários disponíveis.", "Prefere manhã ou tarde?"],
+    sugestoes: [
+      "Assim que o pagamento for confirmado, libero os horários disponíveis.",
+      "Prefere manhã ou tarde?",
+    ],
     mensagens: [
-      { id: "m4", de: "cliente", autor: "Ana", quando: "10:31", texto: "Quero marcar a videochamada" },
-      { id: "m5", de: "bot", autor: "Assistente AC", quando: "10:31", texto: "Claro! Identifiquei seu pedido SOL-20422 (e-CPF A1).", lida: true },
-      { id: "m5b", de: "bot", autor: "Assistente AC", quando: "10:32", texto: "Antes de liberar a agenda preciso confirmar o pagamento do boleto. Já efetuou?", lida: false },
+      {
+        id: "m4",
+        de: "cliente",
+        autor: "Ana",
+        quando: "10:31",
+        texto: "Quero marcar a videochamada",
+      },
+      {
+        id: "m5",
+        de: "bot",
+        autor: "Assistente AC",
+        quando: "10:31",
+        texto: "Claro! Identifiquei seu pedido SOL-20422 (e-CPF A1).",
+        lida: true,
+      },
+      {
+        id: "m5b",
+        de: "bot",
+        autor: "Assistente AC",
+        quando: "10:32",
+        texto: "Antes de liberar a agenda preciso confirmar o pagamento do boleto. Já efetuou?",
+        lida: false,
+      },
     ],
   },
   {
@@ -673,9 +1142,30 @@ export const conversations: Conversation[] = [
     proximaAcao: "Solicitar comprovante e acionar o financeiro",
     sugestoes: ["Pode nos enviar o comprovante? Faço a baixa manual em seguida."],
     mensagens: [
-      { id: "m6", de: "cliente", autor: "Bem Viver", quando: "08:44", texto: "Já pagamos ontem, por que continua bloqueado?" },
-      { id: "m7", de: "agente", autor: "Helena Prado", quando: "08:50", texto: "Estou verificando com o financeiro agora.", lida: true },
-      { id: "m7b", de: "agente", autor: "Helena Prado", quando: "08:58", texto: "Consegue me enviar o comprovante em PDF? Faço a baixa manual e libero a renovação hoje.", lida: false },
+      {
+        id: "m6",
+        de: "cliente",
+        autor: "Bem Viver",
+        quando: "08:44",
+        texto: "Já pagamos ontem, por que continua bloqueado?",
+      },
+      {
+        id: "m7",
+        de: "agente",
+        autor: "Helena Prado",
+        quando: "08:50",
+        texto: "Estou verificando com o financeiro agora.",
+        lida: true,
+      },
+      {
+        id: "m7b",
+        de: "agente",
+        autor: "Helena Prado",
+        quando: "08:58",
+        texto:
+          "Consegue me enviar o comprovante em PDF? Faço a baixa manual e libero a renovação hoje.",
+        lida: false,
+      },
     ],
   },
   {
@@ -693,8 +1183,21 @@ export const conversations: Conversation[] = [
     proximaAcao: "Nenhuma — acompanhar execução do lote",
     sugestoes: [],
     mensagens: [
-      { id: "m8a", de: "agente", autor: "Marina Duarte", quando: "Ontem", texto: "Segue a lista final dos 12 titulares para conferência.", lida: true },
-      { id: "m8", de: "cliente", autor: "Aurora TI", quando: "Ontem", texto: "Lista confirmada, obrigado!" },
+      {
+        id: "m8a",
+        de: "agente",
+        autor: "Marina Duarte",
+        quando: "Ontem",
+        texto: "Segue a lista final dos 12 titulares para conferência.",
+        lida: true,
+      },
+      {
+        id: "m8",
+        de: "cliente",
+        autor: "Aurora TI",
+        quando: "Ontem",
+        texto: "Lista confirmada, obrigado!",
+      },
     ],
   },
   {
@@ -716,36 +1219,285 @@ export const conversations: Conversation[] = [
       "Prefere que eu abra um acesso remoto de 10 minutos?",
     ],
     mensagens: [
-      { id: "m9", de: "cliente", autor: "Paulo", quando: "11:02", texto: "O token não é reconhecido no meu notebook novo." },
-      { id: "m10", de: "bot", autor: "Assistente AC", quando: "11:02", texto: "Qual o sistema operacional que você está usando?", lida: true },
-      { id: "m11", de: "cliente", autor: "Paulo", quando: "11:04", texto: "Windows 11, instalei o driver do site mas nada." },
+      {
+        id: "m9",
+        de: "cliente",
+        autor: "Paulo",
+        quando: "11:02",
+        texto: "O token não é reconhecido no meu notebook novo.",
+      },
+      {
+        id: "m10",
+        de: "bot",
+        autor: "Assistente AC",
+        quando: "11:02",
+        texto: "Qual o sistema operacional que você está usando?",
+        lida: true,
+      },
+      {
+        id: "m11",
+        de: "cliente",
+        autor: "Paulo",
+        quando: "11:04",
+        texto: "Windows 11, instalei o driver do site mas nada.",
+      },
     ],
   },
 ];
 
-
 export const appointments: Appointment[] = [
-  { id: "ag1", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "Nuvem PJ", agenteId: "a1", dia: diaOffset(0), hora: "09:00", duracaoMin: 30, sala: "Sala virtual 1", status: "confirmado" },
-  { id: "ag2", clienteId: "c2", cliente: "Ana Beatriz Cardoso", tipo: "e-CPF A1", agenteId: "a2", dia: diaOffset(0), hora: "10:00", duracaoMin: 30, sala: "Sala virtual 2", status: "pendente" },
-  { id: "ag3", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "e-CPF A3", agenteId: "a2", dia: diaOffset(0), hora: "11:30", duracaoMin: 30, sala: "Sala virtual 2", status: "concluido" },
-  { id: "ag4", clienteId: "c1", cliente: "Construtora Vale Norte LTDA", tipo: "e-CNPJ A1", agenteId: "a1", dia: diaOffset(0), hora: "14:00", duracaoMin: 45, sala: "Sala virtual 1", status: "pendente" },
-  { id: "ag5", clienteId: "c3", cliente: "Clínica Bem Viver ME", tipo: "e-CNPJ A1", agenteId: "a3", dia: diaOffset(0), hora: "15:00", duracaoMin: 30, sala: "Sala virtual 3", status: "no-show" },
-  { id: "ag6", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "e-CNPJ A3", agenteId: "a1", dia: diaOffset(1), hora: "09:00", duracaoMin: 60, sala: "Sala virtual 1", status: "confirmado" },
-  { id: "ag7", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "e-CPF A1", agenteId: "a3", dia: diaOffset(1), hora: "13:30", duracaoMin: 30, sala: "Sala virtual 3", status: "remarcado" },
-  { id: "ag8", clienteId: "c2", cliente: "Ana Beatriz Cardoso", tipo: "e-CPF A1", agenteId: "a2", dia: diaOffset(2), hora: "16:00", duracaoMin: 30, sala: "Sala virtual 2", status: "pendente" },
-  { id: "ag9", clienteId: "c1", cliente: "Construtora Vale Norte LTDA", tipo: "e-CNPJ A1", agenteId: "a1", dia: diaOffset(3), hora: "09:00", duracaoMin: 30, sala: "Sala virtual 1", status: "pendente" },
-  { id: "ag10", clienteId: "c3", cliente: "Clínica Bem Viver ME", tipo: "e-CNPJ A1", agenteId: "a3", dia: diaOffset(3), hora: "14:00", duracaoMin: 30, sala: "Sala virtual 3", status: "confirmado" },
-  { id: "ag11", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "e-CPF A3", agenteId: "a2", dia: diaOffset(4), hora: "10:00", duracaoMin: 45, sala: "Sala virtual 2", status: "confirmado" },
-  { id: "ag12", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "e-CNPJ A3", agenteId: "a1", dia: diaOffset(6), hora: "08:00", duracaoMin: 60, sala: "Sala virtual 1", status: "pendente" },
-  { id: "ag13", clienteId: "c2", cliente: "Ana Beatriz Cardoso", tipo: "e-CPF A1", agenteId: "a3", dia: diaOffset(7), hora: "11:30", duracaoMin: 30, sala: "Sala virtual 3", status: "pendente" },
-  { id: "ag14", clienteId: "c1", cliente: "Construtora Vale Norte LTDA", tipo: "Nuvem PJ", agenteId: "a1", dia: diaOffset(9), hora: "15:00", duracaoMin: 30, sala: "Sala virtual 1", status: "confirmado" },
-  { id: "ag15", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "e-CPF A1", agenteId: "a2", dia: diaOffset(10), hora: "09:00", duracaoMin: 30, sala: "Sala virtual 2", status: "pendente" },
-  { id: "ag16", clienteId: "c3", cliente: "Clínica Bem Viver ME", tipo: "e-CNPJ A3", agenteId: "a3", dia: diaOffset(13), hora: "16:00", duracaoMin: 45, sala: "Sala virtual 3", status: "pendente" },
-  { id: "ag17", clienteId: "c4", cliente: "Transportes Aurora S/A", tipo: "e-CNPJ A1", agenteId: "a1", dia: diaOffset(14), hora: "10:00", duracaoMin: 30, sala: "Sala virtual 1", status: "confirmado" },
-  { id: "ag18", clienteId: "c2", cliente: "Ana Beatriz Cardoso", tipo: "e-CPF A3", agenteId: "a2", dia: diaOffset(17), hora: "13:30", duracaoMin: 30, sala: "Sala virtual 2", status: "pendente" },
-  { id: "ag19", clienteId: "c1", cliente: "Construtora Vale Norte LTDA", tipo: "e-CNPJ A1", agenteId: "a3", dia: diaOffset(21), hora: "09:00", duracaoMin: 45, sala: "Sala virtual 3", status: "pendente" },
-  { id: "ag20", clienteId: "c5", cliente: "Paulo Sérgio Almeida", tipo: "Nuvem PJ", agenteId: "a1", dia: diaOffset(-2), hora: "14:00", duracaoMin: 30, sala: "Sala virtual 1", status: "concluido" },
-  { id: "ag21", clienteId: "c3", cliente: "Clínica Bem Viver ME", tipo: "e-CPF A1", agenteId: "a2", dia: diaOffset(-4), hora: "11:30", duracaoMin: 30, sala: "Sala virtual 2", status: "no-show" },
+  {
+    id: "ag1",
+    clienteId: "c4",
+    cliente: "Transportes Aurora S/A",
+    tipo: "Nuvem PJ",
+    agenteId: "a1",
+    dia: diaOffset(0),
+    hora: "09:00",
+    duracaoMin: 30,
+    sala: "Sala virtual 1",
+    status: "confirmado",
+  },
+  {
+    id: "ag2",
+    clienteId: "c2",
+    cliente: "Ana Beatriz Cardoso",
+    tipo: "e-CPF A1",
+    agenteId: "a2",
+    dia: diaOffset(0),
+    hora: "10:00",
+    duracaoMin: 30,
+    sala: "Sala virtual 2",
+    status: "pendente",
+  },
+  {
+    id: "ag3",
+    clienteId: "c5",
+    cliente: "Paulo Sérgio Almeida",
+    tipo: "e-CPF A3",
+    agenteId: "a2",
+    dia: diaOffset(0),
+    hora: "11:30",
+    duracaoMin: 30,
+    sala: "Sala virtual 2",
+    status: "concluido",
+  },
+  {
+    id: "ag4",
+    clienteId: "c1",
+    cliente: "Construtora Vale Norte LTDA",
+    tipo: "e-CNPJ A1",
+    agenteId: "a1",
+    dia: diaOffset(0),
+    hora: "14:00",
+    duracaoMin: 45,
+    sala: "Sala virtual 1",
+    status: "pendente",
+  },
+  {
+    id: "ag5",
+    clienteId: "c3",
+    cliente: "Clínica Bem Viver ME",
+    tipo: "e-CNPJ A1",
+    agenteId: "a3",
+    dia: diaOffset(0),
+    hora: "15:00",
+    duracaoMin: 30,
+    sala: "Sala virtual 3",
+    status: "no-show",
+  },
+  {
+    id: "ag6",
+    clienteId: "c4",
+    cliente: "Transportes Aurora S/A",
+    tipo: "e-CNPJ A3",
+    agenteId: "a1",
+    dia: diaOffset(1),
+    hora: "09:00",
+    duracaoMin: 60,
+    sala: "Sala virtual 1",
+    status: "confirmado",
+  },
+  {
+    id: "ag7",
+    clienteId: "c5",
+    cliente: "Paulo Sérgio Almeida",
+    tipo: "e-CPF A1",
+    agenteId: "a3",
+    dia: diaOffset(1),
+    hora: "13:30",
+    duracaoMin: 30,
+    sala: "Sala virtual 3",
+    status: "remarcado",
+  },
+  {
+    id: "ag8",
+    clienteId: "c2",
+    cliente: "Ana Beatriz Cardoso",
+    tipo: "e-CPF A1",
+    agenteId: "a2",
+    dia: diaOffset(2),
+    hora: "16:00",
+    duracaoMin: 30,
+    sala: "Sala virtual 2",
+    status: "pendente",
+  },
+  {
+    id: "ag9",
+    clienteId: "c1",
+    cliente: "Construtora Vale Norte LTDA",
+    tipo: "e-CNPJ A1",
+    agenteId: "a1",
+    dia: diaOffset(3),
+    hora: "09:00",
+    duracaoMin: 30,
+    sala: "Sala virtual 1",
+    status: "pendente",
+  },
+  {
+    id: "ag10",
+    clienteId: "c3",
+    cliente: "Clínica Bem Viver ME",
+    tipo: "e-CNPJ A1",
+    agenteId: "a3",
+    dia: diaOffset(3),
+    hora: "14:00",
+    duracaoMin: 30,
+    sala: "Sala virtual 3",
+    status: "confirmado",
+  },
+  {
+    id: "ag11",
+    clienteId: "c5",
+    cliente: "Paulo Sérgio Almeida",
+    tipo: "e-CPF A3",
+    agenteId: "a2",
+    dia: diaOffset(4),
+    hora: "10:00",
+    duracaoMin: 45,
+    sala: "Sala virtual 2",
+    status: "confirmado",
+  },
+  {
+    id: "ag12",
+    clienteId: "c4",
+    cliente: "Transportes Aurora S/A",
+    tipo: "e-CNPJ A3",
+    agenteId: "a1",
+    dia: diaOffset(6),
+    hora: "08:00",
+    duracaoMin: 60,
+    sala: "Sala virtual 1",
+    status: "pendente",
+  },
+  {
+    id: "ag13",
+    clienteId: "c2",
+    cliente: "Ana Beatriz Cardoso",
+    tipo: "e-CPF A1",
+    agenteId: "a3",
+    dia: diaOffset(7),
+    hora: "11:30",
+    duracaoMin: 30,
+    sala: "Sala virtual 3",
+    status: "pendente",
+  },
+  {
+    id: "ag14",
+    clienteId: "c1",
+    cliente: "Construtora Vale Norte LTDA",
+    tipo: "Nuvem PJ",
+    agenteId: "a1",
+    dia: diaOffset(9),
+    hora: "15:00",
+    duracaoMin: 30,
+    sala: "Sala virtual 1",
+    status: "confirmado",
+  },
+  {
+    id: "ag15",
+    clienteId: "c5",
+    cliente: "Paulo Sérgio Almeida",
+    tipo: "e-CPF A1",
+    agenteId: "a2",
+    dia: diaOffset(10),
+    hora: "09:00",
+    duracaoMin: 30,
+    sala: "Sala virtual 2",
+    status: "pendente",
+  },
+  {
+    id: "ag16",
+    clienteId: "c3",
+    cliente: "Clínica Bem Viver ME",
+    tipo: "e-CNPJ A3",
+    agenteId: "a3",
+    dia: diaOffset(13),
+    hora: "16:00",
+    duracaoMin: 45,
+    sala: "Sala virtual 3",
+    status: "pendente",
+  },
+  {
+    id: "ag17",
+    clienteId: "c4",
+    cliente: "Transportes Aurora S/A",
+    tipo: "e-CNPJ A1",
+    agenteId: "a1",
+    dia: diaOffset(14),
+    hora: "10:00",
+    duracaoMin: 30,
+    sala: "Sala virtual 1",
+    status: "confirmado",
+  },
+  {
+    id: "ag18",
+    clienteId: "c2",
+    cliente: "Ana Beatriz Cardoso",
+    tipo: "e-CPF A3",
+    agenteId: "a2",
+    dia: diaOffset(17),
+    hora: "13:30",
+    duracaoMin: 30,
+    sala: "Sala virtual 2",
+    status: "pendente",
+  },
+  {
+    id: "ag19",
+    clienteId: "c1",
+    cliente: "Construtora Vale Norte LTDA",
+    tipo: "e-CNPJ A1",
+    agenteId: "a3",
+    dia: diaOffset(21),
+    hora: "09:00",
+    duracaoMin: 45,
+    sala: "Sala virtual 3",
+    status: "pendente",
+  },
+  {
+    id: "ag20",
+    clienteId: "c5",
+    cliente: "Paulo Sérgio Almeida",
+    tipo: "Nuvem PJ",
+    agenteId: "a1",
+    dia: diaOffset(-2),
+    hora: "14:00",
+    duracaoMin: 30,
+    sala: "Sala virtual 1",
+    status: "concluido",
+  },
+  {
+    id: "ag21",
+    clienteId: "c3",
+    cliente: "Clínica Bem Viver ME",
+    tipo: "e-CPF A1",
+    agenteId: "a2",
+    dia: diaOffset(-4),
+    hora: "11:30",
+    duracaoMin: 30,
+    sala: "Sala virtual 2",
+    status: "no-show",
+  },
 ];
 
 export const receitaSerie = [
@@ -772,11 +1524,46 @@ export const renovacoes = [
 ];
 
 export const auditTrail = [
-  { id: "au1", quando: diaOffset(0) + " 08:12", ator: "Helena Prado", acao: "Revogação registrada", alvo: "AC-2023-31002", evidencia: "Termo assinado + vídeo" },
-  { id: "au2", quando: diaOffset(0) + " 07:55", ator: "Sistema", acao: "SLA estourado", alvo: "SOL-20418", evidencia: "Log automático" },
-  { id: "au3", quando: diaOffset(-1) + " 16:20", ator: "Carolina Ito", acao: "Documento reprovado", alvo: "RG representante legal", evidencia: "Parecer documental" },
-  { id: "au4", quando: diaOffset(-1) + " 09:45", ator: "Marina Duarte", acao: "Certificado emitido", alvo: "AC-2026-10233", evidencia: "Videoconferência gravada" },
-  { id: "au5", quando: diaOffset(-2) + " 11:02", ator: "Diego Nunes", acao: "Atendimento assumido do bot", alvo: "Conversa CV1", evidencia: "Transcrição" },
+  {
+    id: "au1",
+    quando: diaOffset(0) + " 08:12",
+    ator: "Helena Prado",
+    acao: "Revogação registrada",
+    alvo: "AC-2023-31002",
+    evidencia: "Termo assinado + vídeo",
+  },
+  {
+    id: "au2",
+    quando: diaOffset(0) + " 07:55",
+    ator: "Sistema",
+    acao: "SLA estourado",
+    alvo: "SOL-20418",
+    evidencia: "Log automático",
+  },
+  {
+    id: "au3",
+    quando: diaOffset(-1) + " 16:20",
+    ator: "Carolina Ito",
+    acao: "Documento reprovado",
+    alvo: "RG representante legal",
+    evidencia: "Parecer documental",
+  },
+  {
+    id: "au4",
+    quando: diaOffset(-1) + " 09:45",
+    ator: "Marina Duarte",
+    acao: "Certificado emitido",
+    alvo: "AC-2026-10233",
+    evidencia: "Videoconferência gravada",
+  },
+  {
+    id: "au5",
+    quando: diaOffset(-2) + " 11:02",
+    ator: "Diego Nunes",
+    acao: "Atendimento assumido do bot",
+    alvo: "Conversa CV1",
+    evidencia: "Transcrição",
+  },
 ];
 
 export const kpis = {
@@ -801,7 +1588,8 @@ export const brl = (v: number) =>
 // Helpdesk / Chamados
 // ---------------------------------------------------------------------------
 
-export type TicketStatus = "aberto" | "em andamento" | "aguardando cliente" | "resolvido" | "fechado";
+export type TicketStatus =
+  "aberto" | "em andamento" | "aguardando cliente" | "resolvido" | "fechado";
 export type TicketCategoria =
   | "Instalação e uso"
   | "Documentação"
@@ -843,12 +1631,27 @@ export interface Ticket {
 }
 
 export const ticketCategorias: { nome: TicketCategoria; sub: string[] }[] = [
-  { nome: "Instalação e uso", sub: ["Driver do token", "Assinatura em PDF", "Navegador / Java", "Acesso na nuvem"] },
+  {
+    nome: "Instalação e uso",
+    sub: ["Driver do token", "Assinatura em PDF", "Navegador / Java", "Acesso na nuvem"],
+  },
   { nome: "Documentação", sub: ["Documento reprovado", "Reenvio de arquivo", "Procuração"] },
-  { nome: "Agendamento", sub: ["Remarcar videoconferência", "Não consegui entrar na sala", "Confirmar horário"] },
-  { nome: "Financeiro", sub: ["2ª via de boleto", "Nota fiscal", "Reembolso", "Cobrança indevida"] },
-  { nome: "Revogação", sub: ["Perda do token", "Suspeita de comprometimento", "Desligamento do titular"] },
-  { nome: "Erro no certificado", sub: ["Dados incorretos", "Certificado não reconhecido", "Expirado antes do prazo"] },
+  {
+    nome: "Agendamento",
+    sub: ["Remarcar videoconferência", "Não consegui entrar na sala", "Confirmar horário"],
+  },
+  {
+    nome: "Financeiro",
+    sub: ["2ª via de boleto", "Nota fiscal", "Reembolso", "Cobrança indevida"],
+  },
+  {
+    nome: "Revogação",
+    sub: ["Perda do token", "Suspeita de comprometimento", "Desligamento do titular"],
+  },
+  {
+    nome: "Erro no certificado",
+    sub: ["Dados incorretos", "Certificado não reconhecido", "Expirado antes do prazo"],
+  },
   { nome: "Outros", sub: ["Dúvida geral", "Sugestão", "Reclamação"] },
 ];
 
@@ -872,10 +1675,37 @@ export const tickets: Ticket[] = [
     primeiraRespostaMin: 18,
     tags: ["e-CNPJ A1", "e-CAC"],
     mensagens: [
-      { id: "tm1", autor: "Cliente", papel: "cliente", quando: diaOffset(-1) + " 09:12", texto: "Instalamos o certificado no computador do escritório e o e-CAC não reconhece. Aparece que nenhum certificado foi encontrado." },
-      { id: "tm2", autor: "Sistema", papel: "sistema", quando: diaOffset(-1) + " 09:12", texto: "Chamado classificado automaticamente como Erro no certificado · Prioridade alta." },
-      { id: "tm3", autor: "Diego Nunes", papel: "suporte", quando: diaOffset(-1) + " 09:30", texto: "Bom dia! Poderia enviar um print da tela de certificados do navegador? Vamos verificar a cadeia de confiança.", },
-      { id: "tm4", autor: "Cliente", papel: "cliente", quando: diaOffset(0) + " 08:40", texto: "Segue o print solicitado.", anexo: { nome: "print-navegador.png", tipo: "PNG" } },
+      {
+        id: "tm1",
+        autor: "Cliente",
+        papel: "cliente",
+        quando: diaOffset(-1) + " 09:12",
+        texto:
+          "Instalamos o certificado no computador do escritório e o e-CAC não reconhece. Aparece que nenhum certificado foi encontrado.",
+      },
+      {
+        id: "tm2",
+        autor: "Sistema",
+        papel: "sistema",
+        quando: diaOffset(-1) + " 09:12",
+        texto: "Chamado classificado automaticamente como Erro no certificado · Prioridade alta.",
+      },
+      {
+        id: "tm3",
+        autor: "Diego Nunes",
+        papel: "suporte",
+        quando: diaOffset(-1) + " 09:30",
+        texto:
+          "Bom dia! Poderia enviar um print da tela de certificados do navegador? Vamos verificar a cadeia de confiança.",
+      },
+      {
+        id: "tm4",
+        autor: "Cliente",
+        papel: "cliente",
+        quando: diaOffset(0) + " 08:40",
+        texto: "Segue o print solicitado.",
+        anexo: { nome: "print-navegador.png", tipo: "PNG" },
+      },
     ],
   },
   {
@@ -897,8 +1727,20 @@ export const tickets: Ticket[] = [
     primeiraRespostaMin: 6,
     tags: ["videoconferência"],
     mensagens: [
-      { id: "tm5", autor: "Cliente", papel: "cliente", quando: diaOffset(-2) + " 14:05", texto: "Tive um imprevisto e não consigo comparecer amanhã às 10h." },
-      { id: "tm6", autor: "Rafael Bastos", papel: "suporte", quando: diaOffset(-2) + " 14:11", texto: "Sem problemas. Tenho horários livres quinta 09h, 11h e 16h. Qual prefere?" },
+      {
+        id: "tm5",
+        autor: "Cliente",
+        papel: "cliente",
+        quando: diaOffset(-2) + " 14:05",
+        texto: "Tive um imprevisto e não consigo comparecer amanhã às 10h.",
+      },
+      {
+        id: "tm6",
+        autor: "Rafael Bastos",
+        papel: "suporte",
+        quando: diaOffset(-2) + " 14:11",
+        texto: "Sem problemas. Tenho horários livres quinta 09h, 11h e 16h. Qual prefere?",
+      },
     ],
   },
   {
@@ -921,9 +1763,28 @@ export const tickets: Ticket[] = [
     satisfacao: 5,
     tags: ["boleto"],
     mensagens: [
-      { id: "tm7", autor: "Cliente", papel: "cliente", quando: diaOffset(-4) + " 11:40", texto: "O boleto venceu, podem reenviar atualizado?" },
-      { id: "tm8", autor: "Diego Nunes", papel: "suporte", quando: diaOffset(-4) + " 12:14", texto: "Boleto atualizado em anexo, vencimento em 3 dias.", anexo: { nome: "boleto-atualizado.pdf", tipo: "PDF" } },
-      { id: "tm9", autor: "Cliente", papel: "cliente", quando: diaOffset(-3) + " 09:05", texto: "Pago, obrigada!" },
+      {
+        id: "tm7",
+        autor: "Cliente",
+        papel: "cliente",
+        quando: diaOffset(-4) + " 11:40",
+        texto: "O boleto venceu, podem reenviar atualizado?",
+      },
+      {
+        id: "tm8",
+        autor: "Diego Nunes",
+        papel: "suporte",
+        quando: diaOffset(-4) + " 12:14",
+        texto: "Boleto atualizado em anexo, vencimento em 3 dias.",
+        anexo: { nome: "boleto-atualizado.pdf", tipo: "PDF" },
+      },
+      {
+        id: "tm9",
+        autor: "Cliente",
+        papel: "cliente",
+        quando: diaOffset(-3) + " 09:05",
+        texto: "Pago, obrigada!",
+      },
     ],
   },
   {
@@ -944,8 +1805,21 @@ export const tickets: Ticket[] = [
     slaRestanteHoras: -1,
     tags: ["compliance", "revogação"],
     mensagens: [
-      { id: "tm10", autor: "Cliente", papel: "cliente", quando: diaOffset(0) + " 07:58", texto: "O token do diretor foi extraviado em viagem. Precisamos revogar hoje." },
-      { id: "tm11", autor: "Sistema", papel: "sistema", quando: diaOffset(0) + " 07:58", texto: "Prioridade crítica aplicada por regra de compliance. Encaminhado para Helena Prado." },
+      {
+        id: "tm10",
+        autor: "Cliente",
+        papel: "cliente",
+        quando: diaOffset(0) + " 07:58",
+        texto: "O token do diretor foi extraviado em viagem. Precisamos revogar hoje.",
+      },
+      {
+        id: "tm11",
+        autor: "Sistema",
+        papel: "sistema",
+        quando: diaOffset(0) + " 07:58",
+        texto:
+          "Prioridade crítica aplicada por regra de compliance. Encaminhado para Helena Prado.",
+      },
     ],
   },
   {
@@ -967,9 +1841,27 @@ export const tickets: Ticket[] = [
     primeiraRespostaMin: 12,
     tags: ["A3", "Adobe"],
     mensagens: [
-      { id: "tm12", autor: "Cliente", papel: "cliente", quando: diaOffset(-1) + " 16:33", texto: "Ao assinar aparece 'a operação criptográfica falhou'." },
-      { id: "tm13", autor: "Carolina Ito", papel: "suporte", quando: diaOffset(-1) + " 16:45", texto: "Vamos reinstalar o driver do token. Enviei o passo a passo por e-mail." },
-      { id: "tm14", autor: "Cliente", papel: "cliente", quando: diaOffset(0) + " 09:10", texto: "Reinstalei, mas o erro continua." },
+      {
+        id: "tm12",
+        autor: "Cliente",
+        papel: "cliente",
+        quando: diaOffset(-1) + " 16:33",
+        texto: "Ao assinar aparece 'a operação criptográfica falhou'.",
+      },
+      {
+        id: "tm13",
+        autor: "Carolina Ito",
+        papel: "suporte",
+        quando: diaOffset(-1) + " 16:45",
+        texto: "Vamos reinstalar o driver do token. Enviei o passo a passo por e-mail.",
+      },
+      {
+        id: "tm14",
+        autor: "Cliente",
+        papel: "cliente",
+        quando: diaOffset(0) + " 09:10",
+        texto: "Reinstalei, mas o erro continua.",
+      },
     ],
   },
   {
@@ -991,8 +1883,21 @@ export const tickets: Ticket[] = [
     primeiraRespostaMin: 21,
     tags: ["documentação"],
     mensagens: [
-      { id: "tm15", autor: "Cliente", papel: "cliente", quando: diaOffset(-3) + " 10:02", texto: "Recebemos aviso de reprovação do contrato social." },
-      { id: "tm16", autor: "Carolina Ito", papel: "suporte", quando: diaOffset(-3) + " 10:23", texto: "A última alteração contratual não estava registrada na Junta. Pode reenviar a versão registrada?" },
+      {
+        id: "tm15",
+        autor: "Cliente",
+        papel: "cliente",
+        quando: diaOffset(-3) + " 10:02",
+        texto: "Recebemos aviso de reprovação do contrato social.",
+      },
+      {
+        id: "tm16",
+        autor: "Carolina Ito",
+        papel: "suporte",
+        quando: diaOffset(-3) + " 10:23",
+        texto:
+          "A última alteração contratual não estava registrada na Junta. Pode reenviar a versão registrada?",
+      },
     ],
   },
   {
@@ -1015,18 +1920,56 @@ export const tickets: Ticket[] = [
     satisfacao: 4,
     tags: ["produto"],
     mensagens: [
-      { id: "tm17", autor: "Cliente", papel: "cliente", quando: diaOffset(-8) + " 13:00", texto: "Seria ótimo receber aviso 30 dias antes do vencimento." },
-      { id: "tm18", autor: "Diego Nunes", papel: "suporte", quando: diaOffset(-7) + " 08:30", texto: "Registramos sua sugestão no roadmap. Obrigado!" },
+      {
+        id: "tm17",
+        autor: "Cliente",
+        papel: "cliente",
+        quando: diaOffset(-8) + " 13:00",
+        texto: "Seria ótimo receber aviso 30 dias antes do vencimento.",
+      },
+      {
+        id: "tm18",
+        autor: "Diego Nunes",
+        papel: "suporte",
+        quando: diaOffset(-7) + " 08:30",
+        texto: "Registramos sua sugestão no roadmap. Obrigado!",
+      },
     ],
   },
 ];
 
-export const ticketStatuses: TicketStatus[] = ["aberto", "em andamento", "aguardando cliente", "resolvido", "fechado"];
+export const ticketStatuses: TicketStatus[] = [
+  "aberto",
+  "em andamento",
+  "aguardando cliente",
+  "resolvido",
+  "fechado",
+];
 
 export const baseConhecimento = [
-  { id: "kb1", titulo: "Como instalar o driver do token A3", categoria: "Instalação e uso", views: 3120 },
-  { id: "kb2", titulo: "Certificado não aparece no e-CAC: checklist", categoria: "Erro no certificado", views: 2410 },
+  {
+    id: "kb1",
+    titulo: "Como instalar o driver do token A3",
+    categoria: "Instalação e uso",
+    views: 3120,
+  },
+  {
+    id: "kb2",
+    titulo: "Certificado não aparece no e-CAC: checklist",
+    categoria: "Erro no certificado",
+    views: 2410,
+  },
   { id: "kb3", titulo: "Documentos aceitos para e-CNPJ", categoria: "Documentação", views: 1980 },
-  { id: "kb4", titulo: "Como remarcar sua videoconferência", categoria: "Agendamento", views: 1544 },
-  { id: "kb5", titulo: "Emitir 2ª via de boleto e nota fiscal", categoria: "Financeiro", views: 1201 },
+  {
+    id: "kb4",
+    titulo: "Como remarcar sua videoconferência",
+    categoria: "Agendamento",
+    views: 1544,
+  },
+  {
+    id: "kb5",
+    titulo: "Emitir 2ª via de boleto e nota fiscal",
+    categoria: "Financeiro",
+    views: 1201,
+  },
 ];

@@ -54,7 +54,8 @@ export function AdminShell({
   const menu = (
     <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
       {nav.map((item) => {
-        const active = "exact" in item && item.exact ? pathname === item.to : pathname.startsWith(item.to);
+        const active =
+          "exact" in item && item.exact ? pathname === item.to : pathname.startsWith(item.to);
         return (
           <Link
             key={item.to}
@@ -155,7 +156,11 @@ export function AdminShell({
 
       {aberto && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <button aria-label="Fechar" onClick={() => setAberto(false)} className="absolute inset-0 bg-foreground/40" />
+          <button
+            aria-label="Fechar"
+            onClick={() => setAberto(false)}
+            className="absolute inset-0 bg-foreground/40"
+          />
           <div className="absolute inset-y-0 left-0 flex w-64 flex-col border-r border-border bg-sidebar">
             <div className="relative">
               {marca}

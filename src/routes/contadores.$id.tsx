@@ -1,14 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import {
-  Award,
-  Building2,
-  FileCheck2,
-  Handshake,
-  Mail,
-  Percent,
-  Phone,
-  Users,
-} from "lucide-react";
+import { Award, Building2, FileCheck2, Handshake, Mail, Percent, Phone, Users } from "lucide-react";
 import { useState } from "react";
 import {
   Area,
@@ -38,7 +29,12 @@ export const Route = createFileRoute("/contadores/$id")({
   },
   head: ({ loaderData }) => {
     if (!loaderData)
-      return { meta: [{ title: "Parceiro não encontrado — Certus AC" }, { name: "robots", content: "noindex" }] };
+      return {
+        meta: [
+          { title: "Parceiro não encontrado — Certus AC" },
+          { name: "robots", content: "noindex" },
+        ],
+      };
     return {
       meta: [
         { title: `${loaderData.nome} — Cockpit do contador` },
@@ -47,7 +43,10 @@ export const Route = createFileRoute("/contadores/$id")({
           content: `Cockpit do parceiro contábil ${loaderData.nome}: carteira de clientes, pedidos em andamento, comissões, metas e credenciamento.`,
         },
         { property: "og:title", content: `${loaderData.nome} — Cockpit do contador parceiro` },
-        { property: "og:description", content: "Carteira, pedidos, comissões e credenciamento do parceiro." },
+        {
+          property: "og:description",
+          content: "Carteira, pedidos, comissões e credenciamento do parceiro.",
+        },
         { property: "og:type", content: "profile" },
         { name: "twitter:card", content: "summary" },
       ],
@@ -174,7 +173,12 @@ function Cockpit() {
     },
     {
       nome: "Evolução",
-      linhas: c.serie.map((s) => ({ Mês: s.mes, Emissões: s.emissoes, Receita: s.receita, Comissão: s.comissao })),
+      linhas: c.serie.map((s) => ({
+        Mês: s.mes,
+        Emissões: s.emissoes,
+        Receita: s.receita,
+        Comissão: s.comissao,
+      })),
     },
     {
       nome: "Credenciamento",
@@ -217,8 +221,14 @@ function Cockpit() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <p className="font-display text-base font-semibold">{c.razaoSocial}</p>
-              <Chip tone={c.status === "ativo" ? "blue" : c.status === "suspenso" ? "alert" : "neutral"}>{c.status}</Chip>
-              <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-medium", tierTone[c.tier])}>
+              <Chip
+                tone={c.status === "ativo" ? "blue" : c.status === "suspenso" ? "alert" : "neutral"}
+              >
+                {c.status}
+              </Chip>
+              <span
+                className={cn("rounded px-1.5 py-0.5 text-[11px] font-medium", tierTone[c.tier])}
+              >
                 <Award className="mr-0.5 inline size-3" />
                 {c.tier}
               </span>
@@ -226,31 +236,66 @@ function Cockpit() {
             <p className="mt-0.5 text-xs text-muted-foreground">
               {c.responsavel} · {c.email} · {c.telefone} · {c.cidade}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">{c.tabelaEspecial} · gestor {c.gestor}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {c.tabelaEspecial} · gestor {c.gestor}
+            </p>
           </div>
           <div className="ml-auto w-56">
             <p className="text-[11px] uppercase text-muted-foreground">Meta do mês</p>
             <p className="tabular font-display text-lg font-semibold">
-              {c.emissoesMes}/{c.metaMes} <span className="text-sm text-muted-foreground">({atingimento}%)</span>
+              {c.emissoesMes}/{c.metaMes}{" "}
+              <span className="text-sm text-muted-foreground">({atingimento}%)</span>
             </p>
             <Bar value={atingimento} />
           </div>
         </div>
 
         <div className="flex flex-wrap rounded-lg border border-border bg-card">
-          <Metric label="Clientes vinculados" value={String(c.carteira.length)} hint={`${vencendo.length} vencem em 30d`} />
-          <Metric label="Pedidos em curso" value={String(emCurso.length)} hint={`${emRisco.length} com SLA crítico`} />
-          <Metric label="Receita do mês" value={brl(c.receitaMes)} hint={`ticket ${brl(c.ticketMedio)}`} />
-          <Metric label="Comissão do mês" value={brl(c.comissaoMes)} hint={`${c.comissaoPercentual}% sobre a base`} />
-          <Metric label="Comissão em aberto" value={brl(c.comissaoAberta)} hint={`acumulado ${brl(c.comissaoAcumulada)}`} />
+          <Metric
+            label="Clientes vinculados"
+            value={String(c.carteira.length)}
+            hint={`${vencendo.length} vencem em 30d`}
+          />
+          <Metric
+            label="Pedidos em curso"
+            value={String(emCurso.length)}
+            hint={`${emRisco.length} com SLA crítico`}
+          />
+          <Metric
+            label="Receita do mês"
+            value={brl(c.receitaMes)}
+            hint={`ticket ${brl(c.ticketMedio)}`}
+          />
+          <Metric
+            label="Comissão do mês"
+            value={brl(c.comissaoMes)}
+            hint={`${c.comissaoPercentual}% sobre a base`}
+          />
+          <Metric
+            label="Comissão em aberto"
+            value={brl(c.comissaoAberta)}
+            hint={`acumulado ${brl(c.comissaoAcumulada)}`}
+          />
         </div>
 
         <div className="flex flex-wrap rounded-lg border border-border bg-card">
           <Metric label="Conversão" value={`${c.conversao}%`} hint="pedido → emissão" />
-          <Metric label="Qualidade documental" value={`${c.qualidadeDocs}%`} hint="aprovados na 1ª análise" />
+          <Metric
+            label="Qualidade documental"
+            value={`${c.qualidadeDocs}%`}
+            hint="aprovados na 1ª análise"
+          />
           <Metric label="Tempo médio" value={`${c.tempoMedioDias}d`} hint="entrada → emissão" />
-          <Metric label="Inadimplência" value={`${c.inadimplencia}%`} hint={`${inadimplentes.length} cliente(s)`} />
-          <Metric label="NPS do parceiro" value={c.nps ? String(c.nps) : "—"} hint={`churn ${c.churnCarteira}%`} />
+          <Metric
+            label="Inadimplência"
+            value={`${c.inadimplencia}%`}
+            hint={`${inadimplentes.length} cliente(s)`}
+          />
+          <Metric
+            label="NPS do parceiro"
+            value={c.nps ? String(c.nps) : "—"}
+            hint={`churn ${c.churnCarteira}%`}
+          />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
@@ -261,14 +306,48 @@ function Cockpit() {
                   <CartesianGrid vertical={false} stroke="var(--color-border)" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis yAxisId="l" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis yAxisId="r" orientation="right" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    yAxisId="r"
+                    orientation="right"
+                    tick={{ fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
                   <Tooltip
-                    contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--color-border)" }}
+                    contentStyle={{
+                      fontSize: 12,
+                      borderRadius: 8,
+                      border: "1px solid var(--color-border)",
+                    }}
                     formatter={(v: number, n: string) => (n === "Emissões" ? v : brl(Number(v)))}
                   />
-                  <RBar yAxisId="l" dataKey="emissoes" name="Emissões" fill="var(--color-primary)" radius={[4, 4, 0, 0]} barSize={18} />
-                  <Line yAxisId="r" type="monotone" dataKey="receita" name="Receita" stroke="var(--color-primary-deep)" strokeWidth={2} dot={false} />
-                  <Line yAxisId="r" type="monotone" dataKey="comissao" name="Comissão" stroke="var(--color-border-strong)" strokeWidth={2} strokeDasharray="4 3" dot={false} />
+                  <RBar
+                    yAxisId="l"
+                    dataKey="emissoes"
+                    name="Emissões"
+                    fill="var(--color-primary)"
+                    radius={[4, 4, 0, 0]}
+                    barSize={18}
+                  />
+                  <Line
+                    yAxisId="r"
+                    type="monotone"
+                    dataKey="receita"
+                    name="Receita"
+                    stroke="var(--color-primary-deep)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line
+                    yAxisId="r"
+                    type="monotone"
+                    dataKey="comissao"
+                    name="Comissão"
+                    stroke="var(--color-border-strong)"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    dot={false}
+                  />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -288,10 +367,21 @@ function Cockpit() {
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip
-                    contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--color-border)" }}
+                    contentStyle={{
+                      fontSize: 12,
+                      borderRadius: 8,
+                      border: "1px solid var(--color-border)",
+                    }}
                     formatter={(v: number) => brl(Number(v))}
                   />
-                  <Area type="monotone" dataKey="comissao" name="Comissão" stroke="var(--color-primary)" strokeWidth={2} fill="url(#gcom)" />
+                  <Area
+                    type="monotone"
+                    dataKey="comissao"
+                    name="Comissão"
+                    stroke="var(--color-primary)"
+                    strokeWidth={2}
+                    fill="url(#gcom)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -351,8 +441,12 @@ function Cockpit() {
                             </span>
                           </td>
                           <td className="px-4 py-2.5 tabular">{w.certificadosAtivos}</td>
-                          <td className="px-4 py-2.5 whitespace-nowrap tabular text-muted-foreground">{w.proximoVencimento}</td>
-                          <td className="px-4 py-2.5 whitespace-nowrap tabular text-muted-foreground">{w.ultimaEmissao}</td>
+                          <td className="px-4 py-2.5 whitespace-nowrap tabular text-muted-foreground">
+                            {w.proximoVencimento}
+                          </td>
+                          <td className="px-4 py-2.5 whitespace-nowrap tabular text-muted-foreground">
+                            {w.ultimaEmissao}
+                          </td>
                           <td className="px-4 py-2.5 text-right tabular">{brl(w.receitaAno)}</td>
                           <td className="px-4 py-2.5">
                             <Chip tone={situacaoTone[w.situacao]}>{w.situacao}</Chip>
@@ -374,7 +468,10 @@ function Cockpit() {
 
             {aba === "pedidos" && (
               <div className="space-y-4">
-                <Panel title="Pedidos por etapa" hint="Distribuição do funil operacional do parceiro">
+                <Panel
+                  title="Pedidos por etapa"
+                  hint="Distribuição do funil operacional do parceiro"
+                >
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {stages
                       .filter((s) => s.id !== "concluido")
@@ -388,7 +485,9 @@ function Cockpit() {
                               qtd > 0 ? "border-primary/40 bg-primary-soft/40" : "border-border",
                             )}
                           >
-                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{s.nome}</p>
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                              {s.nome}
+                            </p>
                             <p className="tabular font-display text-lg font-semibold">{qtd}</p>
                           </div>
                         );
@@ -416,7 +515,15 @@ function Cockpit() {
                             <td className="px-4 py-2.5">{p.cliente}</td>
                             <td className="px-4 py-2.5 text-muted-foreground">{p.tipo}</td>
                             <td className="px-4 py-2.5">
-                              <Chip tone={p.stage === "bloqueado" ? "alert" : p.stage === "concluido" ? "blue" : "neutral"}>
+                              <Chip
+                                tone={
+                                  p.stage === "bloqueado"
+                                    ? "alert"
+                                    : p.stage === "concluido"
+                                      ? "blue"
+                                      : "neutral"
+                                }
+                              >
                                 {stageNome(p.stage)}
                               </Chip>
                             </td>
@@ -428,7 +535,9 @@ function Cockpit() {
                               )}
                             </td>
                             <td className="px-4 py-2.5 text-right tabular">{brl(p.valor)}</td>
-                            <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">{p.responsavel}</td>
+                            <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">
+                              {p.responsavel}
+                            </td>
                           </tr>
                         ))}
                         {c.pedidos.length === 0 && (
@@ -446,7 +555,11 @@ function Cockpit() {
             )}
 
             {aba === "comissoes" && (
-              <Panel bodyClassName="p-0" title="Extrato de comissões" hint={`Regra vigente: ${c.comissaoPercentual}% sobre a receita líquida`}>
+              <Panel
+                bodyClassName="p-0"
+                title="Extrato de comissões"
+                hint={`Regra vigente: ${c.comissaoPercentual}% sobre a receita líquida`}
+              >
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -467,8 +580,12 @@ function Cockpit() {
                           <td className="px-4 py-2.5 text-right tabular">{e.emissoes}</td>
                           <td className="px-4 py-2.5 text-right tabular">{brl(e.base)}</td>
                           <td className="px-4 py-2.5 text-right tabular">{e.percentual}%</td>
-                          <td className="px-4 py-2.5 text-right tabular font-medium">{brl(e.valor)}</td>
-                          <td className="px-4 py-2.5 tabular text-muted-foreground">{e.pagamento}</td>
+                          <td className="px-4 py-2.5 text-right tabular font-medium">
+                            {brl(e.valor)}
+                          </td>
+                          <td className="px-4 py-2.5 tabular text-muted-foreground">
+                            {e.pagamento}
+                          </td>
                           <td className="px-4 py-2.5">
                             <Chip tone={comissaoTone[e.status]}>{e.status}</Chip>
                           </td>
@@ -478,12 +595,21 @@ function Cockpit() {
                     <tfoot>
                       <tr className="border-t border-border bg-muted/40 text-sm font-medium">
                         <td className="px-4 py-2.5">Total</td>
-                        <td className="px-4 py-2.5 text-right tabular">{c.extrato.reduce((s, e) => s + e.emissoes, 0)}</td>
-                        <td className="px-4 py-2.5 text-right tabular">{brl(c.extrato.reduce((s, e) => s + e.base, 0))}</td>
+                        <td className="px-4 py-2.5 text-right tabular">
+                          {c.extrato.reduce((s, e) => s + e.emissoes, 0)}
+                        </td>
+                        <td className="px-4 py-2.5 text-right tabular">
+                          {brl(c.extrato.reduce((s, e) => s + e.base, 0))}
+                        </td>
                         <td />
-                        <td className="px-4 py-2.5 text-right tabular">{brl(c.extrato.reduce((s, e) => s + e.valor, 0))}</td>
+                        <td className="px-4 py-2.5 text-right tabular">
+                          {brl(c.extrato.reduce((s, e) => s + e.valor, 0))}
+                        </td>
                         <td colSpan={2} className="px-4 py-2.5 text-right">
-                          <Link to="/financeiro/comissoes" className="text-xs text-primary hover:underline">
+                          <Link
+                            to="/financeiro/comissoes"
+                            className="text-xs text-primary hover:underline"
+                          >
                             Ver apuração no financeiro →
                           </Link>
                         </td>
@@ -495,7 +621,11 @@ function Cockpit() {
             )}
 
             {aba === "credenciamento" && (
-              <Panel bodyClassName="p-0" title="Documentos de credenciamento" hint="Habilitação, compliance e capacitação">
+              <Panel
+                bodyClassName="p-0"
+                title="Documentos de credenciamento"
+                hint="Habilitação, compliance e capacitação"
+              >
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -511,7 +641,9 @@ function Cockpit() {
                         <tr key={d.id} className="hover:bg-muted/50">
                           <td className="px-4 py-2.5">{d.nome}</td>
                           <td className="px-4 py-2.5 text-muted-foreground">{d.tipo}</td>
-                          <td className="px-4 py-2.5 tabular text-muted-foreground">{d.validade ?? "—"}</td>
+                          <td className="px-4 py-2.5 tabular text-muted-foreground">
+                            {d.validade ?? "—"}
+                          </td>
                           <td className="px-4 py-2.5">
                             <Chip tone={docTone[d.status]}>{d.status}</Chip>
                           </td>
@@ -528,15 +660,22 @@ function Cockpit() {
             <Panel title="Alertas do parceiro">
               <ul className="space-y-2 text-sm">
                 {emRisco.map((p) => (
-                  <li key={p.id} className="rounded-md border border-alert/30 bg-alert-soft/40 px-3 py-2">
+                  <li
+                    key={p.id}
+                    className="rounded-md border border-alert/30 bg-alert-soft/40 px-3 py-2"
+                  >
                     <p className="font-medium">{p.protocolo} · SLA crítico</p>
-                    <p className="text-xs text-muted-foreground">{p.cliente} — {stageNome(p.stage)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.cliente} — {stageNome(p.stage)}
+                    </p>
                   </li>
                 ))}
                 {vencendo.map((w) => (
                   <li key={w.id} className="rounded-md border border-border px-3 py-2">
                     <p className="font-medium">Certificado a vencer</p>
-                    <p className="text-xs text-muted-foreground">{w.nome} — {w.proximoVencimento}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {w.nome} — {w.proximoVencimento}
+                    </p>
                   </li>
                 ))}
                 {c.documentos
@@ -547,9 +686,10 @@ function Cockpit() {
                       <p className="text-xs text-muted-foreground">{d.nome}</p>
                     </li>
                   ))}
-                {emRisco.length + vencendo.length === 0 && c.documentos.every((d) => d.status === "aprovado") && (
-                  <li className="text-sm text-muted-foreground">Sem alertas abertos.</li>
-                )}
+                {emRisco.length + vencendo.length === 0 &&
+                  c.documentos.every((d) => d.status === "aprovado") && (
+                    <li className="text-sm text-muted-foreground">Sem alertas abertos.</li>
+                  )}
               </ul>
             </Panel>
 

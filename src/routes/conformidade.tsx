@@ -22,7 +22,9 @@ export const Route = createFileRoute("/conformidade")({
 
 function Conformidade() {
   const revogados = clients.flatMap((c) =>
-    c.certificados.filter((x) => x.status === "revogado").map((x) => ({ cliente: c.nome, cert: x })),
+    c.certificados
+      .filter((x) => x.status === "revogado")
+      .map((x) => ({ cliente: c.nome, cert: x })),
   );
 
   return (
@@ -74,7 +76,9 @@ function Conformidade() {
                 </p>
               </li>
             ))}
-            {revogados.length === 0 && <li className="text-muted-foreground">Nenhuma revogação no período.</li>}
+            {revogados.length === 0 && (
+              <li className="text-muted-foreground">Nenhuma revogação no período.</li>
+            )}
           </ul>
         </Panel>
       </div>

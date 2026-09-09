@@ -52,7 +52,15 @@ export function KpiCard({
 
 export function StatusDot({ status }: { status: string }) {
   const ok = ["operacional", "conectado", "ativo", "on", "resolvido", "paga"].includes(status);
-  const warn = ["degradado", "parcial", "trial", "onboarding", "mitigado", "aberta", "aberto"].includes(status);
+  const warn = [
+    "degradado",
+    "parcial",
+    "trial",
+    "onboarding",
+    "mitigado",
+    "aberta",
+    "aberto",
+  ].includes(status);
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs">
       <span
@@ -76,12 +84,26 @@ export function Spark({ values, className }: { values: number[]; className?: str
     .join(" ");
   return (
     <svg viewBox="0 0 100 30" preserveAspectRatio="none" className={cn("h-8 w-full", className)}>
-      <polyline points={pontos} fill="none" stroke="currentColor" strokeWidth="1.6" className="text-primary" />
+      <polyline
+        points={pontos}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        className="text-primary"
+      />
     </svg>
   );
 }
 
-export function Gauge({ label, value, sufixo = "%" }: { label: string; value: number; sufixo?: string }) {
+export function Gauge({
+  label,
+  value,
+  sufixo = "%",
+}: {
+  label: string;
+  value: number;
+  sufixo?: string;
+}) {
   const pct = Math.min(100, Math.max(0, value));
   return (
     <div className="min-w-0">

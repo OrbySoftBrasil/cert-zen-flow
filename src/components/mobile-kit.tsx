@@ -72,7 +72,9 @@ export function StatTile({
             : "border-border bg-card",
       )}
     >
-      <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
       <p
         className={cn(
           "mt-1 font-display text-xl font-semibold tabular",
@@ -128,7 +130,13 @@ export function Row({
   );
 }
 
-export function MiniBar({ value, tone = "primary" }: { value: number; tone?: "primary" | "alert" }) {
+export function MiniBar({
+  value,
+  tone = "primary",
+}: {
+  value: number;
+  tone?: "primary" | "alert";
+}) {
   return (
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
       <div

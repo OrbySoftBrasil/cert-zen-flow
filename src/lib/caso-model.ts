@@ -650,7 +650,8 @@ export const acoesWorkspace: AcaoWorkspace[] = [
     porEmissao: true,
     label: "Conferir emissão manual",
     grupo: "Emissão",
-    oQueAcontece: "Um segundo operador confere os dados e o comprovante e confirma ou devolve o registro.",
+    oQueAcontece:
+      "Um segundo operador confere os dados e o comprovante e confirma ou devolve o registro.",
     evidencia: "Decisão, motivo, autor e horário da conferência.",
     proximoResponsavel: "Suporte de entrega",
     liberadas: ["Definir entrega"],
