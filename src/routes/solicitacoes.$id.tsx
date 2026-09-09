@@ -1287,7 +1287,7 @@ function BotaoProximaAcao({
         onClick={() => (bloqueio ? setExplicando(true) : onAbrir(acao))}
         {...(bloqueio ? { "aria-describedby": "bloqueio-acao-principal" } : {})}
       >
-        {bloqueio ? <Lock className="size-3.5" /> : null}
+        {bloqueio ? <LockIcon className="size-3.5" /> : null}
         {rotulo}
       </Btn>
       <Modal
