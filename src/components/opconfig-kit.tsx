@@ -224,15 +224,24 @@ function ConfigItem({
   disabled?: boolean | undefined;
   onChange: (patch: PatchItem) => void;
 }) {
+  // Regra superior prevalece: a AR não enfraquece item de plataforma ou da AC.
+  const protegido = item.origemItem === "plataforma" || item.origemItem === "ac";
+  const trava = disabled === true || protegido;
   return (
     <div className="mt-2 space-y-3 rounded-md border border-border bg-muted/40 p-3">
+      {protegido && (
+        <p className="rounded-md bg-alert-soft px-2.5 py-1.5 text-[11px] text-alert">
+          Regra de {item.origemItem === "plataforma" ? "plataforma" : "AC"}: só pode ser consultada.
+          Esta Autoridade de Registro não pode alterar o modo, o portão ou a origem deste requisito.
+        </p>
+      )}
       <Field
         label="Como este item é cumprido?"
         hint="Escolha explícita. Renomear o item não muda o comportamento."
       >
         <SelectInput
           value={item.modo}
-          disabled={disabled}
+          disabled={trava}
           onChange={(e) =>
             onChange({
               modo: e.target.value as ItemChecklist["modo"],
@@ -256,7 +265,7 @@ function ConfigItem({
           <Field label="Categoria documental exigida">
             <SelectInput
               value={item.categoriaDoc ?? "identidade"}
-              disabled={disabled}
+              disabled={trava}
               onChange={(e) => onChange({ categoriaDoc: e.target.value as ItemChecklist["categoriaDoc"] })}
             >
               {CATEGORIAS_DOC.map((c) => (
@@ -269,7 +278,7 @@ function ConfigItem({
           <Field label="Validade máxima da evidência (dias)">
             <TextInput
               inputMode="numeric"
-              disabled={disabled}
+              disabled={trava}
               value={String(item.validadeDias ?? "")}
               placeholder="Padrão da categoria"
               onChange={(e) =>
@@ -282,7 +291,7 @@ function ConfigItem({
           <Field label="Política de reutilização">
             <SelectInput
               value={item.reutilizacao}
-              disabled={disabled}
+              disabled={trava}
               onChange={(e) => onChange({ reutilizacao: e.target.value as ItemChecklist["reutilizacao"] })}
             >
               <option value="permitida">Reaproveitar documento válido existente</option>
@@ -296,7 +305,7 @@ function ConfigItem({
         <Field label="Registro do sistema que satisfaz o item">
           <SelectInput
             value={item.chaveDerivada ?? "pagamento"}
-            disabled={disabled}
+            disabled={trava}
             onChange={(e) => onChange({ chaveDerivada: e.target.value as ItemChecklist["chaveDerivada"] })}
           >
             {DERIVADOS.map((d) => (
@@ -312,7 +321,7 @@ function ConfigItem({
         <Field label="Ação estruturada do produto">
           <SelectInput
             value={item.acaoProduto ?? "registrar-consulta"}
-            disabled={disabled}
+            disabled={trava}
             onChange={(e) => onChange({ acaoProduto: e.target.value as ItemChecklist["acaoProduto"] })}
           >
             {ACOES_PRODUTO.map((a) => (
@@ -328,7 +337,7 @@ function ConfigItem({
         <label className="flex items-center gap-2 text-xs">
           <input
             type="checkbox"
-            disabled={disabled}
+            disabled={trava}
             checked={item.observacaoObrigatoria === true}
             onChange={(e) => onChange({ observacaoObrigatoria: e.target.checked })}
           />
@@ -341,7 +350,7 @@ function ConfigItem({
           <label className="flex items-center gap-2 text-xs">
             <input
               type="checkbox"
-              disabled={disabled}
+              disabled={trava}
               checked={item.exigeAprovacao === true}
               onChange={(e) => onChange({ exigeAprovacao: e.target.checked })}
             />
@@ -350,7 +359,7 @@ function ConfigItem({
           <label className="flex items-center gap-2 text-xs">
             <input
               type="checkbox"
-              disabled={disabled}
+              disabled={trava}
               checked={item.exigeSegundoOperador === true}
               onChange={(e) => onChange({ exigeSegundoOperador: e.target.checked })}
             />
@@ -363,7 +372,7 @@ function ConfigItem({
         <Field label="Escopo do requisito">
           <SelectInput
             value={item.escopo}
-            disabled={disabled}
+            disabled={trava}
             onChange={(e) => onChange({ escopo: e.target.value as ItemChecklist["escopo"] })}
           >
             {ESCOPOS.map((x) => (
@@ -379,7 +388,7 @@ function ConfigItem({
         >
           <SelectInput
             value={item.bloqueia ?? ""}
-            disabled={disabled || item.modo === "orientacao"}
+            disabled={trava || item.modo === "orientacao"}
             onChange={(e) => onChange({ bloqueia: e.target.value || undefined })}
           >
             <option value="">Não bloqueia</option>
@@ -393,7 +402,7 @@ function ConfigItem({
         <Field label="Origem da regra">
           <SelectInput
             value={item.origemItem}
-            disabled={disabled}
+            disabled={trava}
             onChange={(e) => onChange({ origemItem: e.target.value as ItemChecklist["origemItem"] })}
           >
             <option value="plataforma">Plataforma</option>
