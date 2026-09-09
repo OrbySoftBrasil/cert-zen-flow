@@ -8,6 +8,7 @@ import {
   FileStack,
   MessageSquarePlus,
   Paperclip,
+  Lock as LockIcon,
   ShieldAlert,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -1264,7 +1265,6 @@ function NovaEmissaoRelacionada({ requestId, titular }: { requestId: string; tit
     </Panel>
   );
 }
-
 
 /** Ação principal do cabeçalho: bloqueada, não existe caminho de execução. */
 function BotaoProximaAcao({
