@@ -1086,8 +1086,13 @@ function Workspace() {
             <Btn variant="ghost" onClick={() => setAcao(null)}>
               Cancelar
             </Btn>
-            <Btn variant={acao?.destrutiva ? "danger" : "primary"} onClick={executar}>
-              Confirmar
+            <Btn
+              variant={acao?.destrutiva ? "danger" : "primary"}
+              // Enquanto houver portão ativo não existe caminho de execução.
+              disabled={!!(acao && bloqueioDaAcao(acao))}
+              onClick={executar}
+            >
+              {acao && bloqueioDaAcao(acao) ? "Ação bloqueada" : "Confirmar"}
             </Btn>
           </>
         }
