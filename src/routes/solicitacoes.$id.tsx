@@ -8,6 +8,7 @@ import {
   FileStack,
   MessageSquarePlus,
   Paperclip,
+  Lock as LockIcon,
   ShieldAlert,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -213,6 +214,8 @@ function Workspace() {
     return null;
   }
 
+  const acaoProxima = acoesWorkspace.find((a) => a.label === proximaAcao);
+
   function abrir(a: AcaoWorkspace) {
     setMotivo("");
     setErroMotivo(null);
@@ -314,9 +317,12 @@ function Workspace() {
           <Btn variant="ghost" onClick={() => setAgendando(true)}>
             <CalendarClock className="size-3.5" /> Agendar atendimento
           </Btn>
-          <Btn onClick={() => abrir(acoesWorkspace.find((a) => a.label === proximaAcao)!)}>
-            {proximaAcao}
-          </Btn>
+          <BotaoProximaAcao
+            acao={acoesWorkspace.find((a) => a.label === proximaAcao)}
+            rotulo={proximaAcao}
+            bloqueio={acaoProxima ? bloqueioDaAcao(acaoProxima) : null}
+            onAbrir={abrir}
+          />
         </>
       }
     >
@@ -1257,5 +1263,49 @@ function NovaEmissaoRelacionada({ requestId, titular }: { requestId: string; tit
         </div>
       )}
     </Panel>
+  );
+}
+
+/** Ação principal do cabeçalho: bloqueada, não existe caminho de execução. */
+function BotaoProximaAcao({
+  acao,
+  rotulo,
+  bloqueio,
+  onAbrir,
+}: {
+  acao: AcaoWorkspace | undefined;
+  rotulo: string;
+  bloqueio: string | null;
+  onAbrir: (a: AcaoWorkspace) => void;
+}) {
+  const [explicando, setExplicando] = useState(false);
+  if (!acao) return null;
+  return (
+    <>
+      <Btn
+        variant={bloqueio ? "ghost" : "primary"}
+        onClick={() => (bloqueio ? setExplicando(true) : onAbrir(acao))}
+        {...(bloqueio ? { "aria-describedby": "bloqueio-acao-principal" } : {})}
+      >
+        {bloqueio ? <LockIcon className="size-3.5" /> : null}
+        {rotulo}
+      </Btn>
+      <Modal
+        open={explicando}
+        onClose={() => setExplicando(false)}
+        title={`${rotulo} está bloqueado`}
+        hint="Resolva o requisito para liberar esta ação"
+        width="max-w-md"
+        footer={
+          <Btn variant="ghost" onClick={() => setExplicando(false)}>
+            Entendi
+          </Btn>
+        }
+      >
+        <p id="bloqueio-acao-principal" className="text-sm text-alert">
+          {bloqueio}
+        </p>
+      </Modal>
+    </>
   );
 }
