@@ -1186,6 +1186,8 @@ const c16: Cenario = {
         validadeDias: 90,
         bloqueia: "Enviar dossiê para verificação",
         responsavel: "Montadora de dossiê",
+        origemRegra: "ac",
+        politicaNaoAplicavel: "nao_permitida",
       },
       {
         label: "Contrato social da empresa",
@@ -1193,9 +1195,11 @@ const c16: Cenario = {
         categoriaDoc: "contrato-social",
         escopo: "organizacao",
         obrigatorio: false,
+        politicaNaoAplicavel: "automatica",
         naoAplicavel: {
           motivo: "Produto e-CPF não exige documentação societária.",
           regra: "Regra do produto — e-CPF pessoa física",
+          tipo: "regra",
         },
       },
       {

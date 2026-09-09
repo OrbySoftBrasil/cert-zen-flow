@@ -71,7 +71,16 @@ export interface ChecklistItem {
   exigeAprovacao?: boolean;
   exigeSegundoOperador?: boolean;
   origemRegra?: import("@/lib/checklist-model").OrigemRegra;
-  naoAplicavel?: { motivo: string; regra: string };
+  /** Se e como o requisito pode deixar de se aplicar. */
+  politicaNaoAplicavel?: import("@/lib/checklist-model").PoliticaNaoAplicavel;
+  naoAplicavel?: {
+    motivo: string;
+    regra: string;
+    /** "regra" = determinado pelo produto; "excecao" = dispensa autorizada. */
+    tipo?: "regra" | "excecao";
+    por?: string;
+    quando?: string;
+  };
   evidencia?: EvidenciaRequisito;
   historico?: RegistroHistoricoRequisito[];
 }
@@ -104,6 +113,8 @@ export interface Request {
   tags: string[];
   checklist: ChecklistItem[];
   timeline: TimelineEvent[];
+  /** Versão do perfil operacional que originou o fluxo deste caso. */
+  perfilVersao?: string;
 }
 
 export interface Certificate {
@@ -135,6 +146,18 @@ export interface DocumentFile {
   substituido?: boolean;
   /** Documento reaproveitado de outro requisito (nunca duplicamos o arquivo). */
   reutilizadoDe?: string;
+  /** Categoria documental controlada — não inferida pelo nome do arquivo. */
+  categoria?: import("@/lib/checklist-model").CategoriaDoc;
+  /** Escopo a que o documento pertence (titular, organização, representante...). */
+  escopo?: import("@/lib/checklist-model").EscopoRequisito;
+  /** Sujeito proprietário: id do titular, representante ou organização. */
+  sujeitoId?: string;
+  sujeitoNome?: string;
+  /** Emissão a que a evidência está vinculada, quando o escopo é por emissão. */
+  emissaoId?: string;
+  versao?: number;
+  origem?: string;
+  tenantId?: string;
 }
 
 export interface Client {
@@ -252,9 +275,9 @@ export const clients: Client[] = [
       { id: "f3", descricao: "Suporte anual", valor: 180, vencimento: diaOffset(-14), status: "vencido", metodo: "Boleto" },
     ],
     documentos: [
-      { id: "d1", nome: "Contrato social consolidado.pdf", tipo: "Constituição", enviadoEm: diaOffset(-3), status: "aprovado" },
-      { id: "d2", nome: "RG representante legal.jpg", tipo: "Identificação", enviadoEm: diaOffset(-2), status: "reprovado", motivo: "Imagem com reflexo, dados ilegíveis" },
-      { id: "d3", nome: "Comprovante de endereço.pdf", tipo: "Endereço", enviadoEm: diaOffset(-1), status: "em análise" },
+      { id: "d1", nome: "Contrato social consolidado.pdf", tipo: "Constituição", enviadoEm: diaOffset(-3), status: "aprovado", categoria: "contrato-social", escopo: "organizacao", sujeitoId: "c1", sujeitoNome: "Meridian Contabilidade Ltda", versao: 2, origem: "portal do cliente", tenantId: "t1" },
+      { id: "d2", nome: "RG representante legal.jpg", tipo: "Identificação", enviadoEm: diaOffset(-2), status: "reprovado", motivo: "Imagem com reflexo, dados ilegíveis", categoria: "identidade", escopo: "representante", sujeitoId: "c1", sujeitoNome: "Representante legal", versao: 1, origem: "portal do cliente", tenantId: "t1" },
+      { id: "d3", nome: "Comprovante de endereço.pdf", tipo: "Endereço", enviadoEm: diaOffset(-1), status: "em análise", categoria: "endereco", escopo: "organizacao", sujeitoId: "c1", sujeitoNome: "Meridian Contabilidade Ltda", versao: 1, origem: "portal do cliente", tenantId: "t1" },
     ],
     notas: [
       { id: "n1", quando: diaOffset(-2), autor: "Marina Duarte", texto: "Cliente pediu emissão antes do fechamento fiscal. Prioridade alta." },
@@ -277,7 +300,7 @@ export const clients: Client[] = [
     ],
     faturas: [{ id: "f4", descricao: "e-CPF A1", valor: 159, vencimento: diaOffset(3), status: "aberto", metodo: "Pix" }],
     documentos: [
-      { id: "d4", nome: "CNH digital.pdf", tipo: "Identificação", enviadoEm: diaOffset(-1), status: "em análise" },
+      { id: "d4", nome: "CNH digital.pdf", tipo: "Identificação", enviadoEm: diaOffset(-1), status: "em análise", categoria: "identidade", escopo: "titular", sujeitoId: "c2", sujeitoNome: "Ana Beatriz Cardoso", versao: 1, origem: "portal do cliente", tenantId: "t1" },
     ],
     notas: [{ id: "n2", quando: diaOffset(-1), autor: "Diego Nunes", texto: "Já teve no-show em agendamento anterior." }],
   },
@@ -298,7 +321,7 @@ export const clients: Client[] = [
       { id: "cert6", tipo: "e-CPF A3", serie: "AC-2023-31002", emitidoEm: "2023-04-04", validoAte: "2026-04-04", status: "revogado" },
     ],
     faturas: [{ id: "f5", descricao: "Renovação e-CNPJ", valor: 289, vencimento: diaOffset(-6), status: "vencido", metodo: "Boleto" }],
-    documentos: [{ id: "d5", nome: "Procuração.pdf", tipo: "Representação", enviadoEm: diaOffset(-5), status: "aprovado" }],
+    documentos: [{ id: "d5", nome: "Procuração.pdf", tipo: "Representação", enviadoEm: diaOffset(-5), status: "aprovado", categoria: "procuracao", escopo: "representante", sujeitoId: "c3", sujeitoNome: "Clínica Bem Viver ME", versao: 1, origem: "atendimento presencial", tenantId: "t1" }],
     notas: [{ id: "n3", quando: diaOffset(-6), autor: "Helena Prado", texto: "Revogação registrada a pedido do titular (troca de sócio)." }],
   },
   {
@@ -318,7 +341,7 @@ export const clients: Client[] = [
       { id: "cert8", tipo: "e-CNPJ A3", serie: "AC-2024-66120", emitidoEm: "2024-06-11", validoAte: diaOffset(72), status: "ativo" },
     ],
     faturas: [{ id: "f6", descricao: "Contrato corporativo trimestral", valor: 3480, vencimento: diaOffset(18), status: "aberto", metodo: "Transferência" }],
-    documentos: [{ id: "d6", nome: "Estatuto social.pdf", tipo: "Constituição", enviadoEm: diaOffset(-30), status: "aprovado" }],
+    documentos: [{ id: "d6", nome: "Estatuto social.pdf", tipo: "Constituição", enviadoEm: diaOffset(-30), status: "aprovado", categoria: "contrato-social", escopo: "organizacao", sujeitoId: "c4", sujeitoNome: "Transportes Aurora S/A", versao: 3, origem: "portal do cliente", tenantId: "t1" }],
     notas: [{ id: "n4", quando: diaOffset(-10), autor: "Marina Duarte", texto: "Conta corporativa: 26 certificados sob o mesmo contrato." }],
   },
   {
@@ -336,8 +359,8 @@ export const clients: Client[] = [
     certificados: [{ id: "cert9", tipo: "e-CPF A3", serie: "AC-2024-99011", emitidoEm: "2024-11-11", validoAte: diaOffset(88), status: "ativo" }],
     faturas: [{ id: "f7", descricao: "e-CPF A3 + token", valor: 318, vencimento: "2024-11-11", status: "pago", metodo: "Cartão" }],
     documentos: [
-      { id: "d7", nome: "OAB frente e verso.pdf", tipo: "Identificação", enviadoEm: diaOffset(-20), status: "aprovado" },
-      { id: "d8", nome: "Conta de energia 2025.pdf", tipo: "Endereço", enviadoEm: diaOffset(-200), status: "aprovado" },
+      { id: "d7", nome: "OAB frente e verso.pdf", tipo: "Identificação", enviadoEm: diaOffset(-20), status: "aprovado", categoria: "identidade", escopo: "titular", sujeitoId: "c5", sujeitoNome: "Paulo Sérgio Almeida", versao: 1, origem: "atendimento presencial", tenantId: "t1" },
+      { id: "d8", nome: "Conta de energia 2025.pdf", tipo: "Endereço", enviadoEm: diaOffset(-200), status: "aprovado", categoria: "endereco", escopo: "titular", sujeitoId: "c5", sujeitoNome: "Paulo Sérgio Almeida", versao: 1, origem: "portal do cliente", tenantId: "t1" },
     ],
     notas: [],
   },

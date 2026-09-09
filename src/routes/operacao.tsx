@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { RequisitosEtapa } from "@/components/requisitos-etapa";
+import { emissoesDoCaso } from "@/lib/caso-model";
 import {
   AlertTriangle,
   ArrowRight,
@@ -126,7 +127,8 @@ const pesoPrioridade = { critica: 0, alta: 1, normal: 2, baixa: 3 } as const;
 const abasValidas: Aba[] = ["visao", "fila", "casos", "demo"];
 
 function Operacao() {
-  const { requests, moveRequest, updateRequest, logRequest } = useStore();
+  const store = useStore();
+  const { requests, moveRequest, updateRequest, logRequest } = store;
   const navigate = useNavigate();
   const { aba: abaUrl } = Route.useSearch();
 
@@ -153,11 +155,13 @@ function Operacao() {
   const casoAberto = requests.find((r) => r.id === caso) ?? null;
   const selecionados = requests.filter((r) => selecao.includes(r.id));
 
-  const emissoesPorCliente = useMemo(() => {
+  // Emissões DO CASO (não solicitações do cliente): cada caso tem seu próprio
+  // conjunto de emissões independentes.
+  const emissoesPorCaso = useMemo(() => {
     const mapa: Record<string, number> = {};
-    for (const r of requests) mapa[r.clienteId] = (mapa[r.clienteId] ?? 0) + 1;
+    for (const r of requests) mapa[r.id] = emissoesDoCaso(r, store.emissoesExtras[r.id] ?? []).length;
     return mapa;
-  }, [requests]);
+  }, [requests, store.emissoesExtras]);
 
   function alternarSelecao(id: string, marcado: boolean) {
     setSelecao((s) => (marcado ? [...new Set([...s, id])] : s.filter((x) => x !== id)));
@@ -289,7 +293,7 @@ function Operacao() {
       {aba === "visao" && (
         <VisaoGeral
           requests={requests}
-          emissoes={emissoesPorCliente}
+          emissoes={emissoesPorCaso}
           onOpen={setCaso}
           selecao={selecao}
           onSelecionar={alternarSelecao}
@@ -702,7 +706,7 @@ function VisaoGeral({
                       </span>
                       <CasoCard
                         r={r}
-                        emissoes={emissoes[r.clienteId] ?? 1}
+                        emissoes={emissoes[r.id] ?? 1}
                         onOpen={() => onOpen(r.id)}
                         onDragStart={() => setArrastando(r.id)}
                         onDragEnd={() => setArrastando(null)}
