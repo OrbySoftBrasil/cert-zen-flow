@@ -780,6 +780,7 @@ export function RequisitosEtapa({ r, compacto = false }: { r: Request; compacto?
               <span>
                 <span className="font-medium">{p.acao}</span> bloqueado por “{p.item}” — {p.motivo}.
                 Responsável: {p.responsavel}.
+                {p.comoResolver ? <> Como resolver: {p.comoResolver}.</> : null}
               </span>
             </p>
           ))}
