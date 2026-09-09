@@ -489,7 +489,7 @@ const checklistPorEtapa: Record<StageId, EspecItem[]> = {
 /** Lê o perfil operacional PUBLICADO (a mesma fonte de "Operação & perfis"). */
 function perfilPublicado(): { versao: string; perfil: PerfilOperacional } | null {
   try {
-    const raw = window.localStorage.getItem("certus-opconfig-v1");
+    const raw = window.localStorage.getItem("certus-opconfig-v2");
     if (!raw) return null;
     const p = JSON.parse(raw) as { publicada?: PerfilOperacional & { numero?: string } };
     if (!p.publicada?.etapas?.length) return null;
