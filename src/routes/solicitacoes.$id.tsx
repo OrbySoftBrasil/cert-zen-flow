@@ -1284,7 +1284,7 @@ function BotaoProximaAcao({
     <>
       <Btn
         variant={bloqueio ? "ghost" : "primary"}
-        onClick={() => { console.log("CLICKED", bloqueio); return bloqueio ? setExplicando(true) : onAbrir(acao); }}
+        onClick={() => (bloqueio ? setExplicando(true) : onAbrir(acao))}
         {...(bloqueio ? { "aria-describedby": "bloqueio-acao-principal" } : {})}
       >
         {bloqueio ? <LockIcon className="size-3.5" /> : null}
