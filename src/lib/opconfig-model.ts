@@ -674,7 +674,7 @@ export function validarPublicacao(perfil: PerfilOperacional): AchadoPublicacao[]
     }
     if (
       perfil.escopo.tipo === "indicador" &&
-      !ORIGENS[e.origem].editavel &&
+      !(ORIGENS[e.origem] ?? ORIGENS.tenant).editavel &&
       e.origem !== "tenant"
     ) {
       achados.push({
@@ -723,7 +723,7 @@ export function validarPublicacao(perfil: PerfilOperacional): AchadoPublicacao[]
         });
       }
       if (
-        !ORIGENS[i.origemItem].editavel &&
+        !(ORIGENS[i.origemItem] ?? ORIGENS.tenant).editavel &&
         i.reutilizacao === "permitida" &&
         i.modo === "documento" &&
         !i.validadeDias

@@ -22,7 +22,8 @@ import {
   type VersaoPerfil,
 } from "@/lib/opconfig-model";
 
-const STORAGE_KEY = "certus-opconfig-v1";
+const STORAGE_KEY = "certus-opconfig-v2";
+const STORAGE_KEY_ANTIGA = "certus-opconfig-v1";
 
 interface Persistido {
   publicada: VersaoPerfil;
@@ -78,8 +79,14 @@ export function OpConfigProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
+      // Perfis salvos por versões anteriores não têm os campos tipados do
+      // checklist híbrido; são descartados em favor do seed atual.
+      window.localStorage.removeItem(STORAGE_KEY_ANTIGA);
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setEstado(JSON.parse(raw) as Persistido);
+      if (raw) {
+        const lido = JSON.parse(raw) as Persistido;
+        if (lido?.publicada?.etapas && lido?.rascunho?.etapas) setEstado(lido);
+      }
     } catch {
       /* mantém seed */
     }
