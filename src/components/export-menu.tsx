@@ -1,4 +1,12 @@
-import { Check, ChevronDown, Download, FileJson, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Download,
+  FileJson,
+  FileSpreadsheet,
+  FileText,
+  Printer,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { exportCsv, exportJson, exportPdf, exportXlsx, type Dataset } from "@/lib/export";
@@ -33,10 +41,34 @@ export function ExportMenu({
   };
 
   const items = [
-    { id: "csv", nome: "CSV (.csv)", hint: "separado por ponto e vírgula", icon: FileText, run: () => exportCsv(datasets(), base) },
-    { id: "xlsx", nome: "Excel (.xlsx)", hint: "uma aba por conjunto", icon: FileSpreadsheet, run: () => exportXlsx(datasets(), base) },
-    { id: "json", nome: "JSON (.json)", hint: "integração / BI", icon: FileJson, run: () => exportJson(datasets(), base) },
-    { id: "pdf", nome: "PDF / Imprimir", hint: "visão atual da tela", icon: Printer, run: () => exportPdf() },
+    {
+      id: "csv",
+      nome: "CSV (.csv)",
+      hint: "separado por ponto e vírgula",
+      icon: FileText,
+      run: () => exportCsv(datasets(), base),
+    },
+    {
+      id: "xlsx",
+      nome: "Excel (.xlsx)",
+      hint: "uma aba por conjunto",
+      icon: FileSpreadsheet,
+      run: () => exportXlsx(datasets(), base),
+    },
+    {
+      id: "json",
+      nome: "JSON (.json)",
+      hint: "integração / BI",
+      icon: FileJson,
+      run: () => exportJson(datasets(), base),
+    },
+    {
+      id: "pdf",
+      nome: "PDF / Imprimir",
+      hint: "visão atual da tela",
+      icon: Printer,
+      run: () => exportPdf(),
+    },
   ];
 
   return (

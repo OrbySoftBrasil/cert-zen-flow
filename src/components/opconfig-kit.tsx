@@ -44,7 +44,9 @@ export function CanaisPicker({
             onClick={() => onChange(on ? value.filter((x) => x !== c.id) : [...value, c.id])}
             className={cn(
               "rounded border px-2 py-1 text-[11px] transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none disabled:opacity-50",
-              on ? "border-primary bg-primary-soft text-primary-deep" : "border-border text-muted-foreground hover:border-border-strong",
+              on
+                ? "border-primary bg-primary-soft text-primary-deep"
+                : "border-border text-muted-foreground hover:border-border-strong",
             )}
           >
             {on ? "✓ " : ""}
@@ -92,7 +94,8 @@ export function ChecklistEditor({
         <div className="min-w-0">
           <p className="text-xs font-semibold">{titulo}</p>
           <p className="text-[11px] text-muted-foreground">
-            {hint ?? "Itens obrigatórios travam o avanço da etapa; opcionais só orientam o operador."}
+            {hint ??
+              "Itens obrigatórios travam o avanço da etapa; opcionais só orientam o operador."}
           </p>
         </div>
         <span className="tabular shrink-0 rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">
@@ -109,69 +112,80 @@ export function ChecklistEditor({
         {itens.map((c, i) => (
           <li key={c.id} className="px-3 py-2">
             <div className="flex items-center gap-2">
-            <span className="tabular w-5 shrink-0 text-[11px] text-muted-foreground">{i + 1}.</span>
-            <TextInput
-              value={c.label}
-              disabled={disabled}
-              aria-label={`Texto do item ${i + 1}`}
-              onChange={(e) => onChange(itens.map((x) => (x.id === c.id ? { ...x, label: e.target.value } : x)))}
-            />
-            <button
-              type="button"
-              disabled={disabled}
-              aria-pressed={c.obrigatorio}
-              onClick={() => onChange(itens.map((x) => (x.id === c.id ? { ...x, obrigatorio: !x.obrigatorio } : x)))}
-              className={cn(
-                "shrink-0 rounded border px-1.5 py-1 text-[11px] transition-colors disabled:opacity-50",
-                c.obrigatorio ? "border-primary bg-primary-soft text-primary-deep" : "border-border text-muted-foreground",
-              )}
-            >
-              {c.obrigatorio ? "Obrigatório" : "Opcional"}
-            </button>
-            <div className="flex shrink-0 items-center gap-0.5">
-              <button
-                type="button"
-                disabled={disabled || i === 0}
-                aria-label={`Mover “${c.label}” para cima`}
-                onClick={() => mover(c.id, -1)}
-                className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-25"
-              >
-                <ArrowUp className="size-3.5" />
-              </button>
-              <button
-                type="button"
-                disabled={disabled || i === itens.length - 1}
-                aria-label={`Mover “${c.label}” para baixo`}
-                onClick={() => mover(c.id, 1)}
-                className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-25"
-              >
-                <ArrowDown className="size-3.5" />
-              </button>
-              <button
-                type="button"
-                aria-expanded={aberto === c.id}
-                aria-label={`Configurar “${c.label}”`}
-                onClick={() => setAberto(aberto === c.id ? null : c.id)}
-                className={cn(
-                  "grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground",
-                  aberto === c.id && "bg-primary-soft text-primary-deep",
-                )}
-              >
-                <Settings2 className="size-3.5" />
-              </button>
+              <span className="tabular w-5 shrink-0 text-[11px] text-muted-foreground">
+                {i + 1}.
+              </span>
+              <TextInput
+                value={c.label}
+                disabled={disabled}
+                aria-label={`Texto do item ${i + 1}`}
+                onChange={(e) =>
+                  onChange(itens.map((x) => (x.id === c.id ? { ...x, label: e.target.value } : x)))
+                }
+              />
               <button
                 type="button"
                 disabled={disabled}
-                aria-label={`Remover “${c.label}”`}
-                onClick={() => onChange(itens.filter((x) => x.id !== c.id))}
-                className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-alert disabled:opacity-25"
+                aria-pressed={c.obrigatorio}
+                onClick={() =>
+                  onChange(
+                    itens.map((x) => (x.id === c.id ? { ...x, obrigatorio: !x.obrigatorio } : x)),
+                  )
+                }
+                className={cn(
+                  "shrink-0 rounded border px-1.5 py-1 text-[11px] transition-colors disabled:opacity-50",
+                  c.obrigatorio
+                    ? "border-primary bg-primary-soft text-primary-deep"
+                    : "border-border text-muted-foreground",
+                )}
               >
-                <Trash2 className="size-3.5" />
+                {c.obrigatorio ? "Obrigatório" : "Opcional"}
               </button>
+              <div className="flex shrink-0 items-center gap-0.5">
+                <button
+                  type="button"
+                  disabled={disabled || i === 0}
+                  aria-label={`Mover “${c.label}” para cima`}
+                  onClick={() => mover(c.id, -1)}
+                  className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-25"
+                >
+                  <ArrowUp className="size-3.5" />
+                </button>
+                <button
+                  type="button"
+                  disabled={disabled || i === itens.length - 1}
+                  aria-label={`Mover “${c.label}” para baixo`}
+                  onClick={() => mover(c.id, 1)}
+                  className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-25"
+                >
+                  <ArrowDown className="size-3.5" />
+                </button>
+                <button
+                  type="button"
+                  aria-expanded={aberto === c.id}
+                  aria-label={`Configurar “${c.label}”`}
+                  onClick={() => setAberto(aberto === c.id ? null : c.id)}
+                  className={cn(
+                    "grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground",
+                    aberto === c.id && "bg-primary-soft text-primary-deep",
+                  )}
+                >
+                  <Settings2 className="size-3.5" />
+                </button>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  aria-label={`Remover “${c.label}”`}
+                  onClick={() => onChange(itens.filter((x) => x.id !== c.id))}
+                  className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-alert disabled:opacity-25"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
               </div>
             </div>
             <p className="mt-1 pl-7 text-[11px] text-muted-foreground">
-              {modoInfo(c.modo).nome} · escopo {ESCOPOS.find((e) => e.id === c.escopo)?.nome ?? "Caso"}
+              {modoInfo(c.modo).nome} · escopo{" "}
+              {ESCOPOS.find((e) => e.id === c.escopo)?.nome ?? "Caso"}
               {c.bloqueia ? ` · bloqueia: ${c.bloqueia}` : " · não bloqueia nenhuma ação"}
             </p>
             {aberto === c.id && (
@@ -179,7 +193,9 @@ export function ChecklistEditor({
                 item={c}
                 disabled={disabled}
                 onChange={(patch) =>
-                  onChange(itens.map((x) => (x.id === c.id ? ({ ...x, ...patch } as ItemChecklist) : x)))
+                  onChange(
+                    itens.map((x) => (x.id === c.id ? ({ ...x, ...patch } as ItemChecklist) : x)),
+                  )
                 }
               />
             )}
@@ -204,7 +220,12 @@ export function ChecklistEditor({
           aria-label="Novo item de checklist"
           placeholder={placeholder}
         />
-        <Btn variant="ghost" type="submit" disabled={disabled || !draft.trim()} className="shrink-0">
+        <Btn
+          variant="ghost"
+          type="submit"
+          disabled={disabled || !draft.trim()}
+          className="shrink-0"
+        >
           <Plus className="size-4" /> Adicionar
         </Btn>
       </form>
@@ -266,7 +287,9 @@ function ConfigItem({
             <SelectInput
               value={item.categoriaDoc ?? "identidade"}
               disabled={trava}
-              onChange={(e) => onChange({ categoriaDoc: e.target.value as ItemChecklist["categoriaDoc"] })}
+              onChange={(e) =>
+                onChange({ categoriaDoc: e.target.value as ItemChecklist["categoriaDoc"] })
+              }
             >
               {CATEGORIAS_DOC.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -292,7 +315,9 @@ function ConfigItem({
             <SelectInput
               value={item.reutilizacao}
               disabled={trava}
-              onChange={(e) => onChange({ reutilizacao: e.target.value as ItemChecklist["reutilizacao"] })}
+              onChange={(e) =>
+                onChange({ reutilizacao: e.target.value as ItemChecklist["reutilizacao"] })
+              }
             >
               <option value="permitida">Reaproveitar documento válido existente</option>
               <option value="vedada">Sempre exigir nova versão</option>
@@ -306,7 +331,9 @@ function ConfigItem({
           <SelectInput
             value={item.chaveDerivada ?? "pagamento"}
             disabled={trava}
-            onChange={(e) => onChange({ chaveDerivada: e.target.value as ItemChecklist["chaveDerivada"] })}
+            onChange={(e) =>
+              onChange({ chaveDerivada: e.target.value as ItemChecklist["chaveDerivada"] })
+            }
           >
             {DERIVADOS.map((d) => (
               <option key={d.id} value={d.id}>
@@ -322,7 +349,9 @@ function ConfigItem({
           <SelectInput
             value={item.acaoProduto ?? "registrar-consulta"}
             disabled={trava}
-            onChange={(e) => onChange({ acaoProduto: e.target.value as ItemChecklist["acaoProduto"] })}
+            onChange={(e) =>
+              onChange({ acaoProduto: e.target.value as ItemChecklist["acaoProduto"] })
+            }
           >
             {ACOES_PRODUTO.map((a) => (
               <option key={a.id} value={a.id}>
@@ -382,10 +411,7 @@ function ConfigItem({
             ))}
           </SelectInput>
         </Field>
-        <Field
-          label="Ação bloqueada enquanto pendente"
-          hint="Vazio = não bloqueia nada."
-        >
+        <Field label="Ação bloqueada enquanto pendente" hint="Vazio = não bloqueia nada.">
           <SelectInput
             value={item.bloqueia ?? ""}
             disabled={trava || item.modo === "orientacao"}
@@ -403,7 +429,9 @@ function ConfigItem({
           <SelectInput
             value={item.origemItem}
             disabled={trava}
-            onChange={(e) => onChange({ origemItem: e.target.value as ItemChecklist["origemItem"] })}
+            onChange={(e) =>
+              onChange({ origemItem: e.target.value as ItemChecklist["origemItem"] })
+            }
           >
             <option value="plataforma">Plataforma</option>
             <option value="ac">AC</option>

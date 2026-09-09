@@ -23,7 +23,8 @@ export const Route = createFileRoute("/financeiro/comissoes")({
       { title: "Comissões — Certus AC" },
       {
         name: "description",
-        content: "Apuração de comissões de parceiros contábeis, revendas e vendedores internos, com regras, retenções e pagamentos.",
+        content:
+          "Apuração de comissões de parceiros contábeis, revendas e vendedores internos, com regras, retenções e pagamentos.",
       },
       { property: "og:title", content: "Comissões — Certus AC" },
       { property: "og:description", content: "Apuração, aprovação e pagamento de comissões." },
@@ -53,7 +54,9 @@ function Comissoes() {
   const lista = comissoes.filter((c) => competencia === "todas" || c.competencia === competencia);
   const pag = usePaginacao(lista, 10);
   const total = lista.reduce((s, c) => s + c.valor, 0);
-  const aPagar = lista.filter((c) => c.status !== "paga" && !pagas.includes(c.id)).reduce((s, c) => s + c.valor, 0);
+  const aPagar = lista
+    .filter((c) => c.status !== "paga" && !pagas.includes(c.id))
+    .reduce((s, c) => s + c.valor, 0);
   const retidas = lista.filter((c) => c.status === "retida");
 
   const porTipo = ["Parceiro contábil", "Vendedor interno", "Revenda", "Indicação"].map((t) => ({
@@ -78,7 +81,13 @@ function Comissoes() {
     },
     {
       nome: "Regras",
-      linhas: regrasComissao.map((r) => ({ Regra: r.nome, Cálculo: r.regra, Gatilho: r.gatilho, Carência: r.carencia, Teto: r.teto })),
+      linhas: regrasComissao.map((r) => ({
+        Regra: r.nome,
+        Cálculo: r.regra,
+        Gatilho: r.gatilho,
+        Carência: r.carencia,
+        Teto: r.teto,
+      })),
     },
     { nome: "Por tipo", linhas: porTipo.map((p) => ({ Tipo: p.tipo, Valor: p.valor })) },
   ];
@@ -111,10 +120,27 @@ function Comissoes() {
 
       <div className="space-y-4">
         <div className="flex flex-wrap divide-border rounded-lg border border-border bg-card">
-          <Metric label="Comissões apuradas" value={brl(total)} delta={6.2} hint={`competência ${competencia}`} />
-          <Metric label="A liquidar" value={brl(aPagar)} hint={`${lista.filter((c) => c.status !== "paga" && !pagas.includes(c.id)).length} beneficiários`} />
-          <Metric label="Retidas" value={brl(retidas.reduce((s, c) => s + c.valor, 0))} hint="estorno ou revogação" />
-          <Metric label="Emissões comissionadas" value={String(lista.reduce((s, c) => s + c.emissoes, 0))} hint="no período" />
+          <Metric
+            label="Comissões apuradas"
+            value={brl(total)}
+            delta={6.2}
+            hint={`competência ${competencia}`}
+          />
+          <Metric
+            label="A liquidar"
+            value={brl(aPagar)}
+            hint={`${lista.filter((c) => c.status !== "paga" && !pagas.includes(c.id)).length} beneficiários`}
+          />
+          <Metric
+            label="Retidas"
+            value={brl(retidas.reduce((s, c) => s + c.valor, 0))}
+            hint="estorno ou revogação"
+          />
+          <Metric
+            label="Emissões comissionadas"
+            value={String(lista.reduce((s, c) => s + c.emissoes, 0))}
+            hint="no período"
+          />
           <Metric
             label="% sobre a receita"
             value={`${((total / 259_400) * 100).toFixed(1)}%`}
@@ -123,12 +149,22 @@ function Comissoes() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          <Panel className="lg:col-span-2" title="Comissão por tipo de canal" hint="Distribuição do custo comercial">
+          <Panel
+            className="lg:col-span-2"
+            title="Comissão por tipo de canal"
+            hint="Distribuição do custo comercial"
+          >
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={porTipo} margin={{ left: -8, right: 8, top: 8 }}>
                   <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                  <XAxis dataKey="tipo" tickLine={false} axisLine={false} fontSize={11} stroke="var(--color-muted-foreground)" />
+                  <XAxis
+                    dataKey="tipo"
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={11}
+                    stroke="var(--color-muted-foreground)"
+                  />
                   <YAxis
                     tickLine={false}
                     axisLine={false}
@@ -138,10 +174,20 @@ function Comissoes() {
                   />
                   <Tooltip
                     cursor={{ fill: "var(--color-muted)" }}
-                    contentStyle={{ borderRadius: 8, border: "1px solid var(--color-border)", background: "var(--color-card)", fontSize: 12 }}
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: "1px solid var(--color-border)",
+                      background: "var(--color-card)",
+                      fontSize: 12,
+                    }}
                     formatter={(v: number) => brl(v)}
                   />
-                  <Bar dataKey="valor" fill="var(--color-chart-2)" radius={[4, 4, 0, 0]} barSize={44} />
+                  <Bar
+                    dataKey="valor"
+                    fill="var(--color-chart-2)"
+                    radius={[4, 4, 0, 0]}
+                    barSize={44}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -163,7 +209,11 @@ function Comissoes() {
               {regrasComissao.map((r) => (
                 <li key={r.id} className="flex gap-2.5">
                   <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary-soft text-primary-deep">
-                    {r.nome === "Estorno" ? <ShieldAlert className="size-3.5" /> : <Percent className="size-3.5" />}
+                    {r.nome === "Estorno" ? (
+                      <ShieldAlert className="size-3.5" />
+                    ) : (
+                      <Percent className="size-3.5" />
+                    )}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
@@ -239,23 +289,38 @@ function Comissoes() {
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-muted-foreground">{c.tipo}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular">{brl(c.baseCalculo)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular">
+                        {brl(c.baseCalculo)}
+                      </td>
                       <td className="px-4 py-2.5 text-right tabular">{c.percentual}%</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(c.valor)}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular text-muted-foreground">{dataBR(c.pagamento)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">
+                        {brl(c.valor)}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2.5 tabular text-muted-foreground">
+                        {dataBR(c.pagamento)}
+                      </td>
                       <td className="px-4 py-2.5">
-                        <Chip tone={paga ? "deep" : tone[c.status]}>{paga ? "paga" : c.status}</Chip>
+                        <Chip tone={paga ? "deep" : tone[c.status]}>
+                          {paga ? "paga" : c.status}
+                        </Chip>
                       </td>
                       <td className="px-4 py-2.5">
                         {paga || c.status === "retida" ? (
-                          <span className={cn("text-xs", c.status === "retida" ? "text-alert" : "text-muted-foreground")}>
+                          <span
+                            className={cn(
+                              "text-xs",
+                              c.status === "retida" ? "text-alert" : "text-muted-foreground",
+                            )}
+                          >
                             {c.status === "retida" ? "em análise" : "liquidada"}
                           </span>
                         ) : (
                           <button
                             onClick={() => {
                               updateComissao(c.id, { status: "paga" });
-                              toast.success("Comissão liquidada", { description: `${c.beneficiario} · ${brl(c.valor)}` });
+                              toast.success("Comissão liquidada", {
+                                description: `${c.beneficiario} · ${brl(c.valor)}`,
+                              });
                             }}
                             className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
                           >
@@ -274,7 +339,9 @@ function Comissoes() {
       </div>
 
       {novaRegra && <RegraComissaoDialog open onClose={() => setNovaRegra(false)} />}
-      {editarRegra && <RegraComissaoDialog open onClose={() => setEditarRegra(null)} regraId={editarRegra} />}
+      {editarRegra && (
+        <RegraComissaoDialog open onClose={() => setEditarRegra(null)} regraId={editarRegra} />
+      )}
       <ConfirmDialog
         open={!!excluirRegra}
         title="Excluir regra de comissão"

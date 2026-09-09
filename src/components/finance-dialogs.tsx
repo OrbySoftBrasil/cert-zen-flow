@@ -46,7 +46,9 @@ export function NovaDespesaDialog({ open, onClose }: { open: boolean; onClose: (
       aprovacao: "pendente",
       documento: documento.trim() || "sem documento",
     });
-    toast.success("Despesa lançada", { description: `${fornecedor} · ${brl(Number(valor))} — aguardando aprovação` });
+    toast.success("Despesa lançada", {
+      description: `${fornecedor} · ${brl(Number(valor))} — aguardando aprovação`,
+    });
     onClose();
     setFornecedor("");
     setDescricao("");
@@ -73,14 +75,30 @@ export function NovaDespesaDialog({ open, onClose }: { open: boolean; onClose: (
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Fornecedor" className="sm:col-span-2">
-          <TextInput value={fornecedor} onChange={(e) => setFornecedor(e.target.value)} placeholder="Safe Devices BR" />
+          <TextInput
+            value={fornecedor}
+            onChange={(e) => setFornecedor(e.target.value)}
+            placeholder="Safe Devices BR"
+          />
         </Field>
         <Field label="Descrição" className="sm:col-span-2">
-          <TextInput value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Tokens A3 — lote 200 un." />
+          <TextInput
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            placeholder="Tokens A3 — lote 200 un."
+          />
         </Field>
         <Field label="Categoria">
           <SelectInput value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-            {["Repasse à AC raiz", "Mídias e tokens", "Infraestrutura", "Pessoal", "Marketing", "Impostos", "Comissões"].map((c) => (
+            {[
+              "Repasse à AC raiz",
+              "Mídias e tokens",
+              "Infraestrutura",
+              "Pessoal",
+              "Marketing",
+              "Impostos",
+              "Comissões",
+            ].map((c) => (
               <option key={c}>{c}</option>
             ))}
           </SelectInput>
@@ -93,10 +111,20 @@ export function NovaDespesaDialog({ open, onClose }: { open: boolean; onClose: (
           </SelectInput>
         </Field>
         <Field label="Vencimento">
-          <TextInput type="date" value={vencimento} onChange={(e) => setVencimento(e.target.value)} />
+          <TextInput
+            type="date"
+            value={vencimento}
+            onChange={(e) => setVencimento(e.target.value)}
+          />
         </Field>
         <Field label="Valor (R$)">
-          <TextInput type="number" min={0} value={valor} onChange={(e) => setValor(e.target.value)} placeholder="12500" />
+          <TextInput
+            type="number"
+            min={0}
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            placeholder="12500"
+          />
         </Field>
         <Field label="Método">
           <SelectInput value={metodo} onChange={(e) => setMetodo(e.target.value as typeof metodo)}>
@@ -106,10 +134,18 @@ export function NovaDespesaDialog({ open, onClose }: { open: boolean; onClose: (
           </SelectInput>
         </Field>
         <Field label="Documento / NF">
-          <TextInput value={documento} onChange={(e) => setDocumento(e.target.value)} placeholder="NF-e 45011" />
+          <TextInput
+            value={documento}
+            onChange={(e) => setDocumento(e.target.value)}
+            placeholder="NF-e 45011"
+          />
         </Field>
         <label className="flex items-center gap-2 text-xs text-muted-foreground sm:col-span-2">
-          <input type="checkbox" checked={recorrente} onChange={(e) => setRecorrente(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={recorrente}
+            onChange={(e) => setRecorrente(e.target.checked)}
+          />
           Despesa recorrente (replicar nos próximos meses)
         </label>
       </div>
@@ -200,7 +236,11 @@ export function NovaCobrancaDialog({ open, onClose }: { open: boolean; onClose: 
           </SelectInput>
         </Field>
         <Field label="Descrição" className="sm:col-span-2">
-          <TextInput value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="e-CNPJ A1 + validação remota" />
+          <TextInput
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            placeholder="e-CNPJ A1 + validação remota"
+          />
         </Field>
         <Field label="Origem">
           <SelectInput value={origem} onChange={(e) => setOrigem(e.target.value as typeof origem)}>
@@ -217,13 +257,29 @@ export function NovaCobrancaDialog({ open, onClose }: { open: boolean; onClose: 
           </SelectInput>
         </Field>
         <Field label="Valor total (R$)">
-          <TextInput type="number" min={0} value={valor} onChange={(e) => setValor(e.target.value)} placeholder="1890" />
+          <TextInput
+            type="number"
+            min={0}
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            placeholder="1890"
+          />
         </Field>
         <Field label="Parcelas" hint="Uma parcela por mês a partir do vencimento">
-          <TextInput type="number" min={1} max={12} value={parcelas} onChange={(e) => setParcelas(e.target.value)} />
+          <TextInput
+            type="number"
+            min={1}
+            max={12}
+            value={parcelas}
+            onChange={(e) => setParcelas(e.target.value)}
+          />
         </Field>
         <Field label="1º vencimento" className="sm:col-span-2">
-          <TextInput type="date" value={vencimento} onChange={(e) => setVencimento(e.target.value)} />
+          <TextInput
+            type="date"
+            value={vencimento}
+            onChange={(e) => setVencimento(e.target.value)}
+          />
         </Field>
       </div>
     </Modal>
@@ -244,7 +300,15 @@ export function NovaCobrancaButton() {
 
 // ------------------------- Planos, contratos e regras ------------------------
 
-export function NovoPlanoDialog({ open, onClose, planoId }: { open: boolean; onClose: () => void; planoId?: string }) {
+export function NovoPlanoDialog({
+  open,
+  onClose,
+  planoId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  planoId?: string;
+}) {
   const { planos, addPlano, updatePlano } = useStore();
   const atual = planos.find((p) => p.id === planoId);
   const [nome, setNome] = useState(atual?.nome ?? "");
@@ -264,7 +328,10 @@ export function NovoPlanoDialog({ open, onClose, planoId }: { open: boolean; onC
       publico: publico.trim(),
       preco: Number(preco),
       ciclo,
-      inclui: inclui.split("\n").map((l) => l.trim()).filter(Boolean),
+      inclui: inclui
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean),
       margem: Number(margem) || 0,
       destaque,
     };
@@ -273,7 +340,9 @@ export function NovoPlanoDialog({ open, onClose, planoId }: { open: boolean; onC
       toast.success("Plano atualizado", { description: nome });
     } else {
       addPlano({ ...dados, assinantes: 0, mrr: 0, churn: 0 });
-      toast.success("Plano criado", { description: `${nome} · ${brl(Number(preco))} por ${ciclo}` });
+      toast.success("Plano criado", {
+        description: `${nome} · ${brl(Number(preco))} por ${ciclo}`,
+      });
     }
     onClose();
   }
@@ -297,13 +366,26 @@ export function NovoPlanoDialog({ open, onClose, planoId }: { open: boolean; onC
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Nome do plano">
-          <TextInput value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Business" />
+          <TextInput
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Business"
+          />
         </Field>
         <Field label="Público-alvo">
-          <TextInput value={publico} onChange={(e) => setPublico(e.target.value)} placeholder="PME com até 20 certificados" />
+          <TextInput
+            value={publico}
+            onChange={(e) => setPublico(e.target.value)}
+            placeholder="PME com até 20 certificados"
+          />
         </Field>
         <Field label="Preço (R$)" hint="Use 0 para planos sem mensalidade">
-          <TextInput type="number" min={0} value={preco} onChange={(e) => setPreco(e.target.value)} />
+          <TextInput
+            type="number"
+            min={0}
+            value={preco}
+            onChange={(e) => setPreco(e.target.value)}
+          />
         </Field>
         <Field label="Ciclo">
           <SelectInput value={ciclo} onChange={(e) => setCiclo(e.target.value as typeof ciclo)}>
@@ -313,14 +395,28 @@ export function NovoPlanoDialog({ open, onClose, planoId }: { open: boolean; onC
           </SelectInput>
         </Field>
         <Field label="Margem de contribuição (%)">
-          <TextInput type="number" min={0} max={100} value={margem} onChange={(e) => setMargem(e.target.value)} />
+          <TextInput
+            type="number"
+            min={0}
+            max={100}
+            value={margem}
+            onChange={(e) => setMargem(e.target.value)}
+          />
         </Field>
         <label className="flex items-end gap-2 pb-2 text-xs text-muted-foreground">
-          <input type="checkbox" checked={destaque} onChange={(e) => setDestaque(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={destaque}
+            onChange={(e) => setDestaque(e.target.checked)}
+          />
           Destacar como mais vendido
         </label>
         <Field label="Itens inclusos" hint="Um item por linha" className="sm:col-span-2">
-          <TextArea value={inclui} onChange={(e) => setInclui(e.target.value)} placeholder={"Até 10 emissões/ano\nAR móvel 2x"} />
+          <TextArea
+            value={inclui}
+            onChange={(e) => setInclui(e.target.value)}
+            placeholder={"Até 10 emissões/ano\nAR móvel 2x"}
+          />
         </Field>
       </div>
     </Modal>
@@ -423,7 +519,10 @@ export function NovoContratoDialog({ open, onClose }: { open: boolean; onClose: 
             onChange={(e) => {
               setPlano(e.target.value);
               const p = planos.find((x) => x.nome === e.target.value);
-              if (p) setValorMensal(String(p.ciclo === "anual" ? Math.round((p.preco / 12) * 100) / 100 : p.preco));
+              if (p)
+                setValorMensal(
+                  String(p.ciclo === "anual" ? Math.round((p.preco / 12) * 100) / 100 : p.preco),
+                );
             }}
           >
             {planos.map((p) => (
@@ -432,7 +531,12 @@ export function NovoContratoDialog({ open, onClose }: { open: boolean; onClose: 
           </SelectInput>
         </Field>
         <Field label="Valor mensal (R$)">
-          <TextInput type="number" min={0} value={valorMensal} onChange={(e) => setValorMensal(e.target.value)} />
+          <TextInput
+            type="number"
+            min={0}
+            value={valorMensal}
+            onChange={(e) => setValorMensal(e.target.value)}
+          />
         </Field>
         <Field label="Início">
           <TextInput type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />
@@ -441,7 +545,10 @@ export function NovoContratoDialog({ open, onClose }: { open: boolean; onClose: 
           <TextInput type="date" value={fim} onChange={(e) => setFim(e.target.value)} />
         </Field>
         <Field label="Faturamento">
-          <SelectInput value={faturamento} onChange={(e) => setFaturamento(e.target.value as typeof faturamento)}>
+          <SelectInput
+            value={faturamento}
+            onChange={(e) => setFaturamento(e.target.value as typeof faturamento)}
+          >
             {["mensal", "anual", "por evento"].map((f) => (
               <option key={f}>{f}</option>
             ))}
@@ -462,7 +569,11 @@ export function NovoContratoDialog({ open, onClose }: { open: boolean; onClose: 
           </SelectInput>
         </Field>
         <label className="flex items-center gap-2 text-xs text-muted-foreground sm:col-span-2">
-          <input type="checkbox" checked={gerarCobranca} onChange={(e) => setGerarCobranca(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={gerarCobranca}
+            onChange={(e) => setGerarCobranca(e.target.checked)}
+          />
           Gerar automaticamente o primeiro título a receber
         </label>
       </div>
@@ -482,7 +593,15 @@ export function NovoContratoButton() {
   );
 }
 
-export function RegraComissaoDialog({ open, onClose, regraId }: { open: boolean; onClose: () => void; regraId?: string }) {
+export function RegraComissaoDialog({
+  open,
+  onClose,
+  regraId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  regraId?: string;
+}) {
   const { regrasComissao, addRegraComissao, updateRegraComissao } = useStore();
   const atual = regrasComissao.find((r) => r.id === regraId);
   const [nome, setNome] = useState(atual?.nome ?? "");
@@ -534,17 +653,37 @@ export function RegraComissaoDialog({ open, onClose, regraId }: { open: boolean;
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Nome da regra">
-          <TextInput value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Parceiro contábil" />
+          <TextInput
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Parceiro contábil"
+          />
         </Field>
         <Field label="Percentual (%)">
-          <TextInput type="number" min={0} max={100} value={percentual} onChange={(e) => setPercentual(e.target.value)} />
+          <TextInput
+            type="number"
+            min={0}
+            max={100}
+            value={percentual}
+            onChange={(e) => setPercentual(e.target.value)}
+          />
         </Field>
         <Field label="Descrição do cálculo" className="sm:col-span-2">
-          <TextInput value={regra} onChange={(e) => setRegra(e.target.value)} placeholder="18% sobre a receita líquida da emissão" />
+          <TextInput
+            value={regra}
+            onChange={(e) => setRegra(e.target.value)}
+            placeholder="18% sobre a receita líquida da emissão"
+          />
         </Field>
         <Field label="Gatilho de apuração">
           <SelectInput value={gatilho} onChange={(e) => setGatilho(e.target.value)}>
-            {["Pagamento confirmado", "Emissão concluída", "Liquidação financeira", "1ª emissão do indicado", "Evento de estorno"].map((g) => (
+            {[
+              "Pagamento confirmado",
+              "Emissão concluída",
+              "Liquidação financeira",
+              "1ª emissão do indicado",
+              "Evento de estorno",
+            ].map((g) => (
               <option key={g}>{g}</option>
             ))}
           </SelectInput>
@@ -557,7 +696,11 @@ export function RegraComissaoDialog({ open, onClose, regraId }: { open: boolean;
           </SelectInput>
         </Field>
         <Field label="Teto" className="sm:col-span-2">
-          <TextInput value={teto} onChange={(e) => setTeto(e.target.value)} placeholder="Sem teto" />
+          <TextInput
+            value={teto}
+            onChange={(e) => setTeto(e.target.value)}
+            placeholder="Sem teto"
+          />
         </Field>
       </div>
     </Modal>

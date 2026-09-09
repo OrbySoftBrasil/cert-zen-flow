@@ -53,7 +53,8 @@ export const Route = createFileRoute("/parceiro")({
       { property: "og:title", content: "Portal do contador parceiro — Certus AC" },
       {
         property: "og:description",
-        content: "Pedidos, carteira de clientes, novos pedidos e extrato de comissões do parceiro contábil.",
+        content:
+          "Pedidos, carteira de clientes, novos pedidos e extrato de comissões do parceiro contábil.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -211,9 +212,13 @@ export function PortalParceiro() {
       enviadoEm: new Date().toISOString().slice(0, 10),
       status: "em análise",
     };
-    setDocs((atual) => ({ ...atual, [cliente.documento]: [doc, ...(atual[cliente.documento] ?? [])] }));
+    setDocs((atual) => ({
+      ...atual,
+      [cliente.documento]: [doc, ...(atual[cliente.documento] ?? [])],
+    }));
     const global = clients.find((c) => c.documento === cliente.documento);
-    if (global) addDocumentoGlobal(global.id, { nome, tipo, enviadoEm: doc.enviadoEm, status: "em análise" });
+    if (global)
+      addDocumentoGlobal(global.id, { nome, tipo, enviadoEm: doc.enviadoEm, status: "em análise" });
   }
 
   function removerDocumento(documentoCliente: string, docId: string) {
@@ -247,9 +252,7 @@ export function PortalParceiro() {
   const carteiraFiltrada = useMemo(
     () =>
       carteira.filter(
-        (c) =>
-          c.nome.toLowerCase().includes(busca.toLowerCase()) ||
-          c.documento.includes(busca),
+        (c) => c.nome.toLowerCase().includes(busca.toLowerCase()) || c.documento.includes(busca),
       ),
     [carteira, busca],
   );
@@ -348,7 +351,9 @@ export function PortalParceiro() {
     setTimeout(() => setAviso(null), 6000);
   }
 
-  const chamadosAbertos = chamados.filter((c) => c.status !== "resolvido" && c.status !== "fechado");
+  const chamadosAbertos = chamados.filter(
+    (c) => c.status !== "resolvido" && c.status !== "fechado",
+  );
   const chamadosFiltrados = chamados.filter((c) =>
     chFiltro === "todos"
       ? true
@@ -358,8 +363,6 @@ export function PortalParceiro() {
   );
   const subsChamado = ticketCategorias.find((c) => c.nome === chCategoria)?.sub ?? [];
   const sugestoesKb = baseConhecimento.filter((a) => a.categoria === chCategoria);
-
-
 
   const datasets = () => [
     {
@@ -430,7 +433,10 @@ export function PortalParceiro() {
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
             <Chip tone="blue">Tier {contador.tier}</Chip>
             <Chip tone="outline">Comissão {contador.comissaoPercentual}%</Chip>
-            <Link to="/mobile-contador" className="hidden text-xs text-primary hover:underline sm:block">
+            <Link
+              to="/mobile-contador"
+              className="hidden text-xs text-primary hover:underline sm:block"
+            >
               Ver no app
             </Link>
             <Link
@@ -483,13 +489,31 @@ export function PortalParceiro() {
           <>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: "Pedidos em andamento", valor: String(emAndamento.length), hint: `${emRisco.length} com SLA crítico` },
-                { label: "Emissões no mês", valor: String(contador.emissoesMes), hint: `meta ${contador.metaMes}` },
-                { label: "Comissão a receber", valor: brl(contador.comissaoAberta), hint: `acumulado ${brl(contador.comissaoAcumulada)}` },
-                { label: "Clientes na carteira", valor: String(carteira.length), hint: `${vencendo.length} vencendo em 30 dias` },
+                {
+                  label: "Pedidos em andamento",
+                  valor: String(emAndamento.length),
+                  hint: `${emRisco.length} com SLA crítico`,
+                },
+                {
+                  label: "Emissões no mês",
+                  valor: String(contador.emissoesMes),
+                  hint: `meta ${contador.metaMes}`,
+                },
+                {
+                  label: "Comissão a receber",
+                  valor: brl(contador.comissaoAberta),
+                  hint: `acumulado ${brl(contador.comissaoAcumulada)}`,
+                },
+                {
+                  label: "Clientes na carteira",
+                  valor: String(carteira.length),
+                  hint: `${vencendo.length} vencendo em 30 dias`,
+                },
               ].map((m) => (
                 <div key={m.label} className="rounded-lg border border-border bg-card px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{m.label}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    {m.label}
+                  </p>
                   <p className="mt-1 font-display text-2xl font-semibold tabular">{m.valor}</p>
                   <p className="mt-1 text-[11px] text-muted-foreground">{m.hint}</p>
                 </div>
@@ -507,7 +531,11 @@ export function PortalParceiro() {
                           <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="var(--color-border)"
+                        vertical={false}
+                      />
                       <XAxis dataKey="mes" tickLine={false} axisLine={false} fontSize={11} />
                       <YAxis tickLine={false} axisLine={false} fontSize={11} />
                       <Tooltip
@@ -542,14 +570,18 @@ export function PortalParceiro() {
                 <Panel title="Meta do mês">
                   <p className="font-display text-2xl font-semibold tabular">
                     {contador.emissoesMes}
-                    <span className="text-sm font-normal text-muted-foreground"> / {contador.metaMes}</span>
+                    <span className="text-sm font-normal text-muted-foreground">
+                      {" "}
+                      / {contador.metaMes}
+                    </span>
                   </p>
                   <div className="mt-2">
                     <Bar value={metaPct} />
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {metaPct}% da meta · faltam {Math.max(0, contador.metaMes - contador.emissoesMes)} emissões para o
-                    bônus do tier.
+                    {metaPct}% da meta · faltam{" "}
+                    {Math.max(0, contador.metaMes - contador.emissoesMes)} emissões para o bônus do
+                    tier.
                   </p>
                 </Panel>
 
@@ -558,11 +590,15 @@ export function PortalParceiro() {
                     {vencendo.slice(0, 5).map((c) => (
                       <li key={c.id} className="flex items-center justify-between gap-2 text-sm">
                         <span className="min-w-0 truncate">{c.nome}</span>
-                        <span className="shrink-0 text-xs text-muted-foreground tabular">{c.proximoVencimento}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground tabular">
+                          {c.proximoVencimento}
+                        </span>
                       </li>
                     ))}
                     {vencendo.length === 0 && (
-                      <li className="text-sm text-muted-foreground">Nenhuma renovação nos próximos 30 dias.</li>
+                      <li className="text-sm text-muted-foreground">
+                        Nenhuma renovação nos próximos 30 dias.
+                      </li>
                     )}
                   </ul>
                 </Panel>
@@ -572,7 +608,10 @@ export function PortalParceiro() {
             <Panel
               title="Pedidos recentes"
               actions={
-                <button onClick={() => setAba("pedidos")} className="flex items-center gap-1 text-xs text-primary hover:underline">
+                <button
+                  onClick={() => setAba("pedidos")}
+                  className="flex items-center gap-1 text-xs text-primary hover:underline"
+                >
                   Ver todos <ArrowUpRight className="size-3" />
                 </button>
               }
@@ -592,12 +631,18 @@ export function PortalParceiro() {
                 { label: "Concluídos", valor: concluidos.length },
               ].map((m) => (
                 <div key={m.label} className="rounded-lg border border-border bg-card px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{m.label}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    {m.label}
+                  </p>
                   <p className="mt-1 font-display text-2xl font-semibold tabular">{m.valor}</p>
                 </div>
               ))}
             </div>
-            <Panel title="Todos os pedidos" hint="status em tempo real na operação da Certus AC" bodyClassName="p-0">
+            <Panel
+              title="Todos os pedidos"
+              hint="status em tempo real na operação da Certus AC"
+              bodyClassName="p-0"
+            >
               <TabelaPedidos pedidos={pedidos} />
             </Panel>
           </>
@@ -652,7 +697,9 @@ export function PortalParceiro() {
                       </td>
                       <td className="px-4 py-3 text-muted-foreground tabular">{c.documento}</td>
                       <td className="px-4 py-3 tabular">{c.certificadosAtivos}</td>
-                      <td className="px-4 py-3 text-muted-foreground tabular">{c.proximoVencimento}</td>
+                      <td className="px-4 py-3 text-muted-foreground tabular">
+                        {c.proximoVencimento}
+                      </td>
                       <td className="px-4 py-3 tabular">{brl(c.receitaAno)}</td>
                       <td className="px-4 py-3">
                         <button
@@ -681,7 +728,10 @@ export function PortalParceiro() {
                   ))}
                   {carteiraFiltrada.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                      <td
+                        colSpan={8}
+                        className="px-4 py-8 text-center text-sm text-muted-foreground"
+                      >
                         Nenhum cliente encontrado.
                       </td>
                     </tr>
@@ -703,11 +753,14 @@ export function PortalParceiro() {
                 },
                 {
                   label: "Resolvidos (30d)",
-                  valor: chamados.filter((c) => c.status === "resolvido" || c.status === "fechado").length,
+                  valor: chamados.filter((c) => c.status === "resolvido" || c.status === "fechado")
+                    .length,
                 },
               ].map((m) => (
                 <div key={m.label} className="rounded-lg border border-border bg-card px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{m.label}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    {m.label}
+                  </p>
                   <p className="mt-1 font-display text-2xl font-semibold tabular">{m.valor}</p>
                 </div>
               ))}
@@ -735,7 +788,9 @@ export function PortalParceiro() {
                       <span className="text-xs text-muted-foreground">Urgência</span>
                       <select
                         value={chPrioridade}
-                        onChange={(e) => setChPrioridade(e.target.value as (typeof prioridades)[number])}
+                        onChange={(e) =>
+                          setChPrioridade(e.target.value as (typeof prioridades)[number])
+                        }
                         className="mt-1 w-full rounded-md border border-border bg-card px-2.5 py-2 text-sm capitalize outline-none focus:border-primary"
                       >
                         {prioridades.map((p) => (
@@ -807,7 +862,9 @@ export function PortalParceiro() {
                       placeholder="Descreva o que aconteceu, mensagens de erro e o que já foi tentado."
                       className="mt-1 w-full resize-none rounded-md border border-border bg-card px-2.5 py-2 text-sm outline-none focus:border-primary"
                     />
-                    <span className="text-[11px] text-muted-foreground tabular">{chDescricao.length}/2000</span>
+                    <span className="text-[11px] text-muted-foreground tabular">
+                      {chDescricao.length}/2000
+                    </span>
                   </label>
 
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -835,8 +892,8 @@ export function PortalParceiro() {
                   ))}
                 </ul>
                 <p className="mt-4 border-t border-border pt-3 text-[11px] text-muted-foreground">
-                  Chamados abertos pelo portal do parceiro entram na mesma fila da operação, com SLA de primeira
-                  resposta de 2 horas úteis.
+                  Chamados abertos pelo portal do parceiro entram na mesma fila da operação, com SLA
+                  de primeira resposta de 2 horas úteis.
                 </p>
               </Panel>
             </div>
@@ -880,7 +937,9 @@ export function PortalParceiro() {
                   <tbody className="divide-y divide-border">
                     {chamadosFiltrados.map((c) => (
                       <tr key={c.id} className="hover:bg-muted/50">
-                        <td className="px-4 py-3 font-medium tabular whitespace-nowrap">{c.numero}</td>
+                        <td className="px-4 py-3 font-medium tabular whitespace-nowrap">
+                          {c.numero}
+                        </td>
                         <td className="px-4 py-3">
                           <p className="font-medium leading-snug">{c.assunto}</p>
                           <p className="text-[11px] text-muted-foreground">
@@ -899,7 +958,9 @@ export function PortalParceiro() {
                             <SlaBadge horas={c.slaRestanteHoras} />
                           )}
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{c.atualizadoEm}</td>
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                          {c.atualizadoEm}
+                        </td>
                         <td className="px-4 py-3">
                           <Chip tone={chamadoTone[c.status]}>{c.status}</Chip>
                         </td>
@@ -907,7 +968,10 @@ export function PortalParceiro() {
                     ))}
                     {chamadosFiltrados.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                        <td
+                          colSpan={7}
+                          className="px-4 py-8 text-center text-sm text-muted-foreground"
+                        >
                           Nenhum chamado neste filtro.
                         </td>
                       </tr>
@@ -923,12 +987,26 @@ export function PortalParceiro() {
           <>
             <div className="grid gap-3 sm:grid-cols-3">
               {[
-                { label: "A receber", valor: brl(contador.comissaoAberta), hint: "competência atual" },
-                { label: "Comissão do mês", valor: brl(contador.comissaoMes), hint: `${contador.comissaoPercentual}% sobre a base` },
-                { label: "Acumulado no ano", valor: brl(contador.comissaoAcumulada), hint: `${contador.emissoesAno} emissões` },
+                {
+                  label: "A receber",
+                  valor: brl(contador.comissaoAberta),
+                  hint: "competência atual",
+                },
+                {
+                  label: "Comissão do mês",
+                  valor: brl(contador.comissaoMes),
+                  hint: `${contador.comissaoPercentual}% sobre a base`,
+                },
+                {
+                  label: "Acumulado no ano",
+                  valor: brl(contador.comissaoAcumulada),
+                  hint: `${contador.emissoesAno} emissões`,
+                },
               ].map((m) => (
                 <div key={m.label} className="rounded-lg border border-border bg-card px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{m.label}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    {m.label}
+                  </p>
                   <p className="mt-1 font-display text-2xl font-semibold tabular">{m.valor}</p>
                   <p className="mt-1 text-[11px] text-muted-foreground">{m.hint}</p>
                 </div>
@@ -968,7 +1046,11 @@ export function PortalParceiro() {
               </div>
             </Panel>
 
-            <Panel title="Sua tabela de preços" hint="valores parceiro já com desconto do tier" bodyClassName="p-0">
+            <Panel
+              title="Sua tabela de preços"
+              hint="valores parceiro já com desconto do tier"
+              bodyClassName="p-0"
+            >
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -984,7 +1066,9 @@ export function PortalParceiro() {
                     {tabelaPrecos.map((t) => (
                       <tr key={t.tipo} className="hover:bg-muted/50">
                         <td className="px-4 py-3 font-medium">{t.tipo}</td>
-                        <td className="px-4 py-3 text-muted-foreground tabular line-through">{brl(t.balcao)}</td>
+                        <td className="px-4 py-3 text-muted-foreground tabular line-through">
+                          {brl(t.balcao)}
+                        </td>
                         <td className="px-4 py-3 tabular">{brl(t.parceiro)}</td>
                         <td className="px-4 py-3 tabular text-primary">
                           {brl(Math.round((t.parceiro * contador.comissaoPercentual) / 100))}
@@ -1019,7 +1103,11 @@ export function PortalParceiro() {
                 </button>
               ))}
             </div>
-            <Campo label={cTipo === "PJ" ? "Razão social" : "Nome completo"} value={cNome} onChange={setCNome} />
+            <Campo
+              label={cTipo === "PJ" ? "Razão social" : "Nome completo"}
+              value={cNome}
+              onChange={setCNome}
+            />
             <Campo label={cTipo === "PJ" ? "CNPJ" : "CPF"} value={cDoc} onChange={setCDoc} />
             <div className="grid gap-3 sm:grid-cols-2">
               <Campo label="E-mail do responsável" value={cEmail} onChange={setCEmail} />
@@ -1028,7 +1116,8 @@ export function PortalParceiro() {
             <div className="rounded-md border border-dashed border-border p-3">
               <p className="text-xs font-medium">Documentos do cliente</p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
-                Anexe aqui os documentos exigidos na validação — eles ficam visíveis no cockpit do cliente na Certus AC.
+                Anexe aqui os documentos exigidos na validação — eles ficam visíveis no cockpit do
+                cliente na Certus AC.
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {tiposDocumento.map((t) => (
@@ -1038,7 +1127,10 @@ export function PortalParceiro() {
                       setCDocsNovos((atual) =>
                         atual.some((d) => d.tipo === t)
                           ? atual.filter((d) => d.tipo !== t)
-                          : [...atual, { tipo: t, nome: `${t.toLowerCase().replace(/\s+/g, "-")}.pdf` }],
+                          : [
+                              ...atual,
+                              { tipo: t, nome: `${t.toLowerCase().replace(/\s+/g, "-")}.pdf` },
+                            ],
                       )
                     }
                     className={cn(
@@ -1059,11 +1151,14 @@ export function PortalParceiro() {
               )}
             </div>
             <p className="text-[11px] text-muted-foreground">
-              O cliente entra na sua carteira e a comissão de todas as emissões dele é atribuída a você
-              automaticamente.
+              O cliente entra na sua carteira e a comissão de todas as emissões dele é atribuída a
+              você automaticamente.
             </p>
             <div className="flex justify-end gap-2 pt-1">
-              <button onClick={() => setNovoCliente(false)} className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground">
+              <button
+                onClick={() => setNovoCliente(false)}
+                className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground"
+              >
                 Cancelar
               </button>
               <button
@@ -1087,7 +1182,9 @@ export function PortalParceiro() {
                 {tiposDocumento.map((t) => (
                   <button
                     key={t}
-                    onClick={() => anexarDocumento(docsDe, `${t.toLowerCase().replace(/\s+/g, "-")}.pdf`, t)}
+                    onClick={() =>
+                      anexarDocumento(docsDe, `${t.toLowerCase().replace(/\s+/g, "-")}.pdf`, t)
+                    }
                     className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary-deep"
                   >
                     <Upload className="size-3" /> {t}
@@ -1106,7 +1203,15 @@ export function PortalParceiro() {
                       {d.tipo} · enviado em {d.enviadoEm}
                     </p>
                   </div>
-                  <Chip tone={d.status === "aprovado" ? "blue" : d.status === "reprovado" ? "alert" : "neutral"}>
+                  <Chip
+                    tone={
+                      d.status === "aprovado"
+                        ? "blue"
+                        : d.status === "reprovado"
+                          ? "alert"
+                          : "neutral"
+                    }
+                  >
                     {d.status}
                   </Chip>
                   <button
@@ -1125,8 +1230,8 @@ export function PortalParceiro() {
               )}
             </ul>
             <p className="text-[11px] text-muted-foreground">
-              Documentos anexados aqui aparecem para a equipe de validação da Certus AC e podem ser aprovados ou
-              reprovados durante a esteira.
+              Documentos anexados aqui aparecem para a equipe de validação da Certus AC e podem ser
+              aprovados ou reprovados durante a esteira.
             </p>
           </div>
         </Modal>
@@ -1173,20 +1278,22 @@ export function PortalParceiro() {
             <div>
               <span className="text-xs text-muted-foreground">Modalidade de validação</span>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {["Videoconferência", "Presencial no escritório", "Renovação por vínculo"].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setPModalidade(m)}
-                    className={cn(
-                      "rounded-md px-2.5 py-1.5 text-xs transition-colors",
-                      pModalidade === m
-                        ? "bg-primary text-primary-foreground"
-                        : "border border-border text-muted-foreground hover:border-primary",
-                    )}
-                  >
-                    {m}
-                  </button>
-                ))}
+                {["Videoconferência", "Presencial no escritório", "Renovação por vínculo"].map(
+                  (m) => (
+                    <button
+                      key={m}
+                      onClick={() => setPModalidade(m)}
+                      className={cn(
+                        "rounded-md px-2.5 py-1.5 text-xs transition-colors",
+                        pModalidade === m
+                          ? "bg-primary text-primary-foreground"
+                          : "border border-border text-muted-foreground hover:border-primary",
+                      )}
+                    >
+                      {m}
+                    </button>
+                  ),
+                )}
               </div>
             </div>
 
@@ -1219,7 +1326,10 @@ export function PortalParceiro() {
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
-              <button onClick={() => setNovoPedido(false)} className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground">
+              <button
+                onClick={() => setNovoPedido(false)}
+                className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground"
+              >
                 Cancelar
               </button>
               <button
@@ -1258,7 +1368,11 @@ function TabelaPedidos({ pedidos }: { pedidos: PedidoContador[] }) {
               <td className="px-4 py-3">{p.cliente}</td>
               <td className="px-4 py-3 text-muted-foreground">{p.tipo}</td>
               <td className="px-4 py-3">
-                <Chip tone={p.stage === "concluido" ? "blue" : p.stage === "bloqueado" ? "alert" : "neutral"}>
+                <Chip
+                  tone={
+                    p.stage === "concluido" ? "blue" : p.stage === "bloqueado" ? "alert" : "neutral"
+                  }
+                >
                   {stageNome(p.stage)}
                 </Chip>
               </td>
@@ -1310,7 +1424,10 @@ function Modal({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/30 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-foreground/30 p-4"
+      onClick={onClose}
+    >
       <div
         className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-lg border border-border bg-card p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}

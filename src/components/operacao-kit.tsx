@@ -144,8 +144,17 @@ export function CasoCard({
           <ShieldCheck className="size-3 shrink-0" />
           <span className="truncate">{proximaAcaoLabel(r)}</span>
         </p>
-        <p className={cn("flex items-center gap-1", semBloqueio ? "text-muted-foreground" : "text-alert")}>
-          {semBloqueio ? <Check className="size-3 shrink-0" /> : <AlertTriangle className="size-3 shrink-0" />}
+        <p
+          className={cn(
+            "flex items-center gap-1",
+            semBloqueio ? "text-muted-foreground" : "text-alert",
+          )}
+        >
+          {semBloqueio ? (
+            <Check className="size-3 shrink-0" />
+          ) : (
+            <AlertTriangle className="size-3 shrink-0" />
+          )}
           <span className="truncate">{bloqueio}</span>
         </p>
       </div>
@@ -216,16 +225,16 @@ export function LegendaProntidao() {
         </div>
         <ul className="space-y-1 text-muted-foreground">
           <li>
-            <span className="font-medium text-foreground">Frentes</span> — {trilhas.map((t) => t.nome).join(" · ")}. Cada
-            uma avança em paralelo.
+            <span className="font-medium text-foreground">Frentes</span> —{" "}
+            {trilhas.map((t) => t.nome).join(" · ")}. Cada uma avança em paralelo.
           </li>
           <li>
-            <span className="font-medium text-foreground">SLA</span> — horas restantes do prazo da AR; negativo indica
-            prazo estourado.
+            <span className="font-medium text-foreground">SLA</span> — horas restantes do prazo da
+            AR; negativo indica prazo estourado.
           </li>
           <li>
-            <span className="font-medium text-foreground">Bloqueio</span> — a regra que hoje impede a próxima ação.
-            Abra o caso para ver quem precisa agir.
+            <span className="font-medium text-foreground">Bloqueio</span> — a regra que hoje impede
+            a próxima ação. Abra o caso para ver quem precisa agir.
           </li>
         </ul>
       </div>

@@ -18,7 +18,10 @@ export const Route = createFileRoute("/login")({
           "Acesso ao sistema da autoridade certificadora Certus AC com senha e segundo fator de autenticação obrigatório.",
       },
       { property: "og:title", content: "Entrar na operação — Certus AC" },
-      { property: "og:description", content: "Login com MFA para a equipe da autoridade certificadora." },
+      {
+        property: "og:description",
+        content: "Login com MFA para a equipe da autoridade certificadora.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -30,7 +33,12 @@ type Etapa = "credenciais" | "mfa";
 type MetodoMfa = "app" | "sms" | "email";
 
 const metodos: { id: MetodoMfa; label: string; hint: string; icon: typeof Smartphone }[] = [
-  { id: "app", label: "Aplicativo autenticador", hint: "Código de 6 dígitos no seu app", icon: Smartphone },
+  {
+    id: "app",
+    label: "Aplicativo autenticador",
+    hint: "Código de 6 dígitos no seu app",
+    icon: Smartphone,
+  },
   { id: "sms", label: "SMS", hint: "Enviado para (11) ****-8821", icon: Smartphone },
   { id: "email", label: "E-mail", hint: "Enviado para o e-mail corporativo", icon: Mail },
 ];
@@ -60,7 +68,9 @@ function LoginPage() {
       setCarregando(false);
       setConta(achou);
       setEtapa("mfa");
-      toast.info("Código de verificação enviado", { description: `Use ${CODIGO_MFA_DEMO} neste ambiente de demonstração.` });
+      toast.info("Código de verificação enviado", {
+        description: `Use ${CODIGO_MFA_DEMO} neste ambiente de demonstração.`,
+      });
     }, 550);
   }
 
@@ -73,7 +83,9 @@ function LoginPage() {
     setCarregando(true);
     setTimeout(() => {
       entrar(conta.nome, conta.email, conta.papel, metodo);
-      toast.success(`Bem-vinda, ${conta.nome.split(" ")[0]}`, { description: "Sessão iniciada com segundo fator." });
+      toast.success(`Bem-vinda, ${conta.nome.split(" ")[0]}`, {
+        description: "Sessão iniciada com segundo fator.",
+      });
       navigate({ to: "/" });
     }, 500);
   }
@@ -107,8 +119,8 @@ function LoginPage() {
               ))}
             </ul>
             <p className="mt-1.5">
-              Senha <span className="tabular font-medium text-foreground">certus123</span> · código MFA{" "}
-              <span className="tabular font-medium text-foreground">{CODIGO_MFA_DEMO}</span>
+              Senha <span className="tabular font-medium text-foreground">certus123</span> · código
+              MFA <span className="tabular font-medium text-foreground">{CODIGO_MFA_DEMO}</span>
             </p>
           </div>
         ) : null
@@ -158,7 +170,11 @@ function LoginPage() {
 
           <div className="flex items-center justify-between text-xs">
             <label className="flex items-center gap-2 text-muted-foreground">
-              <input type="checkbox" checked={lembrar} onChange={(e) => setLembrar(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={lembrar}
+                onChange={(e) => setLembrar(e.target.checked)}
+              />
               Manter conectado por 12h
             </label>
             <Link to="/recuperar-senha" className="text-primary hover:underline">
@@ -167,7 +183,11 @@ function LoginPage() {
           </div>
 
           <Btn type="submit" className="w-full" disabled={carregando}>
-            {carregando ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+            {carregando ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <ShieldCheck className="size-4" />
+            )}
             Continuar
           </Btn>
         </form>
@@ -187,10 +207,17 @@ function LoginPage() {
                 onClick={() => setMetodo(m.id)}
                 className={cn(
                   "flex w-full items-center gap-2.5 rounded-md border px-3 py-2 text-left transition-colors",
-                  metodo === m.id ? "border-primary bg-primary-soft" : "border-border hover:border-border-strong",
+                  metodo === m.id
+                    ? "border-primary bg-primary-soft"
+                    : "border-border hover:border-border-strong",
                 )}
               >
-                <m.icon className={cn("size-4", metodo === m.id ? "text-primary-deep" : "text-muted-foreground")} />
+                <m.icon
+                  className={cn(
+                    "size-4",
+                    metodo === m.id ? "text-primary-deep" : "text-muted-foreground",
+                  )}
+                />
                 <span className="min-w-0">
                   <span className="block text-xs font-medium">{m.label}</span>
                   <span className="block text-[11px] text-muted-foreground">{m.hint}</span>
@@ -214,7 +241,11 @@ function LoginPage() {
           </Field>
 
           <Btn type="submit" className="w-full" disabled={carregando || codigo.length < 6}>
-            {carregando ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+            {carregando ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <ShieldCheck className="size-4" />
+            )}
             Confirmar e entrar
           </Btn>
 
@@ -228,7 +259,9 @@ function LoginPage() {
             </button>
             <button
               type="button"
-              onClick={() => toast.info("Novo código enviado", { description: `Use ${CODIGO_MFA_DEMO}.` })}
+              onClick={() =>
+                toast.info("Novo código enviado", { description: `Use ${CODIGO_MFA_DEMO}.` })
+              }
               className="text-primary hover:underline"
             >
               Reenviar código

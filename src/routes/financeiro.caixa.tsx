@@ -1,7 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDownLeft, ArrowUpRight, CheckCircle2, Circle, Wallet } from "lucide-react";
 import { useState } from "react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { AppShell } from "@/components/app-shell";
 import { ExportMenu } from "@/components/export-menu";
@@ -18,7 +26,8 @@ export const Route = createFileRoute("/financeiro/caixa")({
       { title: "Caixa e bancos — Certus AC" },
       {
         name: "description",
-        content: "Fluxo de caixa diário, saldos por conta, conciliação bancária e projeção de saldo da autoridade certificadora.",
+        content:
+          "Fluxo de caixa diário, saldos por conta, conciliação bancária e projeção de saldo da autoridade certificadora.",
       },
       { property: "og:title", content: "Caixa e bancos — Certus AC" },
       { property: "og:description", content: "Movimentações, conciliação e projeção de caixa." },
@@ -58,8 +67,25 @@ function Caixa() {
         Documento: l.documento,
       })),
     },
-    { nome: "Contas", linhas: contas.map((c) => ({ Conta: c.nome, Banco: c.banco, Tipo: c.tipo, Saldo: c.saldo, "Conciliado até": c.conciliadoAte })) },
-    { nome: "Projecao", linhas: projecaoCaixa.map((p) => ({ Horizonte: p.dia, Saldo: p.saldo, Entradas: p.entradas, Saídas: p.saidas })) },
+    {
+      nome: "Contas",
+      linhas: contas.map((c) => ({
+        Conta: c.nome,
+        Banco: c.banco,
+        Tipo: c.tipo,
+        Saldo: c.saldo,
+        "Conciliado até": c.conciliadoAte,
+      })),
+    },
+    {
+      nome: "Projecao",
+      linhas: projecaoCaixa.map((p) => ({
+        Horizonte: p.dia,
+        Saldo: p.saldo,
+        Entradas: p.entradas,
+        Saídas: p.saidas,
+      })),
+    },
   ];
 
   return (
@@ -89,16 +115,34 @@ function Caixa() {
               </div>
               <p className="mt-2 font-display text-xl font-semibold tabular">{brl(c.saldo)}</p>
               <p className="mt-1 truncate text-[11px] text-muted-foreground">{c.banco}</p>
-              <p className="mt-1 text-[11px] text-muted-foreground">Conciliado até {dataBR(c.conciliadoAte)}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Conciliado até {dataBR(c.conciliadoAte)}
+              </p>
             </div>
           ))}
         </div>
 
         <div className="flex flex-wrap divide-border rounded-lg border border-border bg-card">
-          <Metric label="Entradas no período" value={brl(entradas)} hint={`${filtrados.filter((l) => l.tipo === "entrada").length} lançamentos`} />
-          <Metric label="Saídas no período" value={brl(saidas)} hint={`${filtrados.filter((l) => l.tipo === "saida").length} lançamentos`} />
-          <Metric label="Resultado de caixa" value={brl(entradas - saidas)} hint="entradas − saídas" />
-          <Metric label="Pendentes de conciliação" value={String(pendentes.length)} hint="exigem checagem" />
+          <Metric
+            label="Entradas no período"
+            value={brl(entradas)}
+            hint={`${filtrados.filter((l) => l.tipo === "entrada").length} lançamentos`}
+          />
+          <Metric
+            label="Saídas no período"
+            value={brl(saidas)}
+            hint={`${filtrados.filter((l) => l.tipo === "saida").length} lançamentos`}
+          />
+          <Metric
+            label="Resultado de caixa"
+            value={brl(entradas - saidas)}
+            hint="entradas − saídas"
+          />
+          <Metric
+            label="Pendentes de conciliação"
+            value={String(pendentes.length)}
+            hint="exigem checagem"
+          />
         </div>
 
         <Panel title="Projeção de saldo" hint="Cenário base com títulos em aberto">
@@ -112,7 +156,13 @@ function Caixa() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                <XAxis dataKey="dia" tickLine={false} axisLine={false} fontSize={12} stroke="var(--color-muted-foreground)" />
+                <XAxis
+                  dataKey="dia"
+                  tickLine={false}
+                  axisLine={false}
+                  fontSize={12}
+                  stroke="var(--color-muted-foreground)"
+                />
                 <YAxis
                   tickLine={false}
                   axisLine={false}
@@ -121,10 +171,21 @@ function Caixa() {
                   tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
                 />
                 <Tooltip
-                  contentStyle={{ borderRadius: 8, border: "1px solid var(--color-border)", background: "var(--color-card)", fontSize: 12 }}
+                  contentStyle={{
+                    borderRadius: 8,
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-card)",
+                    fontSize: 12,
+                  }}
                   formatter={(v: number) => brl(v)}
                 />
-                <Area type="monotone" dataKey="saldo" stroke="var(--color-chart-2)" strokeWidth={2} fill="url(#cxp)" />
+                <Area
+                  type="monotone"
+                  dataKey="saldo"
+                  stroke="var(--color-chart-2)"
+                  strokeWidth={2}
+                  fill="url(#cxp)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -178,16 +239,24 @@ function Caixa() {
                   const ok = l.conciliado || conciliados.includes(l.id);
                   return (
                     <tr key={l.id} className="transition-colors hover:bg-muted/50">
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular text-muted-foreground">{dataBR(l.data)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 tabular text-muted-foreground">
+                        {dataBR(l.data)}
+                      </td>
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2">
                           <span
                             className={cn(
                               "grid size-6 shrink-0 place-items-center rounded",
-                              l.tipo === "entrada" ? "bg-primary-soft text-primary-deep" : "bg-muted text-muted-foreground",
+                              l.tipo === "entrada"
+                                ? "bg-primary-soft text-primary-deep"
+                                : "bg-muted text-muted-foreground",
                             )}
                           >
-                            {l.tipo === "entrada" ? <ArrowDownLeft className="size-3.5" /> : <ArrowUpRight className="size-3.5" />}
+                            {l.tipo === "entrada" ? (
+                              <ArrowDownLeft className="size-3.5" />
+                            ) : (
+                              <ArrowUpRight className="size-3.5" />
+                            )}
                           </span>
                           <span>
                             <span className="block">{l.descricao}</span>
@@ -202,7 +271,12 @@ function Caixa() {
                       <td className="px-4 py-2.5">
                         <Chip>{l.metodo}</Chip>
                       </td>
-                      <td className={cn("whitespace-nowrap px-4 py-2.5 text-right tabular font-medium", l.tipo === "saida" && "text-alert")}>
+                      <td
+                        className={cn(
+                          "whitespace-nowrap px-4 py-2.5 text-right tabular font-medium",
+                          l.tipo === "saida" && "text-alert",
+                        )}
+                      >
                         {l.tipo === "saida" ? "−" : "+"}
                         {brl(l.valor)}
                       </td>

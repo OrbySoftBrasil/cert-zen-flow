@@ -1,6 +1,14 @@
 // Estado de "Operação & perfis": versão publicada, rascunho em edição,
 // histórico e permissões separadas (editar rascunho x publicar).
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 import {
   compararVersoes,
@@ -29,7 +37,12 @@ function clonar<T>(v: T): T {
 
 function inicial(): Persistido {
   const publicada = seedPublicada();
-  return { publicada, rascunho: clonar<PerfilOperacional>(publicada), historico: seedHistorico(), dirty: false };
+  return {
+    publicada,
+    rascunho: clonar<PerfilOperacional>(publicada),
+    historico: seedHistorico(),
+    dirty: false,
+  };
 }
 
 export interface Permissoes {
@@ -58,7 +71,10 @@ const OpCtx = createContext<Ctx | null>(null);
 
 export function OpConfigProvider({ children }: { children: ReactNode }) {
   const [estado, setEstado] = useState<Persistido>(inicial);
-  const [permissoes, setPermissoes] = useState<Permissoes>({ editarRascunho: true, publicar: true });
+  const [permissoes, setPermissoes] = useState<Permissoes>({
+    editarRascunho: true,
+    publicar: true,
+  });
 
   useEffect(() => {
     try {
@@ -94,11 +110,21 @@ export function OpConfigProvider({ children }: { children: ReactNode }) {
       setEscopo: (escopo) => mutar((r) => ({ ...r, escopo })),
       patchEtapas: (fn) => mutar((r) => ({ ...r, etapas: fn(r.etapas) })),
       updateEtapa: (id, patch) =>
-        mutar((r) => ({ ...r, etapas: r.etapas.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
+        mutar((r) => ({
+          ...r,
+          etapas: r.etapas.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+        })),
       updateSubfluxo: (id, patch) =>
-        mutar((r) => ({ ...r, subfluxos: r.subfluxos.map((s) => (s.id === id ? { ...s, ...patch } : s)) })),
+        mutar((r) => ({
+          ...r,
+          subfluxos: r.subfluxos.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+        })),
       descartarRascunho: () =>
-        setEstado((s) => ({ ...s, rascunho: clonar<PerfilOperacional>(s.publicada), dirty: false })),
+        setEstado((s) => ({
+          ...s,
+          rascunho: clonar<PerfilOperacional>(s.publicada),
+          dirty: false,
+        })),
       publicar: (nota, autor) =>
         setEstado((s) => {
           const proximo = Number(s.publicada.numero.replace("v", "")) + 1;

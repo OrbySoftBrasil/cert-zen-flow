@@ -34,7 +34,12 @@ function Renovacoes() {
     <AppShell title="Renovações" subtitle="Base instalada e receita recorrente em risco">
       <div className="mb-4 flex flex-wrap divide-border rounded-lg border border-border bg-card">
         {renovacoes.map((r) => (
-          <Metric key={r.janela} label={r.janela} value={String(r.quantidade)} hint={brl(r.receita)} />
+          <Metric
+            key={r.janela}
+            label={r.janela}
+            value={String(r.quantidade)}
+            hint={brl(r.receita)}
+          />
         ))}
         <Metric label="Taxa de renovação" value="81,4%" delta={2.7} hint="últimos 90 dias" />
       </div>
@@ -56,7 +61,11 @@ function Renovacoes() {
                 {aVencer.map(({ cliente, cert }) => (
                   <tr key={cert.id} className="hover:bg-muted/50">
                     <td className="px-4 py-2.5">
-                      <Link to="/clientes/$id" params={{ id: cliente.id }} className="text-primary hover:underline">
+                      <Link
+                        to="/clientes/$id"
+                        params={{ id: cliente.id }}
+                        className="text-primary hover:underline"
+                      >
                         {cliente.nome}
                       </Link>
                     </td>
@@ -65,7 +74,9 @@ function Renovacoes() {
                     </td>
                     <td className="px-4 py-2.5 tabular">{cert.validoAte}</td>
                     <td className="px-4 py-2.5">
-                      <Chip tone={cert.status === "a vencer" ? "alert" : "blue"}>{cert.status}</Chip>
+                      <Chip tone={cert.status === "a vencer" ? "alert" : "blue"}>
+                        {cert.status}
+                      </Chip>
                     </td>
                     <td className="px-4 py-2.5">
                       <button

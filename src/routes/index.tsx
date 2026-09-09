@@ -60,7 +60,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Dashboard executivo e operacional — Certus AC" },
       {
         property: "og:description",
-        content: "Visão geral da operação da autoridade certificadora: receita, emissões, backlog por etapa, chamados, SLA, agenda e renovações com exportação em CSV, XLSX e JSON.",
+        content:
+          "Visão geral da operação da autoridade certificadora: receita, emissões, backlog por etapa, chamados, SLA, agenda e renovações com exportação em CSV, XLSX e JSON.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -69,7 +70,13 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-const CHART = ["var(--color-chart-1)", "var(--color-chart-2)", "var(--color-chart-3)", "var(--color-chart-4)", "var(--color-chart-5)"];
+const CHART = [
+  "var(--color-chart-1)",
+  "var(--color-chart-2)",
+  "var(--color-chart-3)",
+  "var(--color-chart-4)",
+  "var(--color-chart-5)",
+];
 
 const tooltipStyle = {
   borderRadius: 8,
@@ -121,7 +128,9 @@ function Dashboard() {
     respostas.reduce((s, t) => s + (t.primeiraRespostaMin ?? 0), 0) / Math.max(1, respostas.length),
   );
   const avaliados = tickets.filter((t) => t.satisfacao !== undefined);
-  const csat = (avaliados.reduce((s, t) => s + (t.satisfacao ?? 0), 0) / Math.max(1, avaliados.length)).toFixed(1);
+  const csat = (
+    avaliados.reduce((s, t) => s + (t.satisfacao ?? 0), 0) / Math.max(1, avaliados.length)
+  ).toFixed(1);
 
   const agHoje = appointments.filter((a) => a.dia === hoje);
   const agPendentes = agHoje.filter((a) => a.status === "pendente").length;
@@ -165,7 +174,8 @@ function Dashboard() {
     () =>
       agents.map((a) => ({
         ...a,
-        solicitacoes: requests.filter((r) => r.responsavelId === a.id && r.stage !== "concluido").length,
+        solicitacoes: requests.filter((r) => r.responsavelId === a.id && r.stage !== "concluido")
+          .length,
         chamados: chamadosAbertos.filter((t) => t.responsavelId === a.id).length,
       })),
     [chamadosAbertos],
@@ -234,7 +244,12 @@ function Dashboard() {
     },
     {
       nome: "Backlog por etapa",
-      linhas: backlog.map((b) => ({ Etapa: b.etapa, Total: b.total, "Em risco": b.risco, "Valor em pipeline": b.valor })),
+      linhas: backlog.map((b) => ({
+        Etapa: b.etapa,
+        Total: b.total,
+        "Em risco": b.risco,
+        "Valor em pipeline": b.valor,
+      })),
     },
     {
       nome: "Agenda",
@@ -261,7 +276,11 @@ function Dashboard() {
     },
     {
       nome: "Renovações",
-      linhas: renovacoes.map((r) => ({ Janela: r.janela, Quantidade: r.quantidade, "Receita potencial": r.receita })),
+      linhas: renovacoes.map((r) => ({
+        Janela: r.janela,
+        Quantidade: r.quantidade,
+        "Receita potencial": r.receita,
+      })),
     },
   ];
 
@@ -278,16 +297,45 @@ function Dashboard() {
     >
       <div className="space-y-4">
         <div className="flex flex-wrap divide-border rounded-lg border border-border bg-card">
-          <Metric label="Receita do mês" value={brl(kpis.receitaMes)} delta={kpis.receitaVar} hint="vs. junho" />
-          <Metric label="MRR de renovação" value={brl(kpis.mrrRenovacao)} delta={kpis.mrrVar} hint="recorrente" />
-          <Metric label="Emissões" value={String(kpis.emissoes)} delta={kpis.emissoesVar} hint="no mês" />
+          <Metric
+            label="Receita do mês"
+            value={brl(kpis.receitaMes)}
+            delta={kpis.receitaVar}
+            hint="vs. junho"
+          />
+          <Metric
+            label="MRR de renovação"
+            value={brl(kpis.mrrRenovacao)}
+            delta={kpis.mrrVar}
+            hint="recorrente"
+          />
+          <Metric
+            label="Emissões"
+            value={String(kpis.emissoes)}
+            delta={kpis.emissoesVar}
+            hint="no mês"
+          />
           <Metric label="Ticket médio" value={brl(kpis.ticketMedio)} delta={kpis.ticketVar} />
-          <Metric label="Conversão" value={`${kpis.conversao}%`} delta={kpis.conversaoVar} hint="lead → emissão" />
-          <Metric label="No-show" value={`${kpis.noShow}%`} delta={kpis.noShowVar} hint="videoconferências" />
+          <Metric
+            label="Conversão"
+            value={`${kpis.conversao}%`}
+            delta={kpis.conversaoVar}
+            hint="lead → emissão"
+          />
+          <Metric
+            label="No-show"
+            value={`${kpis.noShow}%`}
+            delta={kpis.noShowVar}
+            hint="videoconferências"
+          />
         </div>
 
         <div className="flex flex-wrap divide-border rounded-lg border border-border bg-card">
-          <Kpi label="Solicitações em aberto" value={String(abertos.length)} hint={`${brl(pipelineValor)} em pipeline`} />
+          <Kpi
+            label="Solicitações em aberto"
+            value={String(abertos.length)}
+            hint={`${brl(pipelineValor)} em pipeline`}
+          />
           <Kpi
             label="SLA em risco"
             value={String(slaRisco + slaEstourado)}
@@ -300,7 +348,12 @@ function Dashboard() {
             hint={`${chamadosSlaEstourado} fora do SLA`}
             tone={chamadosSlaEstourado > 0 ? "alert" : undefined}
           />
-          <Kpi label="1ª resposta média" value={`${primeiraResposta} min`} hint="meta: 30 min" tone="ok" />
+          <Kpi
+            label="1ª resposta média"
+            value={`${primeiraResposta} min`}
+            hint="meta: 30 min"
+            tone="ok"
+          />
           <Kpi label="CSAT" value={`${csat}/5`} hint={`${avaliados.length} avaliações`} tone="ok" />
           <Kpi
             label="Agenda de hoje"
@@ -331,7 +384,13 @@ function Dashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                  <XAxis dataKey="mes" tickLine={false} axisLine={false} fontSize={12} stroke="var(--color-muted-foreground)" />
+                  <XAxis
+                    dataKey="mes"
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={12}
+                    stroke="var(--color-muted-foreground)"
+                  />
                   <YAxis
                     tickLine={false}
                     axisLine={false}
@@ -339,8 +398,17 @@ function Dashboard() {
                     stroke="var(--color-muted-foreground)"
                     tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
                   />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number, n) => (n === "receita" ? brl(v) : v)} />
-                  <Area type="monotone" dataKey="receita" stroke="var(--color-chart-2)" strokeWidth={2} fill="url(#rev)" />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    formatter={(v: number, n) => (n === "receita" ? brl(v) : v)}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="receita"
+                    stroke="var(--color-chart-2)"
+                    strokeWidth={2}
+                    fill="url(#rev)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -362,7 +430,12 @@ function Dashboard() {
                     stroke="var(--color-muted-foreground)"
                   />
                   <Tooltip cursor={{ fill: "var(--color-muted)" }} contentStyle={tooltipStyle} />
-                  <Bar dataKey="total" fill="var(--color-chart-2)" radius={[0, 4, 4, 0]} barSize={16} />
+                  <Bar
+                    dataKey="total"
+                    fill="var(--color-chart-2)"
+                    radius={[0, 4, 4, 0]}
+                    barSize={16}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -394,10 +467,28 @@ function Dashboard() {
                     height={54}
                     stroke="var(--color-muted-foreground)"
                   />
-                  <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--color-muted-foreground)" allowDecimals={false} />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={12}
+                    stroke="var(--color-muted-foreground)"
+                    allowDecimals={false}
+                  />
                   <Tooltip cursor={{ fill: "var(--color-muted)" }} contentStyle={tooltipStyle} />
-                  <Bar dataKey="total" name="Total" fill="var(--color-chart-2)" radius={[4, 4, 0, 0]} barSize={18} />
-                  <Bar dataKey="risco" name="Em risco" fill="var(--color-chart-4)" radius={[4, 4, 0, 0]} barSize={18} />
+                  <Bar
+                    dataKey="total"
+                    name="Total"
+                    fill="var(--color-chart-2)"
+                    radius={[4, 4, 0, 0]}
+                    barSize={18}
+                  />
+                  <Bar
+                    dataKey="risco"
+                    name="Em risco"
+                    fill="var(--color-chart-4)"
+                    radius={[4, 4, 0, 0]}
+                    barSize={18}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -427,8 +518,20 @@ function Dashboard() {
                     stroke="var(--color-muted-foreground)"
                   />
                   <Tooltip cursor={{ fill: "var(--color-muted)" }} contentStyle={tooltipStyle} />
-                  <Bar dataKey="total" name="Total" fill="var(--color-chart-2)" radius={[0, 4, 4, 0]} barSize={10} />
-                  <Bar dataKey="abertos" name="Abertos" fill="var(--color-chart-4)" radius={[0, 4, 4, 0]} barSize={10} />
+                  <Bar
+                    dataKey="total"
+                    name="Total"
+                    fill="var(--color-chart-2)"
+                    radius={[0, 4, 4, 0]}
+                    barSize={10}
+                  />
+                  <Bar
+                    dataKey="abertos"
+                    name="Abertos"
+                    fill="var(--color-chart-4)"
+                    radius={[0, 4, 4, 0]}
+                    barSize={10}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -438,12 +541,23 @@ function Dashboard() {
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={porCanal} dataKey="total" nameKey="canal" innerRadius={44} outerRadius={72} paddingAngle={2}>
+                  <Pie
+                    data={porCanal}
+                    dataKey="total"
+                    nameKey="canal"
+                    innerRadius={44}
+                    outerRadius={72}
+                    paddingAngle={2}
+                  >
                     {porCanal.map((_, i) => (
                       <Cell key={i} fill={CHART[i % CHART.length]} />
                     ))}
                   </Pie>
-                  <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 11 }} />
+                  <Legend
+                    verticalAlign="bottom"
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: 11 }}
+                  />
                   <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
@@ -467,7 +581,11 @@ function Dashboard() {
               {criticos.map((r) => (
                 <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
                   <div className="grid size-8 shrink-0 place-items-center rounded-md bg-alert-soft text-alert">
-                    {r.stage === "bloqueado" ? <FileWarning className="size-4" /> : <AlertTriangle className="size-4" />}
+                    {r.stage === "bloqueado" ? (
+                      <FileWarning className="size-4" />
+                    ) : (
+                      <AlertTriangle className="size-4" />
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{r.cliente}</p>
@@ -513,8 +631,12 @@ function Dashboard() {
                   <CalendarX2 className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{agPendentes} videoconferências sem confirmação para hoje</p>
-                  <p className="text-xs text-muted-foreground">Risco de no-show acima da média do mês</p>
+                  <p className="text-sm font-medium">
+                    {agPendentes} videoconferências sem confirmação para hoje
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Risco de no-show acima da média do mês
+                  </p>
                 </div>
                 <Link
                   to="/agenda"
@@ -545,7 +667,9 @@ function Dashboard() {
                   <div className="mt-1.5">
                     <MiniBar value={100 - i * 22} />
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground tabular">{brl(r.receita)} em potencial</p>
+                  <p className="mt-1 text-xs text-muted-foreground tabular">
+                    {brl(r.receita)} em potencial
+                  </p>
                 </div>
               ))}
               <button className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep print:hidden">
@@ -591,9 +715,17 @@ function Dashboard() {
                       </td>
                       <td className="px-4 py-2.5 text-muted-foreground">{t.categoria}</td>
                       <td className="px-4 py-2.5">
-                        <Chip tone={t.status === "resolvido" || t.status === "fechado" ? "neutral" : "blue"}>{t.status}</Chip>
+                        <Chip
+                          tone={
+                            t.status === "resolvido" || t.status === "fechado" ? "neutral" : "blue"
+                          }
+                        >
+                          {t.status}
+                        </Chip>
                       </td>
-                      <td className="px-4 py-2.5 text-muted-foreground">{agentById(t.responsavelId).nome}</td>
+                      <td className="px-4 py-2.5 text-muted-foreground">
+                        {agentById(t.responsavelId).nome}
+                      </td>
                       <td className="px-4 py-2.5">
                         <SlaBadge horas={t.slaRestanteHoras} />
                       </td>
@@ -609,12 +741,37 @@ function Dashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={slaSerie} margin={{ left: -20, right: 8, top: 8 }}>
                   <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                  <XAxis dataKey="mes" tickLine={false} axisLine={false} fontSize={12} stroke="var(--color-muted-foreground)" />
-                  <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--color-muted-foreground)" />
+                  <XAxis
+                    dataKey="mes"
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={12}
+                    stroke="var(--color-muted-foreground)"
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={12}
+                    stroke="var(--color-muted-foreground)"
+                  />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
-                  <Line type="monotone" dataKey="slaOk" name="SLA cumprido" stroke="var(--color-chart-2)" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="noShow" name="No-show" stroke="var(--color-chart-4)" strokeWidth={2} dot={false} />
+                  <Line
+                    type="monotone"
+                    dataKey="slaOk"
+                    name="SLA cumprido"
+                    stroke="var(--color-chart-2)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="noShow"
+                    name="No-show"
+                    stroke="var(--color-chart-4)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -622,7 +779,12 @@ function Dashboard() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          <Panel className="lg:col-span-2" title="Produtividade e carga da equipe" hint="Emissões, solicitações e chamados em aberto" bodyClassName="p-0">
+          <Panel
+            className="lg:col-span-2"
+            title="Produtividade e carga da equipe"
+            hint="Emissões, solicitações e chamados em aberto"
+            bodyClassName="p-0"
+          >
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -673,7 +835,9 @@ function Dashboard() {
             bodyClassName="p-0"
           >
             <ul className="divide-y divide-border">
-              {agHoje.length === 0 && <li className="px-4 py-6 text-sm text-muted-foreground">Sem agendamentos hoje.</li>}
+              {agHoje.length === 0 && (
+                <li className="px-4 py-6 text-sm text-muted-foreground">Sem agendamentos hoje.</li>
+              )}
               {agHoje.map((a) => (
                 <li key={a.id} className="flex items-center gap-3 px-4 py-2.5">
                   <span className="tabular text-sm font-medium">{a.hora}</span>
@@ -683,7 +847,17 @@ function Dashboard() {
                       {a.tipo} · {agentById(a.agenteId).nome}
                     </p>
                   </div>
-                  <Chip tone={a.status === "no-show" ? "alert" : a.status === "confirmado" ? "blue" : "outline"}>{a.status}</Chip>
+                  <Chip
+                    tone={
+                      a.status === "no-show"
+                        ? "alert"
+                        : a.status === "confirmado"
+                          ? "blue"
+                          : "outline"
+                    }
+                  >
+                    {a.status}
+                  </Chip>
                 </li>
               ))}
             </ul>
@@ -719,13 +893,25 @@ function Dashboard() {
                   .map((c) => (
                     <tr key={c.id} className="transition-colors hover:bg-muted/50">
                       <td className="px-4 py-2.5">
-                        <Link to="/contadores/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
+                        <Link
+                          to="/contadores/$id"
+                          params={{ id: c.id }}
+                          className="font-medium text-primary hover:underline"
+                        >
                           {c.nome}
                         </Link>
                         <span className="block text-xs text-muted-foreground">{c.cidade}</span>
                       </td>
                       <td className="px-4 py-2.5">
-                        <Chip tone={c.status === "ativo" ? "blue" : c.status === "suspenso" ? "alert" : "outline"}>
+                        <Chip
+                          tone={
+                            c.status === "ativo"
+                              ? "blue"
+                              : c.status === "suspenso"
+                                ? "alert"
+                                : "outline"
+                          }
+                        >
                           {c.tier}
                         </Chip>
                       </td>
@@ -744,7 +930,8 @@ function Dashboard() {
         </Panel>
 
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <ArrowUpRight className="size-3.5" /> Dados fictícios de demonstração. Exportações geram arquivos reais em CSV, XLSX e JSON.
+          <ArrowUpRight className="size-3.5" /> Dados fictícios de demonstração. Exportações geram
+          arquivos reais em CSV, XLSX e JSON.
         </p>
       </div>
     </AppShell>

@@ -33,7 +33,9 @@ const inicial: AdminState = {
 };
 
 interface AdminActions {
-  addTenant: (t: Partial<Tenant> & { nome: string; slug: string; email: string; responsavel: string }) => Tenant;
+  addTenant: (
+    t: Partial<Tenant> & { nome: string; slug: string; email: string; responsavel: string },
+  ) => Tenant;
   updateTenant: (id: string, patch: Partial<Tenant>) => void;
   removeTenant: (id: string) => void;
   updatePlano: (id: string, patch: Partial<PlanoSaas>) => void;
@@ -96,19 +98,39 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         return novo;
       },
       updateTenant: (id, patch) =>
-        setState((s) => ({ ...s, tenants: s.tenants.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
-      removeTenant: (id) => setState((s) => ({ ...s, tenants: s.tenants.filter((t) => t.id !== id) })),
+        setState((s) => ({
+          ...s,
+          tenants: s.tenants.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+        })),
+      removeTenant: (id) =>
+        setState((s) => ({ ...s, tenants: s.tenants.filter((t) => t.id !== id) })),
       updatePlano: (id, patch) =>
-        setState((s) => ({ ...s, planos: s.planos.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
+        setState((s) => ({
+          ...s,
+          planos: s.planos.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+        })),
       addPlano: (p) =>
-        setState((s) => ({ ...s, planos: [...s.planos, { ...p, id: uid("pl") as PlanoSaas["id"] }] })),
+        setState((s) => ({
+          ...s,
+          planos: [...s.planos, { ...p, id: uid("pl") as PlanoSaas["id"] }],
+        })),
       updateIntegracao: (id, patch) =>
-        setState((s) => ({ ...s, integracoes: s.integracoes.map((i) => (i.id === id ? { ...i, ...patch } : i)) })),
+        setState((s) => ({
+          ...s,
+          integracoes: s.integracoes.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+        })),
       updateFlag: (id, patch) =>
-        setState((s) => ({ ...s, flags: s.flags.map((f) => (f.id === id ? { ...f, ...patch } : f)) })),
-      addIncidente: (i) => setState((s) => ({ ...s, incidentes: [{ ...i, id: uid("inc") }, ...s.incidentes] })),
+        setState((s) => ({
+          ...s,
+          flags: s.flags.map((f) => (f.id === id ? { ...f, ...patch } : f)),
+        })),
+      addIncidente: (i) =>
+        setState((s) => ({ ...s, incidentes: [{ ...i, id: uid("inc") }, ...s.incidentes] })),
       updateIncidente: (id, patch) =>
-        setState((s) => ({ ...s, incidentes: s.incidentes.map((i) => (i.id === id ? { ...i, ...patch } : i)) })),
+        setState((s) => ({
+          ...s,
+          incidentes: s.incidentes.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+        })),
     }),
     [],
   );

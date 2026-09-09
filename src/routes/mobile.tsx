@@ -78,7 +78,8 @@ export const Route = createFileRoute("/mobile")({
       { property: "og:title", content: "Certus Executivo — app mobile da diretoria" },
       {
         property: "og:description",
-        content: "Acompanhe toda a operação da autoridade certificadora pelo celular, em modo somente leitura.",
+        content:
+          "Acompanhe toda a operação da autoridade certificadora pelo celular, em modo somente leitura.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -137,7 +138,9 @@ function MobileExecutivo() {
           grave: r.slaRestanteHoras < 0 || r.stage === "bloqueado",
         })),
       ...tickets
-        .filter((t) => t.slaRestanteHoras <= 4 && t.status !== "resolvido" && t.status !== "fechado")
+        .filter(
+          (t) => t.slaRestanteHoras <= 4 && t.status !== "resolvido" && t.status !== "fechado",
+        )
         .map((t) => ({
           id: t.id,
           titulo: `${t.numero} · ${t.cliente}`,
@@ -166,12 +169,14 @@ function MobileExecutivo() {
       <aside className="hidden max-w-sm lg:block">
         <p className="font-display text-2xl font-semibold">Certus Executivo</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          App do dono da empresa. Toda a operação da autoridade certificadora na palma da mão — dashboards,
-          pedidos, clientes, chamados, agenda, financeiro e rede de parceiros.
+          App do dono da empresa. Toda a operação da autoridade certificadora na palma da mão —
+          dashboards, pedidos, clientes, chamados, agenda, financeiro e rede de parceiros.
         </p>
         <div className="mt-4 flex items-center gap-2">
           <ReadOnlyBadge />
-          <span className="text-xs text-muted-foreground">nenhuma ação é executada pelo celular</span>
+          <span className="text-xs text-muted-foreground">
+            nenhuma ação é executada pelo celular
+          </span>
         </div>
       </aside>
 
@@ -192,7 +197,9 @@ function MobileExecutivo() {
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
               <div className="min-w-0">
                 <p className="text-[11px] text-primary-foreground/70">Boa noite, Ricardo</p>
-                <h1 className="truncate font-display text-lg font-semibold">Certus AC · Diretoria</h1>
+                <h1 className="truncate font-display text-lg font-semibold">
+                  Certus AC · Diretoria
+                </h1>
               </div>
               <button
                 type="button"
@@ -210,16 +217,15 @@ function MobileExecutivo() {
               <span className="inline-flex items-center gap-1 rounded-full bg-primary-foreground/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
                 <Lock className="size-3" /> Somente leitura
               </span>
-              <span className="text-[10px] text-primary-foreground/70">
-                sincronizado às{" "}
-                {hora}
-              </span>
+              <span className="text-[10px] text-primary-foreground/70">sincronizado às {hora}</span>
             </div>
           </header>
 
           {/* content */}
           <main className="flex-1 overflow-y-auto overscroll-contain bg-muted/40 px-3 py-3 pb-24">
-            {tab === "inicio" && <TabInicio onPedido={setPedidoSel} onVerAlertas={() => setAlertasAbertos(true)} />}
+            {tab === "inicio" && (
+              <TabInicio onPedido={setPedidoSel} onVerAlertas={() => setAlertasAbertos(true)} />
+            )}
             {tab === "operacao" && <TabOperacao onPedido={setPedidoSel} />}
             {tab === "clientes" && <TabClientes onCliente={setClienteSel} />}
             {tab === "financeiro" && <TabFinanceiro />}
@@ -263,8 +269,8 @@ function MobileExecutivo() {
             <Sheet titulo="Alertas críticos" onFechar={() => setAlertasAbertos(false)}>
               <div className="space-y-3">
                 <p className="text-[11px] text-muted-foreground">
-                  {criticos.length} pontos de atenção agora. Acompanhamento apenas — as tratativas seguem com a
-                  operação.
+                  {criticos.length} pontos de atenção agora. Acompanhamento apenas — as tratativas
+                  seguem com a operação.
                 </p>
                 <MCard bodyClassName="p-0">
                   {criticos.map((c) => (
@@ -274,7 +280,11 @@ function MobileExecutivo() {
                       subtitle={c.detalhe}
                       right={
                         <Chip tone={c.grave ? "alert" : "blue"}>
-                          {c.tipo === "pedido" ? "Pedido" : c.tipo === "chamado" ? "Chamado" : "Agenda"}
+                          {c.tipo === "pedido"
+                            ? "Pedido"
+                            : c.tipo === "chamado"
+                              ? "Chamado"
+                              : "Agenda"}
                         </Chip>
                       }
                     />
@@ -286,7 +296,13 @@ function MobileExecutivo() {
 
           {clienteAberto && (
             <Sheet titulo={clienteAberto.nome} onFechar={() => setClienteSel(null)}>
-              <ClienteDetalhe id={clienteAberto.id} onPedido={(id) => { setClienteSel(null); setPedidoSel(id); }} />
+              <ClienteDetalhe
+                id={clienteAberto.id}
+                onPedido={(id) => {
+                  setClienteSel(null);
+                  setPedidoSel(id);
+                }}
+              />
             </Sheet>
           )}
 
@@ -342,7 +358,9 @@ function TabInicio({
 }) {
   const emAberto = requests.filter((r) => r.stage !== "concluido");
   const slaRisco = requests.filter((r) => r.slaRestanteHoras <= 4).length;
-  const chamadosAbertos = tickets.filter((t) => t.status !== "resolvido" && t.status !== "fechado").length;
+  const chamadosAbertos = tickets.filter(
+    (t) => t.status !== "resolvido" && t.status !== "fechado",
+  ).length;
   const csat =
     tickets.filter((t) => t.satisfacao).reduce((s, t) => s + (t.satisfacao ?? 0), 0) /
     Math.max(1, tickets.filter((t) => t.satisfacao).length);
@@ -351,8 +369,18 @@ function TabInicio({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2">
-        <StatTile label="Receita do mês" value={brl(kpis.receitaMes)} delta={kpis.receitaVar} tone="primary" />
-        <StatTile label="Emissões" value={String(kpis.emissoes)} delta={kpis.emissoesVar} hint="no mês" />
+        <StatTile
+          label="Receita do mês"
+          value={brl(kpis.receitaMes)}
+          delta={kpis.receitaVar}
+          tone="primary"
+        />
+        <StatTile
+          label="Emissões"
+          value={String(kpis.emissoes)}
+          delta={kpis.emissoesVar}
+          hint="no mês"
+        />
         <StatTile label="MRR renovação" value={brl(kpis.mrrRenovacao)} delta={kpis.mrrVar} />
         <StatTile label="Ticket médio" value={brl(kpis.ticketMedio)} delta={kpis.ticketVar} />
       </div>
@@ -368,16 +396,33 @@ function TabInicio({
             </defs>
             <CartesianGrid stroke="var(--border)" vertical={false} />
             <XAxis dataKey="mes" tick={axis} axisLine={false} tickLine={false} />
-            <YAxis tick={axis} axisLine={false} tickLine={false} width={52} tickFormatter={(v) => `${v / 1000}k`} />
+            <YAxis
+              tick={axis}
+              axisLine={false}
+              tickLine={false}
+              width={52}
+              tickFormatter={(v) => `${v / 1000}k`}
+            />
             <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => brl(v)} />
-            <Area type="monotone" dataKey="receita" stroke="var(--primary)" strokeWidth={2} fill="url(#mg)" />
+            <Area
+              type="monotone"
+              dataKey="receita"
+              stroke="var(--primary)"
+              strokeWidth={2}
+              fill="url(#mg)"
+            />
           </AreaChart>
         </ResponsiveContainer>
       </MCard>
 
       <div className="grid grid-cols-2 gap-2">
         <StatTile label="Pedidos em aberto" value={String(emAberto.length)} hint="na esteira" />
-        <StatTile label="SLA em risco" value={String(slaRisco)} tone={slaRisco ? "alert" : "default"} hint="≤ 4h" />
+        <StatTile
+          label="SLA em risco"
+          value={String(slaRisco)}
+          tone={slaRisco ? "alert" : "default"}
+          hint="≤ 4h"
+        />
         <StatTile label="Chamados abertos" value={String(chamadosAbertos)} />
         <StatTile label="CSAT" value={`${csat.toFixed(1)}/5`} hint="chamados avaliados" />
       </div>
@@ -386,7 +431,11 @@ function TabInicio({
         title="Pontos de atenção"
         hint="acompanhamento executivo"
         right={
-          <button type="button" onClick={onVerAlertas} className="text-[11px] font-medium text-primary">
+          <button
+            type="button"
+            onClick={onVerAlertas}
+            className="text-[11px] font-medium text-primary"
+          >
             ver todos
           </button>
         }
@@ -408,9 +457,20 @@ function TabInicio({
 
       <MCard title="Mix de emissões" hint="por tipo de certificado">
         <ResponsiveContainer width="100%" height={140}>
-          <BarChart data={emissoesPorTipo} layout="vertical" margin={{ left: 8, right: 12, top: 0, bottom: 0 }}>
+          <BarChart
+            data={emissoesPorTipo}
+            layout="vertical"
+            margin={{ left: 8, right: 12, top: 0, bottom: 0 }}
+          >
             <XAxis type="number" hide />
-            <YAxis type="category" dataKey="tipo" tick={axis} axisLine={false} tickLine={false} width={70} />
+            <YAxis
+              type="category"
+              dataKey="tipo"
+              tick={axis}
+              axisLine={false}
+              tickLine={false}
+              width={70}
+            />
             <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "var(--muted)" }} />
             <Bar dataKey="total" fill="var(--primary)" radius={[0, 4, 4, 0]} barSize={12} />
           </BarChart>
@@ -424,7 +484,11 @@ function TabInicio({
             title={`${a.hora} · ${a.cliente}`}
             subtitle={`${a.tipo} · ${agentById(a.agenteId).nome}`}
             right={
-              <Chip tone={a.status === "no-show" ? "alert" : a.status === "confirmado" ? "blue" : "outline"}>
+              <Chip
+                tone={
+                  a.status === "no-show" ? "alert" : a.status === "confirmado" ? "blue" : "outline"
+                }
+              >
                 {a.status}
               </Chip>
             }
@@ -478,12 +542,19 @@ function TabOperacao({ onPedido }: { onPedido: (id: string) => void }) {
                     <span className="truncate">{b.etapa}</span>
                     <span className="tabular font-semibold">{b.qtd}</span>
                   </div>
-                  <MiniBar value={(b.qtd / maxBacklog) * 100} tone={b.etapa === "Bloqueado" ? "alert" : "primary"} />
+                  <MiniBar
+                    value={(b.qtd / maxBacklog) * 100}
+                    tone={b.etapa === "Bloqueado" ? "alert" : "primary"}
+                  />
                 </div>
               ))}
             </div>
           </MCard>
-          <MCard title="Pedidos em andamento" hint={`${requests.length} no período`} bodyClassName="p-0">
+          <MCard
+            title="Pedidos em andamento"
+            hint={`${requests.length} no período`}
+            bodyClassName="p-0"
+          >
             {requests.map((r) => (
               <Row
                 key={r.id}
@@ -508,7 +579,10 @@ function TabOperacao({ onPedido }: { onPedido: (id: string) => void }) {
       {sub === "chamados" && (
         <>
           <div className="grid grid-cols-3 gap-2">
-            <StatTile label="Abertos" value={String(tickets.filter((t) => t.status === "aberto").length)} />
+            <StatTile
+              label="Abertos"
+              value={String(tickets.filter((t) => t.status === "aberto").length)}
+            />
             <StatTile
               label="Em andamento"
               value={String(tickets.filter((t) => t.status === "em andamento").length)}
@@ -527,7 +601,9 @@ function TabOperacao({ onPedido }: { onPedido: (id: string) => void }) {
                 subtitle={`${t.numero} · ${t.cliente}`}
                 meta={
                   <>
-                    <Chip tone={t.status === "resolvido" || t.status === "fechado" ? "neutral" : "blue"}>
+                    <Chip
+                      tone={t.status === "resolvido" || t.status === "fechado" ? "neutral" : "blue"}
+                    >
                       {t.status}
                     </Chip>
                     <Chip tone="outline">{t.categoria}</Chip>
@@ -543,7 +619,10 @@ function TabOperacao({ onPedido }: { onPedido: (id: string) => void }) {
       {sub === "agenda" && (
         <>
           <div className="grid grid-cols-3 gap-2">
-            <StatTile label="Hoje" value={String(appointments.filter((a) => a.dia === hojeISO).length)} />
+            <StatTile
+              label="Hoje"
+              value={String(appointments.filter((a) => a.dia === hojeISO).length)}
+            />
             <StatTile
               label="Confirmados"
               value={String(appointments.filter((a) => a.status === "confirmado").length)}
@@ -564,7 +643,15 @@ function TabOperacao({ onPedido }: { onPedido: (id: string) => void }) {
                   title={`${a.dia.split("-").reverse().join("/")} · ${a.hora}`}
                   subtitle={`${a.cliente} · ${a.tipo}`}
                   right={
-                    <Chip tone={a.status === "no-show" ? "alert" : a.status === "confirmado" ? "blue" : "outline"}>
+                    <Chip
+                      tone={
+                        a.status === "no-show"
+                          ? "alert"
+                          : a.status === "confirmado"
+                            ? "blue"
+                            : "outline"
+                      }
+                    >
                       {a.status}
                     </Chip>
                   }
@@ -578,7 +665,9 @@ function TabOperacao({ onPedido }: { onPedido: (id: string) => void }) {
         <MCard title="Produtividade da equipe" hint="emissões e tempo médio" bodyClassName="p-0">
           {["a1", "a2", "a3", "a4", "a5"].map((id) => {
             const a = agentById(id);
-            const carga = requests.filter((r) => r.responsavelId === id && r.stage !== "concluido").length;
+            const carga = requests.filter(
+              (r) => r.responsavelId === id && r.stage !== "concluido",
+            ).length;
             return (
               <div key={id} className="px-4 py-3 not-last:border-b not-last:border-border">
                 <div className="flex items-center justify-between gap-2">
@@ -588,7 +677,9 @@ function TabOperacao({ onPedido }: { onPedido: (id: string) => void }) {
                   </div>
                   <div className="text-right">
                     <p className="text-[13px] font-semibold tabular">{a.emissoes}</p>
-                    <p className="text-[10px] text-muted-foreground">{a.tempoMedioMin} min/emissão</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {a.tempoMedioMin} min/emissão
+                    </p>
                   </div>
                 </div>
                 <div className="mt-2 flex items-center gap-2">
@@ -640,7 +731,9 @@ function TabClientes({ onCliente }: { onCliente: (id: string) => void }) {
 
       <MCard title="Carteira" hint={`${lista.length} clientes`} bodyClassName="p-0">
         {lista.map((c) => {
-          const abertos = requests.filter((r) => r.clienteId === c.id && r.stage !== "concluido").length;
+          const abertos = requests.filter(
+            (r) => r.clienteId === c.id && r.stage !== "concluido",
+          ).length;
           return (
             <Row
               key={c.id}
@@ -685,7 +778,11 @@ function ClienteDetalhe({ id, onPedido }: { id: string; onPedido: (id: string) =
         </div>
         <div className="mt-3 grid grid-cols-3 gap-2">
           <StatTile label="LTV" value={brl(c.ltv)} />
-          <StatTile label="Saúde" value={String(c.saude)} tone={c.saude >= 70 ? "primary" : "alert"} />
+          <StatTile
+            label="Saúde"
+            value={String(c.saude)}
+            tone={c.saude >= 70 ? "primary" : "alert"}
+          />
           <StatTile label="Cliente desde" value={c.desde.split("-").reverse().join("/")} />
         </div>
       </MCard>
@@ -702,7 +799,9 @@ function ClienteDetalhe({ id, onPedido }: { id: string; onPedido: (id: string) =
       </MCard>
 
       <MCard title="Pedidos" hint={`${pedidos.length} registros`} bodyClassName="p-0">
-        {pedidos.length === 0 && <p className="px-4 py-3 text-[12px] text-muted-foreground">Sem pedidos ativos.</p>}
+        {pedidos.length === 0 && (
+          <p className="px-4 py-3 text-[12px] text-muted-foreground">Sem pedidos ativos.</p>
+        )}
         {pedidos.map((r) => (
           <Row
             key={r.id}
@@ -715,9 +814,16 @@ function ClienteDetalhe({ id, onPedido }: { id: string; onPedido: (id: string) =
       </MCard>
 
       <MCard title="Chamados" bodyClassName="p-0">
-        {chamados.length === 0 && <p className="px-4 py-3 text-[12px] text-muted-foreground">Nenhum chamado.</p>}
+        {chamados.length === 0 && (
+          <p className="px-4 py-3 text-[12px] text-muted-foreground">Nenhum chamado.</p>
+        )}
         {chamados.map((t) => (
-          <Row key={t.id} title={t.assunto} subtitle={`${t.numero} · ${t.categoria}`} right={<Chip tone="outline">{t.status}</Chip>} />
+          <Row
+            key={t.id}
+            title={t.assunto}
+            subtitle={`${t.numero} · ${t.categoria}`}
+            right={<Chip tone="outline">{t.status}</Chip>}
+          />
         ))}
       </MCard>
 
@@ -752,7 +858,11 @@ function PedidoDetalhe({ pedido }: { pedido: Request }) {
           {pedido.documento} · {pedido.tipo} · {brl(pedido.valor)}
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <StatTile label="Responsável" value={agentById(pedido.responsavelId).iniciais} hint={agentById(pedido.responsavelId).nome} />
+          <StatTile
+            label="Responsável"
+            value={agentById(pedido.responsavelId).iniciais}
+            hint={agentById(pedido.responsavelId).nome}
+          />
           <StatTile label="Checklist" value={`${feitos}/${pedido.checklist.length}`} />
         </div>
       </MCard>
@@ -777,7 +887,9 @@ function PedidoDetalhe({ pedido }: { pedido: Request }) {
                 <p className="text-[11px] text-muted-foreground">
                   {e.quando} · {e.autor}
                 </p>
-                {e.detalhe && <p className="mt-0.5 text-[11px] text-muted-foreground">{e.detalhe}</p>}
+                {e.detalhe && (
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">{e.detalhe}</p>
+                )}
               </div>
             </li>
           ))}
@@ -806,9 +918,22 @@ function TabFinanceiro() {
       {sub === "visao" && (
         <>
           <div className="grid grid-cols-2 gap-2">
-            <StatTile label="MRR" value={brl(indicadores.mrr)} delta={indicadores.mrrVar} tone="primary" />
-            <StatTile label="EBITDA" value={brl(indicadores.ebitda)} hint={`margem ${indicadores.margemEbitda}%`} />
-            <StatTile label="Receita mês" value={brl(indicadores.receitaMes)} delta={indicadores.receitaVar} />
+            <StatTile
+              label="MRR"
+              value={brl(indicadores.mrr)}
+              delta={indicadores.mrrVar}
+              tone="primary"
+            />
+            <StatTile
+              label="EBITDA"
+              value={brl(indicadores.ebitda)}
+              hint={`margem ${indicadores.margemEbitda}%`}
+            />
+            <StatTile
+              label="Receita mês"
+              value={brl(indicadores.receitaMes)}
+              delta={indicadores.receitaVar}
+            />
             <StatTile
               label="Inadimplência"
               value={`${indicadores.inadimplencia}%`}
@@ -821,10 +946,21 @@ function TabFinanceiro() {
               <LineChart data={serieFinanceira} margin={{ top: 4, right: 6, left: -18, bottom: 0 }}>
                 <CartesianGrid stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="mes" tick={axis} axisLine={false} tickLine={false} />
-                <YAxis tick={axis} axisLine={false} tickLine={false} width={52} tickFormatter={(v) => `${v / 1000}k`} />
+                <YAxis
+                  tick={axis}
+                  axisLine={false}
+                  tickLine={false}
+                  width={52}
+                  tickFormatter={(v) => `${v / 1000}k`}
+                />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => brlFull(v)} />
                 <Line dataKey="receita" stroke="var(--primary)" strokeWidth={2} dot={false} />
-                <Line dataKey="despesa" stroke="var(--muted-foreground)" strokeWidth={1.5} dot={false} />
+                <Line
+                  dataKey="despesa"
+                  stroke="var(--muted-foreground)"
+                  strokeWidth={1.5}
+                  dot={false}
+                />
                 <Line dataKey="ebitda" stroke="var(--primary-deep)" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -832,9 +968,18 @@ function TabFinanceiro() {
           <MCard title="Receita por linha">
             <ResponsiveContainer width="100%" height={170}>
               <PieChart>
-                <Pie data={receitaPorLinha} dataKey="valor" nameKey="linha" innerRadius={38} outerRadius={62}>
+                <Pie
+                  data={receitaPorLinha}
+                  dataKey="valor"
+                  nameKey="linha"
+                  innerRadius={38}
+                  outerRadius={62}
+                >
                   {receitaPorLinha.map((_, i) => (
-                    <Cell key={i} fill={`color-mix(in oklab, var(--primary) ${100 - i * 16}%, white)`} />
+                    <Cell
+                      key={i}
+                      fill={`color-mix(in oklab, var(--primary) ${100 - i * 16}%, white)`}
+                    />
                   ))}
                 </Pie>
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => brlFull(v)} />
@@ -855,7 +1000,11 @@ function TabFinanceiro() {
       {sub === "caixa" && (
         <>
           <div className="grid grid-cols-2 gap-2">
-            <StatTile label="Saldo consolidado" value={brl(indicadores.saldoTotal)} tone="primary" />
+            <StatTile
+              label="Saldo consolidado"
+              value={brl(indicadores.saldoTotal)}
+              tone="primary"
+            />
             <StatTile label="Runway" value={`${indicadores.runwayMeses} meses`} />
           </div>
           <MCard title="Projeção de caixa" hint="próximos 60 dias">
@@ -869,9 +1018,21 @@ function TabFinanceiro() {
                 </defs>
                 <CartesianGrid stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="dia" tick={axis} axisLine={false} tickLine={false} />
-                <YAxis tick={axis} axisLine={false} tickLine={false} width={52} tickFormatter={(v) => `${v / 1000}k`} />
+                <YAxis
+                  tick={axis}
+                  axisLine={false}
+                  tickLine={false}
+                  width={52}
+                  tickFormatter={(v) => `${v / 1000}k`}
+                />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => brlFull(v)} />
-                <Area type="monotone" dataKey="saldo" stroke="var(--primary)" strokeWidth={2} fill="url(#cx)" />
+                <Area
+                  type="monotone"
+                  dataKey="saldo"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                  fill="url(#cx)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </MCard>
@@ -882,7 +1043,12 @@ function TabFinanceiro() {
                 title={a.faixa}
                 subtitle={`${a.titulos} título(s)`}
                 right={
-                  <span className={cn("text-[12px] font-semibold tabular", a.faixa === "60+ dias" && "text-alert")}>
+                  <span
+                    className={cn(
+                      "text-[12px] font-semibold tabular",
+                      a.faixa === "60+ dias" && "text-alert",
+                    )}
+                  >
                     {brl(a.valor)}
                   </span>
                 }
@@ -905,7 +1071,9 @@ function TabFinanceiro() {
               <span
                 className={cn(
                   "truncate text-[12px]",
-                  l.tipo === "resultado" ? "font-semibold text-primary-deep" : "text-muted-foreground",
+                  l.tipo === "resultado"
+                    ? "font-semibold text-primary-deep"
+                    : "text-muted-foreground",
                 )}
               >
                 {l.linha}
@@ -936,7 +1104,11 @@ function TabRede() {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2">
-        <StatTile label="Parceiros ativos" value={String(ativos.length)} hint={`${contadores.length} na base`} />
+        <StatTile
+          label="Parceiros ativos"
+          value={String(ativos.length)}
+          hint={`${contadores.length} na base`}
+        />
         <StatTile label="Receita da rede" value={brl(receitaRede)} tone="primary" />
         <StatTile label="Comissões do mês" value={brl(comissoes)} />
         <StatTile
@@ -968,13 +1140,19 @@ function TabRede() {
                     {c.cidade} · {c.carteira.length} clientes · NPS {c.nps}
                   </p>
                 </div>
-                <Chip tone={c.status === "ativo" ? "blue" : c.status === "suspenso" ? "alert" : "outline"}>
+                <Chip
+                  tone={
+                    c.status === "ativo" ? "blue" : c.status === "suspenso" ? "alert" : "outline"
+                  }
+                >
                   {c.tier}
                 </Chip>
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <MiniBar value={atingimento} tone={atingimento < 60 ? "alert" : "primary"} />
-                <span className="shrink-0 text-[10px] tabular text-muted-foreground">{atingimento}% da meta</span>
+                <span className="shrink-0 text-[10px] tabular text-muted-foreground">
+                  {atingimento}% da meta
+                </span>
               </div>
             </div>
           );

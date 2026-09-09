@@ -1,5 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Bot, CreditCard, Database, Eye, EyeOff, Mail, MessageCircle, PlugZap, RefreshCw } from "lucide-react";
+import {
+  Bot,
+  CreditCard,
+  Database,
+  Eye,
+  EyeOff,
+  Mail,
+  MessageCircle,
+  PlugZap,
+  RefreshCw,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -14,9 +24,16 @@ export const Route = createFileRoute("/admin/integracoes")({
   head: () => ({
     meta: [
       { title: "Integrações e APIs — WhatsApp, Resend, OpenAI | Admin Center" },
-      { name: "description", content: "Configure e monitore as APIs da plataforma: Evolution, WhatsApp Cloud, Resend, OpenAI, Stripe e storage, com teste de conexão e custos." },
+      {
+        name: "description",
+        content:
+          "Configure e monitore as APIs da plataforma: Evolution, WhatsApp Cloud, Resend, OpenAI, Stripe e storage, com teste de conexão e custos.",
+      },
       { property: "og:title", content: "Integrações e APIs — Admin Center" },
-      { property: "og:description", content: "Configure e monitore Evolution, WhatsApp Cloud, Resend, OpenAI e Stripe." },
+      {
+        property: "og:description",
+        content: "Configure e monitore Evolution, WhatsApp Cloud, Resend, OpenAI e Stripe.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -48,7 +65,20 @@ function IntegracoesPage() {
           <ExportMenu
             base="admin-integracoes"
             datasets={() => [
-              { nome: "Integrações", linhas: integracoes.map((i) => ({ Integração: i.nome, Categoria: i.categoria, Provedor: i.provedor, Status: i.status, Escopo: i.escopo, "Latência (ms)": i.latenciaMs, "Sucesso 30d %": i.sucesso30d, "Chamadas 30d": i.chamadas30d, "Custo mês": i.custoMes })) },
+              {
+                nome: "Integrações",
+                linhas: integracoes.map((i) => ({
+                  Integração: i.nome,
+                  Categoria: i.categoria,
+                  Provedor: i.provedor,
+                  Status: i.status,
+                  Escopo: i.escopo,
+                  "Latência (ms)": i.latenciaMs,
+                  "Sucesso 30d %": i.sucesso30d,
+                  "Chamadas 30d": i.chamadas30d,
+                  "Custo mês": i.custoMes,
+                })),
+              },
             ]}
           />
           <button
@@ -61,10 +91,24 @@ function IntegracoesPage() {
       }
     >
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Integrações ativas" value={String(integracoes.filter((i) => i.status === "conectado").length)} hint={`${integracoes.length} configuradas`} icon={<PlugZap className="size-4" />} />
+        <KpiCard
+          label="Integrações ativas"
+          value={String(integracoes.filter((i) => i.status === "conectado").length)}
+          hint={`${integracoes.length} configuradas`}
+          icon={<PlugZap className="size-4" />}
+        />
         <KpiCard label="Chamadas 30d" value={numero(chamadas)} hint="somatório de todas as APIs" />
-        <KpiCard label="Custo no mês" value={moeda(custo)} hint="IA, mensageria, e-mail e storage" />
-        <KpiCard label="Degradadas" value={String(integracoes.filter((i) => i.status !== "conectado").length)} tone={integracoes.some((i) => i.status !== "conectado") ? "alert" : "default"} hint="requerem atenção" />
+        <KpiCard
+          label="Custo no mês"
+          value={moeda(custo)}
+          hint="IA, mensageria, e-mail e storage"
+        />
+        <KpiCard
+          label="Degradadas"
+          value={String(integracoes.filter((i) => i.status !== "conectado").length)}
+          tone={integracoes.some((i) => i.status !== "conectado") ? "alert" : "default"}
+          hint="requerem atenção"
+        />
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-2">
@@ -90,12 +134,17 @@ function IntegracoesPage() {
                       onChange={(e) => updateIntegracao(i.id, { endpoint: e.target.value })}
                     />
                   </Field>
-                  <Field label="Chave de API" hint="Armazenada criptografada; nunca exposta aos tenants.">
+                  <Field
+                    label="Chave de API"
+                    hint="Armazenada criptografada; nunca exposta aos tenants."
+                  >
                     <div className="flex gap-2">
                       <input
                         className={inputCls}
                         type={mostrar ? "text" : "password"}
-                        value={mostrar ? i.chaveMascarada.replace(/•+/g, "s3cr3tk3y") : i.chaveMascarada}
+                        value={
+                          mostrar ? i.chaveMascarada.replace(/•+/g, "s3cr3tk3y") : i.chaveMascarada
+                        }
                         onChange={(e) => updateIntegracao(i.id, { chaveMascarada: e.target.value })}
                       />
                       <button
@@ -109,13 +158,27 @@ function IntegracoesPage() {
                   </Field>
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] sm:grid-cols-4">
-                    <div className="rounded-md border border-border px-2 py-1.5"><p className="text-muted-foreground">Latência</p><p className="tabular font-medium">{i.latenciaMs} ms</p></div>
-                    <div className="rounded-md border border-border px-2 py-1.5"><p className="text-muted-foreground">Sucesso 30d</p><p className="tabular font-medium">{i.sucesso30d}%</p></div>
-                    <div className="rounded-md border border-border px-2 py-1.5"><p className="text-muted-foreground">Chamadas</p><p className="tabular font-medium">{numero(i.chamadas30d)}</p></div>
-                    <div className="rounded-md border border-border px-2 py-1.5"><p className="text-muted-foreground">Custo/mês</p><p className="tabular font-medium">{moeda(i.custoMes)}</p></div>
+                    <div className="rounded-md border border-border px-2 py-1.5">
+                      <p className="text-muted-foreground">Latência</p>
+                      <p className="tabular font-medium">{i.latenciaMs} ms</p>
+                    </div>
+                    <div className="rounded-md border border-border px-2 py-1.5">
+                      <p className="text-muted-foreground">Sucesso 30d</p>
+                      <p className="tabular font-medium">{i.sucesso30d}%</p>
+                    </div>
+                    <div className="rounded-md border border-border px-2 py-1.5">
+                      <p className="text-muted-foreground">Chamadas</p>
+                      <p className="tabular font-medium">{numero(i.chamadas30d)}</p>
+                    </div>
+                    <div className="rounded-md border border-border px-2 py-1.5">
+                      <p className="text-muted-foreground">Custo/mês</p>
+                      <p className="tabular font-medium">{moeda(i.custoMes)}</p>
+                    </div>
                   </div>
 
-                  <p className="text-[11px] text-muted-foreground">{i.notas} · último teste {i.ultimoTeste}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {i.notas} · último teste {i.ultimoTeste}
+                  </p>
 
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -129,8 +192,12 @@ function IntegracoesPage() {
                     </button>
                     <button
                       onClick={() => {
-                        updateIntegracao(i.id, { status: i.status === "desconectado" ? "conectado" : "desconectado" });
-                        toast.success(`${i.nome} ${i.status === "desconectado" ? "reativada" : "desativada"}.`);
+                        updateIntegracao(i.id, {
+                          status: i.status === "desconectado" ? "conectado" : "desconectado",
+                        });
+                        toast.success(
+                          `${i.nome} ${i.status === "desconectado" ? "reativada" : "desativada"}.`,
+                        );
                       }}
                       className="h-8 rounded-md border border-border px-2.5 text-xs hover:border-primary"
                     >
@@ -150,10 +217,20 @@ function IntegracoesPage() {
         })}
       </div>
 
-      <Panel className="mt-4" title="Webhooks da plataforma" hint="Eventos enviados a sistemas externos" bodyClassName="p-0">
+      <Panel
+        className="mt-4"
+        title="Webhooks da plataforma"
+        hint="Eventos enviados a sistemas externos"
+        bodyClassName="p-0"
+      >
         <table className="w-full min-w-[560px] text-sm">
           <thead className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
-            <tr><th className="px-4 py-2">Evento</th><th className="px-4 py-2">Destino</th><th className="px-4 py-2 text-right">Entregas 24h</th><th className="px-4 py-2 text-right">Falhas</th></tr>
+            <tr>
+              <th className="px-4 py-2">Evento</th>
+              <th className="px-4 py-2">Destino</th>
+              <th className="px-4 py-2 text-right">Entregas 24h</th>
+              <th className="px-4 py-2 text-right">Falhas</th>
+            </tr>
           </thead>
           <tbody>
             {[
@@ -166,7 +243,11 @@ function IntegracoesPage() {
                 <td className="px-4 py-2 font-medium">{evento}</td>
                 <td className="truncate px-4 py-2 text-muted-foreground">{destino}</td>
                 <td className="tabular px-4 py-2 text-right">{numero(Number(ok))}</td>
-                <td className={`tabular px-4 py-2 text-right ${Number(falha) > 0 ? "text-alert" : ""}`}>{falha}</td>
+                <td
+                  className={`tabular px-4 py-2 text-right ${Number(falha) > 0 ? "text-alert" : ""}`}
+                >
+                  {falha}
+                </td>
               </tr>
             ))}
           </tbody>

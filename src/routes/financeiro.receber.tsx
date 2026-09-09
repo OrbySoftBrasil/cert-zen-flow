@@ -1,7 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BellRing, Bot, FileText, MessageSquare } from "lucide-react";
 import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { AppShell } from "@/components/app-shell";
 import { NovaCobrancaButton } from "@/components/finance-dialogs";
@@ -22,7 +31,8 @@ export const Route = createFileRoute("/financeiro/receber")({
       { title: "Contas a receber — Certus AC" },
       {
         name: "description",
-        content: "Recebíveis, régua de cobrança automática, aging da carteira e baixa de títulos por cliente.",
+        content:
+          "Recebíveis, régua de cobrança automática, aging da carteira e baixa de títulos por cliente.",
       },
       { property: "og:title", content: "Contas a receber — Certus AC" },
       { property: "og:description", content: "Recebíveis, cobrança e aging da carteira." },
@@ -41,21 +51,50 @@ const tone = {
 } as const;
 
 const regua = [
-  { etapa: "D−3", canal: "WhatsApp", mensagem: "Lembrete amigável com link de pagamento Pix", icone: MessageSquare },
-  { etapa: "D+1", canal: "E-mail", mensagem: "Aviso de vencimento e 2ª via do boleto", icone: FileText },
-  { etapa: "D+5", canal: "WhatsApp + IA", mensagem: "Negociação assistida com parcelamento em até 3x", icone: Bot },
-  { etapa: "D+15", canal: "Telefone", mensagem: "Contato do gestor da conta e proposta de acordo", icone: BellRing },
-  { etapa: "D+30", canal: "Automático", mensagem: "Suspensão de emissões e envio para cobrança externa", icone: BellRing },
+  {
+    etapa: "D−3",
+    canal: "WhatsApp",
+    mensagem: "Lembrete amigável com link de pagamento Pix",
+    icone: MessageSquare,
+  },
+  {
+    etapa: "D+1",
+    canal: "E-mail",
+    mensagem: "Aviso de vencimento e 2ª via do boleto",
+    icone: FileText,
+  },
+  {
+    etapa: "D+5",
+    canal: "WhatsApp + IA",
+    mensagem: "Negociação assistida com parcelamento em até 3x",
+    icone: Bot,
+  },
+  {
+    etapa: "D+15",
+    canal: "Telefone",
+    mensagem: "Contato do gestor da conta e proposta de acordo",
+    icone: BellRing,
+  },
+  {
+    etapa: "D+30",
+    canal: "Automático",
+    mensagem: "Suspensão de emissões e envio para cobrança externa",
+    icone: BellRing,
+  },
 ];
 
 function Receber() {
   const { receber, updateReceber } = useStore();
   const [status, setStatus] = useState("todos");
   const [cobrados, setCobrados] = useState<string[]>([]);
-  const [confirmar, setConfirmar] = useState<{ id: string; cliente: string; valor: number } | null>(null);
+  const [confirmar, setConfirmar] = useState<{ id: string; cliente: string; valor: number } | null>(
+    null,
+  );
   const baixados = receber.filter((r) => r.status === "recebido").map((r) => r.id);
 
-  const lista = receber.filter((r) => status === "todos" || (baixados.includes(r.id) ? "recebido" : r.status) === status);
+  const lista = receber.filter(
+    (r) => status === "todos" || (baixados.includes(r.id) ? "recebido" : r.status) === status,
+  );
   const emAberto = receber.filter((r) => r.status !== "recebido" && !baixados.includes(r.id));
   const atraso = receber.filter((r) => r.status === "em atraso" && !baixados.includes(r.id));
 
@@ -76,7 +115,10 @@ function Receber() {
         NF: r.nf,
       })),
     },
-    { nome: "Aging", linhas: aging.map((a) => ({ Faixa: a.faixa, Valor: a.valor, Títulos: a.titulos })) },
+    {
+      nome: "Aging",
+      linhas: aging.map((a) => ({ Faixa: a.faixa, Valor: a.valor, Títulos: a.titulos })),
+    },
   ];
 
   return (
@@ -94,20 +136,43 @@ function Receber() {
 
       <div className="space-y-4">
         <div className="flex flex-wrap divide-border rounded-lg border border-border bg-card">
-          <Metric label="Carteira em aberto" value={brl(emAberto.reduce((s, r) => s + r.valor, 0))} hint={`${emAberto.length} títulos`} />
-          <Metric label="Em atraso" value={brl(atraso.reduce((s, r) => s + r.valor, 0))} hint={`${atraso.length} títulos`} />
-          <Metric label="Recebido no mês" value={brl(214_800)} delta={7.9} hint="liquidações confirmadas" />
+          <Metric
+            label="Carteira em aberto"
+            value={brl(emAberto.reduce((s, r) => s + r.valor, 0))}
+            hint={`${emAberto.length} títulos`}
+          />
+          <Metric
+            label="Em atraso"
+            value={brl(atraso.reduce((s, r) => s + r.valor, 0))}
+            hint={`${atraso.length} títulos`}
+          />
+          <Metric
+            label="Recebido no mês"
+            value={brl(214_800)}
+            delta={7.9}
+            hint="liquidações confirmadas"
+          />
           <Metric label="Prazo médio (PMR)" value="21 dias" delta={-1.4} hint="meta 20 dias" />
           <Metric label="Recuperação de crédito" value="68%" delta={5.2} hint="régua automática" />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          <Panel className="lg:col-span-2" title="Aging da carteira" hint="Distribuição por faixa de atraso">
+          <Panel
+            className="lg:col-span-2"
+            title="Aging da carteira"
+            hint="Distribuição por faixa de atraso"
+          >
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={aging} margin={{ left: -8, right: 8, top: 8 }}>
                   <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                  <XAxis dataKey="faixa" tickLine={false} axisLine={false} fontSize={12} stroke="var(--color-muted-foreground)" />
+                  <XAxis
+                    dataKey="faixa"
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={12}
+                    stroke="var(--color-muted-foreground)"
+                  />
                   <YAxis
                     tickLine={false}
                     axisLine={false}
@@ -117,12 +182,20 @@ function Receber() {
                   />
                   <Tooltip
                     cursor={{ fill: "var(--color-muted)" }}
-                    contentStyle={{ borderRadius: 8, border: "1px solid var(--color-border)", background: "var(--color-card)", fontSize: 12 }}
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: "1px solid var(--color-border)",
+                      background: "var(--color-card)",
+                      fontSize: 12,
+                    }}
                     formatter={(v: number) => brl(v)}
                   />
                   <Bar dataKey="valor" radius={[4, 4, 0, 0]} barSize={38}>
                     {aging.map((_, i) => (
-                      <Cell key={i} fill={i === 0 ? "var(--color-chart-2)" : "var(--color-chart-4)"} />
+                      <Cell
+                        key={i}
+                        fill={i === 0 ? "var(--color-chart-2)" : "var(--color-chart-4)"}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -197,16 +270,25 @@ function Receber() {
                         <td className="px-4 py-2.5 text-muted-foreground">{r.origem}</td>
                         <td className="whitespace-nowrap px-4 py-2.5 tabular">
                           {dataBR(r.vencimento)}
-                          <span className={cn("ml-1.5 text-[11px]", dias < 0 ? "text-alert" : "text-muted-foreground")}>
+                          <span
+                            className={cn(
+                              "ml-1.5 text-[11px]",
+                              dias < 0 ? "text-alert" : "text-muted-foreground",
+                            )}
+                          >
                             {dias < 0 ? `${Math.abs(dias)}d atraso` : `em ${dias}d`}
                           </span>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(r.valor)}</td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">
+                          {brl(r.valor)}
+                        </td>
                         <td className="px-4 py-2.5">
                           <Chip>{r.metodo}</Chip>
                         </td>
                         <td className="px-4 py-2.5">
-                          <Chip tone={recebido ? "deep" : tone[r.status]}>{recebido ? "recebido" : r.status}</Chip>
+                          <Chip tone={recebido ? "deep" : tone[r.status]}>
+                            {recebido ? "recebido" : r.status}
+                          </Chip>
                         </td>
                         <td className="whitespace-nowrap px-4 py-2.5">
                           {recebido ? (
@@ -214,7 +296,9 @@ function Receber() {
                           ) : (
                             <div className="flex gap-1.5">
                               <button
-                                onClick={() => setConfirmar({ id: r.id, cliente: r.cliente, valor: r.valor })}
+                                onClick={() =>
+                                  setConfirmar({ id: r.id, cliente: r.cliente, valor: r.valor })
+                                }
                                 className="rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-border-strong"
                               >
                                 Baixar
@@ -255,7 +339,9 @@ function Receber() {
         onConfirm={() => {
           if (!confirmar) return;
           updateReceber(confirmar.id, { status: "recebido" });
-          toast.success("Título liquidado", { description: `${confirmar.cliente} · ${brl(confirmar.valor)}` });
+          toast.success("Título liquidado", {
+            description: `${confirmar.cliente} · ${brl(confirmar.valor)}`,
+          });
           setConfirmar(null);
         }}
       />

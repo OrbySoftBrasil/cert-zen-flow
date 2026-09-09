@@ -26,7 +26,6 @@ export const Route = createFileRoute("/configuracoes")({
   component: ConfiguracoesPage,
 });
 
-
 function ConfiguracoesPage() {
   const [ativa, setAtiva] = useState<SecaoId>("operacao");
 

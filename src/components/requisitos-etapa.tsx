@@ -91,7 +91,15 @@ function StatusChip({ estado }: { estado: EstadoRequisito }) {
 
 // ------------------------------------------------------------------ diálogos
 
-function DlgConfirmar({ r, item, onClose }: { r: Request; item: ChecklistItem; onClose: () => void }) {
+function DlgConfirmar({
+  r,
+  item,
+  onClose,
+}: {
+  r: Request;
+  item: ChecklistItem;
+  onClose: () => void;
+}) {
   const store = useStore();
   const [obs, setObs] = useState("");
   const exige = item.observacaoObrigatoria === true;
@@ -295,7 +303,15 @@ function DlgReutilizar({
   );
 }
 
-function DlgConsulta({ r, item, onClose }: { r: Request; item: ChecklistItem; onClose: () => void }) {
+function DlgConsulta({
+  r,
+  item,
+  onClose,
+}: {
+  r: Request;
+  item: ChecklistItem;
+  onClose: () => void;
+}) {
   const store = useStore();
   const [fonte, setFonte] = useState("Receita Federal");
   const [sujeito, setSujeito] = useState(r.cliente);
@@ -344,14 +360,27 @@ function DlgConsulta({ r, item, onClose }: { r: Request; item: ChecklistItem; on
           <span className="font-medium text-foreground">Registrado manualmente</span> — nunca como
           verificação automática.
         </p>
-        <Field label="Fonte consultada" {...(tentou && !fonte.trim() ? { error: "Informe a fonte." } : {})}>
+        <Field
+          label="Fonte consultada"
+          {...(tentou && !fonte.trim() ? { error: "Informe a fonte." } : {})}
+        >
           <TextInput value={fonte} onChange={(e) => setFonte(e.target.value)} />
         </Field>
-        <Field label="Sujeito consultado" {...(tentou && !sujeito.trim() ? { error: "Informe o sujeito." } : {})}>
+        <Field
+          label="Sujeito consultado"
+          {...(tentou && !sujeito.trim() ? { error: "Informe o sujeito." } : {})}
+        >
           <TextInput value={sujeito} onChange={(e) => setSujeito(e.target.value)} />
         </Field>
-        <Field label="Data e hora" {...(tentou && !quando ? { error: "Informe quando foi feita." } : {})}>
-          <TextInput type="datetime-local" value={quando} onChange={(e) => setQuando(e.target.value)} />
+        <Field
+          label="Data e hora"
+          {...(tentou && !quando ? { error: "Informe quando foi feita." } : {})}
+        >
+          <TextInput
+            type="datetime-local"
+            value={quando}
+            onChange={(e) => setQuando(e.target.value)}
+          />
         </Field>
         <Field label="Resultado">
           <SelectInput value={resultado} onChange={(e) => setResultado(e.target.value)}>
@@ -458,14 +487,24 @@ function DlgAcaoProduto({
   );
 }
 
-function DlgDecisao({ r, item, onClose }: { r: Request; item: ChecklistItem; onClose: () => void }) {
+function DlgDecisao({
+  r,
+  item,
+  onClose,
+}: {
+  r: Request;
+  item: ChecklistItem;
+  onClose: () => void;
+}) {
   const store = useStore();
   const [motivo, setMotivo] = useState("");
   const [aprovador, setAprovador] = useState("");
   const [segundo, setSegundo] = useState("");
   const precisaSegundo = item.exigeSegundoOperador === true;
   const invalido =
-    motivo.trim().length < 20 || aprovador.trim().length < 3 || (precisaSegundo && segundo.trim().length < 3);
+    motivo.trim().length < 20 ||
+    aprovador.trim().length < 3 ||
+    (precisaSegundo && segundo.trim().length < 3);
   return (
     <Modal
       open
@@ -603,7 +642,11 @@ function DlgNaoAplicavel({
           />
         </Field>
         <Field label="Regra aplicada">
-          <SelectInput value={regra} onChange={(e) => setRegra(e.target.value)} disabled={bloqueada}>
+          <SelectInput
+            value={regra}
+            onChange={(e) => setRegra(e.target.value)}
+            disabled={bloqueada}
+          >
             <option>Regra do produto</option>
             <option>Regra da modalidade</option>
             <option>Regra da unidade</option>
@@ -611,7 +654,10 @@ function DlgNaoAplicavel({
           </SelectInput>
         </Field>
         {tipo === "excecao" && !bloqueada && (
-          <Field label="Responsável pela alçada" hint="A exceção fica registrada com autoria e hora">
+          <Field
+            label="Responsável pela alçada"
+            hint="A exceção fica registrada com autoria e hora"
+          >
             <TextInput value={alcada} onChange={(e) => setAlcada(e.target.value)} />
           </Field>
         )}
@@ -625,7 +671,15 @@ function DlgNaoAplicavel({
   );
 }
 
-function DlgSolicitar({ r, item, onClose }: { r: Request; item: ChecklistItem; onClose: () => void }) {
+function DlgSolicitar({
+  r,
+  item,
+  onClose,
+}: {
+  r: Request;
+  item: ChecklistItem;
+  onClose: () => void;
+}) {
   const store = useStore();
   const [msg, setMsg] = useState(`Precisamos do item “${item.label}” para seguir com a emissão.`);
   return (
@@ -658,7 +712,15 @@ function DlgSolicitar({ r, item, onClose }: { r: Request; item: ChecklistItem; o
   );
 }
 
-function DlgReabrir({ r, item, onClose }: { r: Request; item: ChecklistItem; onClose: () => void }) {
+function DlgReabrir({
+  r,
+  item,
+  onClose,
+}: {
+  r: Request;
+  item: ChecklistItem;
+  onClose: () => void;
+}) {
   const store = useStore();
   const [motivo, setMotivo] = useState("");
   return (
@@ -696,7 +758,13 @@ function DlgReabrir({ r, item, onClose }: { r: Request; item: ChecklistItem; onC
 function DlgEvidencia({ linha, onClose }: { linha: LinhaRequisito; onClose: () => void }) {
   const e = linha.item.evidencia;
   return (
-    <Modal open onClose={onClose} title="Evidência do requisito" hint={linha.item.label} width="max-w-lg">
+    <Modal
+      open
+      onClose={onClose}
+      title="Evidência do requisito"
+      hint={linha.item.label}
+      width="max-w-lg"
+    >
       <dl className="space-y-2 text-xs">
         {[
           ["Origem", linha.origem ?? "—"],
@@ -747,7 +815,10 @@ export function RequisitosEtapa({ r, compacto = false }: { r: Request; compacto?
   );
 
   const linhas = useMemo(
-    () => r.checklist.map((i) => linhaRequisito(i, { request: r, ...(cliente ? { cliente } : {}), emissoes })),
+    () =>
+      r.checklist.map((i) =>
+        linhaRequisito(i, { request: r, ...(cliente ? { cliente } : {}), emissoes }),
+      ),
     [r, cliente, emissoes],
   );
 
@@ -769,13 +840,19 @@ export function RequisitosEtapa({ r, compacto = false }: { r: Request; compacto?
         </span>
       </div>
       <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+        <div
+          className="h-full rounded-full bg-primary transition-all"
+          style={{ width: `${pct}%` }}
+        />
       </div>
 
       {portoes.length > 0 && (
         <div className="mb-2 space-y-1 rounded-md bg-alert-soft px-2.5 py-2">
           {portoes.map((p) => (
-            <p key={`${p.acao}-${p.item}`} className="flex items-start gap-1.5 text-[11px] text-alert">
+            <p
+              key={`${p.acao}-${p.item}`}
+              className="flex items-start gap-1.5 text-[11px] text-alert"
+            >
               <Lock className="mt-0.5 size-3 shrink-0" />
               <span>
                 <span className="font-medium">{p.acao}</span> bloqueado por “{p.item}” — {p.motivo}.
@@ -798,8 +875,11 @@ export function RequisitosEtapa({ r, compacto = false }: { r: Request; compacto?
                 key={l.item.id}
                 className={cn(
                   "rounded-md border border-border px-2.5 py-2",
-                  atendido && l.estado !== "nao_aplicavel" && "border-primary/40 bg-primary-soft/30",
-                  (l.estado === "expirado" || l.estado === "rejeitado") && "border-alert/40 bg-alert-soft/30",
+                  atendido &&
+                    l.estado !== "nao_aplicavel" &&
+                    "border-primary/40 bg-primary-soft/30",
+                  (l.estado === "expirado" || l.estado === "rejeitado") &&
+                    "border-alert/40 bg-alert-soft/30",
                 )}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -854,7 +934,9 @@ export function RequisitosEtapa({ r, compacto = false }: { r: Request; compacto?
       {(aberto?.tipo === "enviar-documento" || aberto?.tipo === "substituir") && (
         <DlgDocumento r={r} item={aberto.linha.item} onClose={fechar} />
       )}
-      {aberto?.tipo === "reutilizar" && <DlgReutilizar r={r} linha={aberto.linha} onClose={fechar} />}
+      {aberto?.tipo === "reutilizar" && (
+        <DlgReutilizar r={r} linha={aberto.linha} onClose={fechar} />
+      )}
       {aberto?.tipo === "registrar-consulta" && (
         <DlgConsulta r={r} item={aberto.linha.item} onClose={fechar} />
       )}

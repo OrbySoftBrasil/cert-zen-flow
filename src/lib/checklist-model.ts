@@ -8,20 +8,10 @@ import type { ChecklistItem, Client, DocumentFile, Request } from "@/lib/mock-da
 // ------------------------------------------------------------------- tipos
 
 export type ModoCumprimento =
-  | "orientacao"
-  | "confirmacao"
-  | "documento"
-  | "derivado"
-  | "acao"
-  | "decisao";
+  "orientacao" | "confirmacao" | "documento" | "derivado" | "acao" | "decisao";
 
 export type EscopoRequisito =
-  | "caso"
-  | "emissao"
-  | "titular"
-  | "organizacao"
-  | "representante"
-  | "atendimento";
+  "caso" | "emissao" | "titular" | "organizacao" | "representante" | "atendimento";
 
 export type EstadoRequisito =
   | "nao_iniciado"
@@ -138,13 +128,38 @@ export const CATEGORIAS_DOC: {
   aceita: string[];
   validadeDiasPadrao: number;
 }[] = [
-  { id: "identidade", nome: "Documento de identidade", aceita: ["Identificação", "RG", "CNH", "Identidade"], validadeDiasPadrao: 3650 },
-  { id: "endereco", nome: "Comprovante de endereço", aceita: ["Endereço", "Comprovante de endereço"], validadeDiasPadrao: 90 },
-  { id: "contrato-social", nome: "Contrato social", aceita: ["Contrato social", "Societário"], validadeDiasPadrao: 1095 },
+  {
+    id: "identidade",
+    nome: "Documento de identidade",
+    aceita: ["Identificação", "RG", "CNH", "Identidade"],
+    validadeDiasPadrao: 3650,
+  },
+  {
+    id: "endereco",
+    nome: "Comprovante de endereço",
+    aceita: ["Endereço", "Comprovante de endereço"],
+    validadeDiasPadrao: 90,
+  },
+  {
+    id: "contrato-social",
+    nome: "Contrato social",
+    aceita: ["Contrato social", "Societário"],
+    validadeDiasPadrao: 1095,
+  },
   { id: "procuracao", nome: "Procuração", aceita: ["Procuração"], validadeDiasPadrao: 365 },
-  { id: "comprovante-pagamento", nome: "Comprovante de pagamento", aceita: ["Pagamento", "Comprovante"], validadeDiasPadrao: 365 },
+  {
+    id: "comprovante-pagamento",
+    nome: "Comprovante de pagamento",
+    aceita: ["Pagamento", "Comprovante"],
+    validadeDiasPadrao: 365,
+  },
   { id: "termo-assinado", nome: "Termo assinado", aceita: ["Termo"], validadeDiasPadrao: 3650 },
-  { id: "gravacao", nome: "Gravação de videoconferência", aceita: ["Gravação", "Vídeo"], validadeDiasPadrao: 3650 },
+  {
+    id: "gravacao",
+    nome: "Gravação de videoconferência",
+    aceita: ["Gravação", "Vídeo"],
+    validadeDiasPadrao: 3650,
+  },
 ];
 
 export function categoriaInfo(c: CategoriaDoc) {
@@ -263,9 +278,7 @@ export function requisitoAtendido(l: LinhaRequisito) {
 
 /** Itens que entram no denominador do progresso: fora orientação e não aplicáveis. */
 export function contaNoProgresso(l: LinhaRequisito) {
-  return (
-    l.item.modo !== "orientacao" && l.estado !== "nao_aplicavel" && l.estado !== "informativo"
-  );
+  return l.item.modo !== "orientacao" && l.estado !== "nao_aplicavel" && l.estado !== "informativo";
 }
 
 export function progressoChecklist(linhas: LinhaRequisito[]) {
@@ -379,16 +392,15 @@ export interface FatoDerivado {
   detalhe: string;
 }
 
-function fatoDe(
-  chave: ChaveDerivada,
-  emissao: EmissaoCaso | undefined,
-  r: Request,
-): FatoDerivado {
+function fatoDe(chave: ChaveDerivada, emissao: EmissaoCaso | undefined, r: Request): FatoDerivado {
   switch (chave) {
     case "pagamento":
       return emissao?.pagamento.estado === "concluido"
         ? { presente: true, detalhe: emissao.pagamento.detalhe }
-        : { presente: false, detalhe: emissao?.pagamento.detalhe ?? "Pagamento ainda não confirmado" };
+        : {
+            presente: false,
+            detalhe: emissao?.pagamento.detalhe ?? "Pagamento ainda não confirmado",
+          };
     case "validacao":
       return emissao?.validacao === "concluido"
         ? { presente: true, detalhe: "Validação registrada nesta emissão" }
@@ -470,7 +482,9 @@ export function linhaRequisito(item: ChecklistItem, ctx: ContextoChecklist): Lin
           : ev.origem === "confirmacao"
             ? "confirmado"
             : "concluido";
-    const partes = [ev.referencia, ev.arquivo, ev.resultado, ev.valor, ev.observacao].filter(Boolean);
+    const partes = [ev.referencia, ev.arquivo, ev.resultado, ev.valor, ev.observacao].filter(
+      Boolean,
+    );
     return {
       ...base,
       bloqueia: null,
@@ -542,7 +556,11 @@ export function linhaRequisito(item: ChecklistItem, ctx: ContextoChecklist): Lin
         : `Nenhum documento compatível de ${categoriaInfo(item.categoriaDoc ?? "identidade").nome.toLowerCase()}.`,
       origem: null,
       acoes: [
-        { id: "enviar-documento", label: vencido ? "Enviar nova versão" : "Enviar documento", primaria: true },
+        {
+          id: "enviar-documento",
+          label: vencido ? "Enviar nova versão" : "Enviar documento",
+          primaria: true,
+        },
         { id: "solicitar-cliente", label: "Solicitar ao cliente" },
         ...acaoNA,
       ],
@@ -581,10 +599,7 @@ export function linhaRequisito(item: ChecklistItem, ctx: ContextoChecklist): Lin
     estado: "nao_iniciado",
     motivo: item.instrucao ?? "Atividade humana — o sistema não consegue verificar sozinho.",
     origem: null,
-    acoes: [
-      { id: "confirmar", label: "Confirmar realização", primaria: true },
-      ...acaoNA,
-    ],
+    acoes: [{ id: "confirmar", label: "Confirmar realização", primaria: true }, ...acaoNA],
   };
 }
 

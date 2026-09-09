@@ -44,11 +44,7 @@ import {
   politicaNaoAplicavelDe,
 } from "@/lib/checklist-model";
 import { emissoesDoCaso } from "@/lib/caso-model";
-import {
-  MARCO_POR_STAGE,
-  itensDoPerfil,
-  type PerfilOperacional,
-} from "@/lib/opconfig-model";
+import { MARCO_POR_STAGE, itensDoPerfil, type PerfilOperacional } from "@/lib/opconfig-model";
 import { cenarioAppointments, cenarioRegistros, cenarioRequests } from "@/lib/cenarios";
 import {
   type AutorRegistro,
@@ -390,34 +386,104 @@ const checklistPorEtapa: Record<StageId, EspecItem[]> = {
     },
   ],
   documentacao: [
-    { label: "Documento de identidade", modo: "documento", categoriaDoc: "identidade", escopo: "titular", bloqueia: "Enviar dossiê para verificação" },
-    { label: "Comprovante de endereço", modo: "documento", categoriaDoc: "endereco", escopo: "titular", validadeDias: 90, bloqueia: "Enviar dossiê para verificação" },
-    { label: "Contrato social / procuração", modo: "documento", categoriaDoc: "contrato-social", escopo: "organizacao", obrigatorio: false },
+    {
+      label: "Documento de identidade",
+      modo: "documento",
+      categoriaDoc: "identidade",
+      escopo: "titular",
+      bloqueia: "Enviar dossiê para verificação",
+    },
+    {
+      label: "Comprovante de endereço",
+      modo: "documento",
+      categoriaDoc: "endereco",
+      escopo: "titular",
+      validadeDias: 90,
+      bloqueia: "Enviar dossiê para verificação",
+    },
+    {
+      label: "Contrato social / procuração",
+      modo: "documento",
+      categoriaDoc: "contrato-social",
+      escopo: "organizacao",
+      obrigatorio: false,
+    },
   ],
   validacao: [
-    { label: "Consulta à Lista Negativa", modo: "acao", acaoProduto: "registrar-consulta", escopo: "titular", bloqueia: "Aprovar emissão" },
-    { label: "Resultado da validação", modo: "acao", acaoProduto: "registrar-validacao", escopo: "emissao", bloqueia: "Aprovar emissão" },
-    { label: "Parecer do agente de registro", modo: "decisao", escopo: "caso", exigeAprovacao: true, bloqueia: "Aprovar emissão" },
+    {
+      label: "Consulta à Lista Negativa",
+      modo: "acao",
+      acaoProduto: "registrar-consulta",
+      escopo: "titular",
+      bloqueia: "Aprovar emissão",
+    },
+    {
+      label: "Resultado da validação",
+      modo: "acao",
+      acaoProduto: "registrar-validacao",
+      escopo: "emissao",
+      bloqueia: "Aprovar emissão",
+    },
+    {
+      label: "Parecer do agente de registro",
+      modo: "decisao",
+      escopo: "caso",
+      exigeAprovacao: true,
+      bloqueia: "Aprovar emissão",
+    },
   ],
   agendamento: [
-    { label: "Agendamento criado", modo: "derivado", chaveDerivada: "agendamento", escopo: "atendimento" },
-    { label: "Titular orientado sobre o horário", modo: "confirmacao", escopo: "atendimento", obrigatorio: false },
+    {
+      label: "Agendamento criado",
+      modo: "derivado",
+      chaveDerivada: "agendamento",
+      escopo: "atendimento",
+    },
+    {
+      label: "Titular orientado sobre o horário",
+      modo: "confirmacao",
+      escopo: "atendimento",
+      obrigatorio: false,
+    },
   ],
   videoconferencia: [
-    { label: "Gravação da sessão", modo: "documento", categoriaDoc: "gravacao", escopo: "atendimento" },
-    { label: "Termo de titularidade assinado", modo: "documento", categoriaDoc: "termo-assinado", escopo: "titular" },
+    {
+      label: "Gravação da sessão",
+      modo: "documento",
+      categoriaDoc: "gravacao",
+      escopo: "atendimento",
+    },
+    {
+      label: "Termo de titularidade assinado",
+      modo: "documento",
+      categoriaDoc: "termo-assinado",
+      escopo: "titular",
+    },
   ],
   emissao: [
-    { label: "Emissão registrada", modo: "acao", acaoProduto: "registrar-emissao-manual", escopo: "emissao", bloqueia: "Liberar entrega" },
+    {
+      label: "Emissão registrada",
+      modo: "acao",
+      acaoProduto: "registrar-emissao-manual",
+      escopo: "emissao",
+      bloqueia: "Liberar entrega",
+    },
     { label: "Entrega confirmada", modo: "derivado", chaveDerivada: "entrega", escopo: "emissao" },
   ],
   concluido: [
-    { label: "Instalação e funcionamento confirmados", modo: "derivado", chaveDerivada: "instalacao", escopo: "emissao" },
-    { label: "Orientar o titular a manter o token conectado", modo: "orientacao", obrigatorio: false },
+    {
+      label: "Instalação e funcionamento confirmados",
+      modo: "derivado",
+      chaveDerivada: "instalacao",
+      escopo: "emissao",
+    },
+    {
+      label: "Orientar o titular a manter o token conectado",
+      modo: "orientacao",
+      obrigatorio: false,
+    },
   ],
-  bloqueado: [
-    { label: "Registrar impedimento", modo: "confirmacao", observacaoObrigatoria: true },
-  ],
+  bloqueado: [{ label: "Registrar impedimento", modo: "confirmacao", observacaoObrigatoria: true }],
 };
 
 /** Lê o perfil operacional PUBLICADO (a mesma fonte de "Operação & perfis"). */
@@ -636,7 +702,11 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
               ...(cli ? { cliente: cli } : {}),
               emissoes: emissoesDoCaso(r, state.emissoesExtras[r.id] ?? []),
             };
-            const av = avaliarAcao(guard.acao, ctx, guard.emissaoId ? { emissaoId: guard.emissaoId } : {});
+            const av = avaliarAcao(
+              guard.acao,
+              ctx,
+              guard.emissaoId ? { emissaoId: guard.emissaoId } : {},
+            );
             if (!av.permitida) {
               return {
                 ...r,
@@ -687,9 +757,10 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
             .filter(Boolean)
             .join(" · ");
           // Só novos envios viram documento do dossiê. Reutilização nunca duplica arquivo.
-          const anexo = opcoes?.anexarAoDossie !== false && evidencia.origem === "nova"
-            ? evidencia.arquivo
-            : undefined;
+          const anexo =
+            opcoes?.anexarAoDossie !== false && evidencia.origem === "nova"
+              ? evidencia.arquivo
+              : undefined;
           const categoria = item.categoriaDoc
             ? categoriaInfo(item.categoriaDoc).nome
             : (evidencia.referencia ?? item.label);

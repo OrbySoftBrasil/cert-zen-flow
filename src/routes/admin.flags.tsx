@@ -12,9 +12,16 @@ export const Route = createFileRoute("/admin/flags")({
   head: () => ({
     meta: [
       { title: "Feature flags e rollout — Admin Center | Certus SaaS" },
-      { name: "description", content: "Controle de funcionalidades por tenant: ativação gradual, percentual de rollout, tenants piloto e histórico de mudanças." },
+      {
+        name: "description",
+        content:
+          "Controle de funcionalidades por tenant: ativação gradual, percentual de rollout, tenants piloto e histórico de mudanças.",
+      },
       { property: "og:title", content: "Feature flags e rollout — Admin Center" },
-      { property: "og:description", content: "Ativação gradual de funcionalidades por tenant e percentual de rollout." },
+      {
+        property: "og:description",
+        content: "Ativação gradual de funcionalidades por tenant e percentual de rollout.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -33,16 +40,42 @@ function FlagsPage() {
         <ExportMenu
           base="admin-flags"
           datasets={() => [
-            { nome: "Flags", linhas: flags.map((f) => ({ Chave: f.chave, Descrição: f.descricao, Estado: f.estado, "Rollout %": f.rollout, "Tenants piloto": f.tenants.join(", "), Atualizado: f.atualizadoEm })) },
+            {
+              nome: "Flags",
+              linhas: flags.map((f) => ({
+                Chave: f.chave,
+                Descrição: f.descricao,
+                Estado: f.estado,
+                "Rollout %": f.rollout,
+                "Tenants piloto": f.tenants.join(", "),
+                Atualizado: f.atualizadoEm,
+              })),
+            },
           ]}
         />
       }
     >
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Flags configuradas" value={String(flags.length)} icon={<Flag className="size-4" />} />
-        <KpiCard label="Liberadas 100%" value={String(flags.filter((f) => f.estado === "on").length)} hint="disponíveis a todos os tenants" />
-        <KpiCard label="Em rollout parcial" value={String(flags.filter((f) => f.estado === "parcial").length)} hint="monitoradas por métrica" />
-        <KpiCard label="Desligadas" value={String(flags.filter((f) => f.estado === "off").length)} hint="em desenvolvimento" />
+        <KpiCard
+          label="Flags configuradas"
+          value={String(flags.length)}
+          icon={<Flag className="size-4" />}
+        />
+        <KpiCard
+          label="Liberadas 100%"
+          value={String(flags.filter((f) => f.estado === "on").length)}
+          hint="disponíveis a todos os tenants"
+        />
+        <KpiCard
+          label="Em rollout parcial"
+          value={String(flags.filter((f) => f.estado === "parcial").length)}
+          hint="monitoradas por métrica"
+        />
+        <KpiCard
+          label="Desligadas"
+          value={String(flags.filter((f) => f.estado === "off").length)}
+          hint="em desenvolvimento"
+        />
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-2">
@@ -51,7 +84,11 @@ function FlagsPage() {
             key={f.id}
             title={f.chave}
             hint={f.descricao}
-            actions={<Chip tone={f.estado === "on" ? "deep" : f.estado === "parcial" ? "blue" : "neutral"}>{f.estado}</Chip>}
+            actions={
+              <Chip tone={f.estado === "on" ? "deep" : f.estado === "parcial" ? "blue" : "neutral"}>
+                {f.estado}
+              </Chip>
+            }
           >
             <div className="space-y-3">
               <div>
@@ -67,7 +104,10 @@ function FlagsPage() {
                   value={f.rollout}
                   onChange={(e) => {
                     const rollout = Number(e.target.value);
-                    updateFlag(f.id, { rollout, estado: rollout === 0 ? "off" : rollout === 100 ? "on" : "parcial" });
+                    updateFlag(f.id, {
+                      rollout,
+                      estado: rollout === 0 ? "off" : rollout === 100 ? "on" : "parcial",
+                    });
                   }}
                   className="mt-1 w-full accent-[var(--primary)]"
                 />
@@ -79,16 +119,24 @@ function FlagsPage() {
                   multiple
                   value={f.tenants}
                   onChange={(e) =>
-                    updateFlag(f.id, { tenants: Array.from(e.target.selectedOptions).map((o) => o.value) })
+                    updateFlag(f.id, {
+                      tenants: Array.from(e.target.selectedOptions).map((o) => o.value),
+                    })
                   }
                   className="h-24 w-full rounded-md border border-border bg-card px-2 py-1 text-xs outline-none focus:border-primary"
                 >
-                  {tenants.map((t) => <option key={t.id} value={t.nome}>{t.nome}</option>)}
+                  {tenants.map((t) => (
+                    <option key={t.id} value={t.nome}>
+                      {t.nome}
+                    </option>
+                  ))}
                 </select>
               </label>
 
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[11px] text-muted-foreground">Atualizada em {f.atualizadoEm}</span>
+                <span className="text-[11px] text-muted-foreground">
+                  Atualizada em {f.atualizadoEm}
+                </span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => {

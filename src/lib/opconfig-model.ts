@@ -237,11 +237,7 @@ let seq = 0;
 const uid = (p: string) =>
   `${p}-${(seq += 1).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-function ck(
-  label: string,
-  obrigatorio = true,
-  cfg: Partial<ItemChecklist> = {},
-): ItemChecklist {
+function ck(label: string, obrigatorio = true, cfg: Partial<ItemChecklist> = {}): ItemChecklist {
   return {
     id: uid("ck"),
     label,
@@ -726,7 +722,12 @@ export function validarPublicacao(perfil: PerfilOperacional): AchadoPublicacao[]
           comoResolver: "Desmarque a obrigatoriedade ou escolha outro modo de cumprimento.",
         });
       }
-      if (!ORIGENS[i.origemItem].editavel && i.reutilizacao === "permitida" && i.modo === "documento" && !i.validadeDias) {
+      if (
+        !ORIGENS[i.origemItem].editavel &&
+        i.reutilizacao === "permitida" &&
+        i.modo === "documento" &&
+        !i.validadeDias
+      ) {
         achados.push({
           id: `val-${e.id}-${i.id}`,
           tipo: "aviso",

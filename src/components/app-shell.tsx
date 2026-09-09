@@ -189,7 +189,11 @@ export function AppShell({
             <button
               onClick={alternarDensidade}
               aria-pressed={compacto}
-              title={compacto ? "Modo compacto ativo — voltar ao confortável" : "Ativar modo compacto (mais informação na tela)"}
+              title={
+                compacto
+                  ? "Modo compacto ativo — voltar ao confortável"
+                  : "Ativar modo compacto (mais informação na tela)"
+              }
               className={cn(
                 "hidden size-9 place-items-center sm:grid rounded-md transition-colors hover:bg-muted hover:text-foreground",
                 compacto ? "bg-primary-soft text-primary-deep" : "text-muted-foreground",
@@ -214,7 +218,9 @@ export function AppShell({
               </div>
               <div className="hidden leading-tight lg:block">
                 <p className="text-xs font-medium">{sessao?.nome ?? "Marina Duarte"}</p>
-                <p className="text-[11px] text-muted-foreground">{sessao?.papel ?? "Agente de Registro"}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {sessao?.papel ?? "Agente de Registro"}
+                </p>
               </div>
               <button
                 onClick={() => {

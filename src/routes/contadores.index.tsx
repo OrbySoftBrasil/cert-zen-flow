@@ -1,7 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Award, Building2, Search, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Bar as RBar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar as RBar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { AppShell } from "@/components/app-shell";
 import { Paginacao, usePaginacao } from "@/components/pagination";
@@ -23,7 +32,10 @@ export const Route = createFileRoute("/contadores/")({
           "Rede de contadores credenciados: carteira de clientes indicados, emissões, comissões, tier de parceria e status de credenciamento.",
       },
       { property: "og:title", content: "Rede de contadores parceiros — Certus AC" },
-      { property: "og:description", content: "Carteira, emissões, comissões e credenciamento dos parceiros contábeis." },
+      {
+        property: "og:description",
+        content: "Carteira, emissões, comissões e credenciamento dos parceiros contábeis.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -197,19 +209,61 @@ function Contadores() {
     >
       <div className="space-y-4">
         <div className="flex flex-wrap rounded-lg border border-border bg-card">
-          <Metric label="Parceiros ativos" value={String(ativos.length)} hint={`${contadores.length} na rede`} />
-          <Metric label="Emissões via parceiros" value={String(totalEmissoes)} delta={9.4} hint="no mês" />
-          <Metric label="Receita indicada" value={brl(totalReceita)} delta={7.1} hint="competência aberta" />
-          <Metric label="Comissão apurada" value={brl(totalComissao)} hint={`${((totalComissao / totalReceita) * 100).toFixed(1)}% da receita`} />
-          <Metric label="Clientes vinculados" value={String(clientesVinculados)} hint="carteira consolidada" />
+          <Metric
+            label="Parceiros ativos"
+            value={String(ativos.length)}
+            hint={`${contadores.length} na rede`}
+          />
+          <Metric
+            label="Emissões via parceiros"
+            value={String(totalEmissoes)}
+            delta={9.4}
+            hint="no mês"
+          />
+          <Metric
+            label="Receita indicada"
+            value={brl(totalReceita)}
+            delta={7.1}
+            hint="competência aberta"
+          />
+          <Metric
+            label="Comissão apurada"
+            value={brl(totalComissao)}
+            hint={`${((totalComissao / totalReceita) * 100).toFixed(1)}% da receita`}
+          />
+          <Metric
+            label="Clientes vinculados"
+            value={String(clientesVinculados)}
+            hint="carteira consolidada"
+          />
         </div>
 
         <div className="flex flex-wrap rounded-lg border border-border bg-card">
-          <Metric label="Pedidos em andamento" value={String(pedidosAbertos)} hint="originados por parceiros" />
-          <Metric label="Pedidos com SLA em risco" value={String(pedidosRisco)} hint="≤ 4h ou estourado" />
-          <Metric label="Docs de credenciamento" value={String(docsPendentes)} hint="pendentes ou vencidos" />
-          <Metric label="Ticket médio da rede" value={brl(Math.round(totalReceita / Math.max(1, totalEmissoes)))} hint="por emissão" />
-          <Metric label="Em credenciamento" value={String(funilCredenciamento[0]?.qtd ?? 0)} hint="cadastros no funil" />
+          <Metric
+            label="Pedidos em andamento"
+            value={String(pedidosAbertos)}
+            hint="originados por parceiros"
+          />
+          <Metric
+            label="Pedidos com SLA em risco"
+            value={String(pedidosRisco)}
+            hint="≤ 4h ou estourado"
+          />
+          <Metric
+            label="Docs de credenciamento"
+            value={String(docsPendentes)}
+            hint="pendentes ou vencidos"
+          />
+          <Metric
+            label="Ticket médio da rede"
+            value={brl(Math.round(totalReceita / Math.max(1, totalEmissoes)))}
+            hint="por emissão"
+          />
+          <Metric
+            label="Em credenciamento"
+            value={String(funilCredenciamento[0]?.qtd ?? 0)}
+            hint="cadastros no funil"
+          />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
@@ -219,14 +273,32 @@ function Contadores() {
                 <BarChart data={ranking} layout="vertical" margin={{ left: 24, right: 16 }}>
                   <CartesianGrid horizontal={false} stroke="var(--color-border)" />
                   <XAxis type="number" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="nome" width={140} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    type="category"
+                    dataKey="nome"
+                    width={140}
+                    tick={{ fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
                   <Tooltip
                     cursor={{ fill: "var(--color-muted)" }}
-                    contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--color-border)" }}
+                    contentStyle={{
+                      fontSize: 12,
+                      borderRadius: 8,
+                      border: "1px solid var(--color-border)",
+                    }}
                   />
                   <RBar dataKey="emissoesMes" name="Emissões" radius={[0, 4, 4, 0]}>
                     {ranking.map((r) => (
-                      <Cell key={r.id} fill={r.status === "ativo" ? "var(--color-primary)" : "var(--color-border-strong)"} />
+                      <Cell
+                        key={r.id}
+                        fill={
+                          r.status === "ativo"
+                            ? "var(--color-primary)"
+                            : "var(--color-border-strong)"
+                        }
+                      />
                     ))}
                   </RBar>
                 </BarChart>
@@ -249,7 +321,14 @@ function Contadores() {
             <div className="mt-4 space-y-2 border-t border-border pt-3">
               {tierRegras.map((t) => (
                 <div key={t.tier} className="flex items-start gap-2 text-xs">
-                  <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-medium", tierTone[t.tier])}>{t.tier}</span>
+                  <span
+                    className={cn(
+                      "rounded px-1.5 py-0.5 text-[11px] font-medium",
+                      tierTone[t.tier],
+                    )}
+                  >
+                    {t.tier}
+                  </span>
                   <span className="min-w-0 text-muted-foreground">
                     {t.meta} · comissão {t.comissao} · {t.beneficios}
                   </span>
@@ -353,7 +432,12 @@ function Contadores() {
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap items-center gap-1">
                           <Chip tone={statusTone[c.status]}>{c.status}</Chip>
-                          <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-medium", tierTone[c.tier])}>
+                          <span
+                            className={cn(
+                              "rounded px-1.5 py-0.5 text-[11px] font-medium",
+                              tierTone[c.tier],
+                            )}
+                          >
                             <Award className="mr-0.5 inline size-3" />
                             {c.tier}
                           </span>
@@ -363,7 +447,9 @@ function Contadores() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className="tabular">{abertos} em curso</span>
                         {risco > 0 && (
-                          <span className="ml-1.5 text-[11px] font-medium text-alert">{risco} SLA</span>
+                          <span className="ml-1.5 text-[11px] font-medium text-alert">
+                            {risco} SLA
+                          </span>
                         )}
                       </td>
                       <td className="w-44 px-4 py-3">
@@ -375,9 +461,13 @@ function Contadores() {
                       <td className="px-4 py-3 text-right tabular">{brl(c.receitaMes)}</td>
                       <td className="px-4 py-3 text-right">
                         <span className="tabular block">{brl(c.comissaoMes)}</span>
-                        <span className="text-[11px] text-muted-foreground">{c.comissaoPercentual}%</span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {c.comissaoPercentual}%
+                        </span>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">{c.gestor}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
+                        {c.gestor}
+                      </td>
                     </tr>
                   );
                 })}

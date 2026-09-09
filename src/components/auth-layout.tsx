@@ -29,8 +29,8 @@ export function AuthLayout({
             A operação da sua autoridade certificadora em um só lugar.
           </h2>
           <p className="mt-4 text-sm text-primary-foreground/80">
-            Esteira de emissão, atendimento, agenda, rede de contadores e financeiro — com trilha de auditoria em cada
-            ação.
+            Esteira de emissão, atendimento, agenda, rede de contadores e financeiro — com trilha de
+            auditoria em cada ação.
           </p>
           <ul className="mt-8 space-y-3 text-sm text-primary-foreground/85">
             {[

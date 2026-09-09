@@ -23,7 +23,8 @@ export const Route = createFileRoute("/financeiro/planos")({
       { title: "Planos e contratos — Certus AC" },
       {
         name: "description",
-        content: "Catálogo de planos e pacotes de certificados, MRR por produto, churn e gestão de contratos recorrentes.",
+        content:
+          "Catálogo de planos e pacotes de certificados, MRR por produto, churn e gestão de contratos recorrentes.",
       },
       { property: "og:title", content: "Planos e contratos — Certus AC" },
       { property: "og:description", content: "Pacotes, assinaturas, MRR e contratos vigentes." },
@@ -47,8 +48,12 @@ function Planos() {
   const [editar, setEditar] = useState<string | null>(null);
   const [novo, setNovo] = useState(false);
   const [excluir, setExcluir] = useState<string | null>(null);
-  const [filtroStatus, setFiltroStatus] = useState<"todos" | "ativo" | "em renovação" | "inadimplente" | "encerrado">("todos");
-  const contratosFiltrados = contratos.filter((c) => filtroStatus === "todos" || c.status === filtroStatus);
+  const [filtroStatus, setFiltroStatus] = useState<
+    "todos" | "ativo" | "em renovação" | "inadimplente" | "encerrado"
+  >("todos");
+  const contratosFiltrados = contratos.filter(
+    (c) => filtroStatus === "todos" || c.status === filtroStatus,
+  );
   const pag = usePaginacao(contratosFiltrados, 10);
   const mrrTotal = planos.reduce((s, p) => s + p.mrr, 0);
   const assinantes = planos.reduce((s, p) => s + p.assinantes, 0);
@@ -109,9 +114,23 @@ function Planos() {
         <div className="flex flex-wrap divide-border rounded-lg border border-border bg-card">
           <Metric label="MRR total" value={brl(mrrTotal)} delta={4.8} hint="receita recorrente" />
           <Metric label="ARR projetado" value={brl(mrrTotal * 12)} delta={5.3} hint="12 meses" />
-          <Metric label="Assinantes ativos" value={String(assinantes)} delta={3.1} hint="todos os planos" />
-          <Metric label="Churn ponderado" value={`${churnMedio.toFixed(1)}%`} delta={-0.7} hint="mensal" />
-          <Metric label="Contratos vigentes" value={String(contratos.filter((c) => c.status !== "encerrado").length)} hint={`${contratos.filter((c) => c.status === "em renovação").length} em renovação`} />
+          <Metric
+            label="Assinantes ativos"
+            value={String(assinantes)}
+            delta={3.1}
+            hint="todos os planos"
+          />
+          <Metric
+            label="Churn ponderado"
+            value={`${churnMedio.toFixed(1)}%`}
+            delta={-0.7}
+            hint="mensal"
+          />
+          <Metric
+            label="Contratos vigentes"
+            value={String(contratos.filter((c) => c.status !== "encerrado").length)}
+            hint={`${contratos.filter((c) => c.status === "em renovação").length} em renovação`}
+          />
         </div>
 
         <div className="flex gap-1 rounded-lg border border-border bg-card p-1 print:hidden">
@@ -121,7 +140,9 @@ function Planos() {
               onClick={() => setAba(t)}
               className={cn(
                 "rounded-md px-3 py-1.5 text-sm capitalize transition-colors",
-                aba === t ? "bg-primary-soft font-medium text-primary-deep" : "text-muted-foreground hover:bg-muted",
+                aba === t
+                  ? "bg-primary-soft font-medium text-primary-deep"
+                  : "text-muted-foreground hover:bg-muted",
               )}
             >
               {t === "planos" ? "Catálogo de planos" : "Contratos ativos"}
@@ -161,7 +182,10 @@ function Planos() {
                   </p>
                   <ul className="mt-3 flex-1 space-y-1.5">
                     {p.inclui.map((i) => (
-                      <li key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                      <li
+                        key={i}
+                        className="flex items-start gap-1.5 text-xs text-muted-foreground"
+                      >
                         <Check className="mt-0.5 size-3 shrink-0 text-primary" />
                         {i}
                       </li>
@@ -178,11 +202,15 @@ function Planos() {
                     </div>
                     <div>
                       <p className="text-[11px] text-muted-foreground">Churn</p>
-                      <p className={cn("tabular text-sm font-medium", p.churn > 6 && "text-alert")}>{p.churn}%</p>
+                      <p className={cn("tabular text-sm font-medium", p.churn > 6 && "text-alert")}>
+                        {p.churn}%
+                      </p>
                     </div>
                   </div>
                   <div className="mt-3">
-                    <p className="mb-1 text-[11px] text-muted-foreground">Margem de contribuição · {p.margem}%</p>
+                    <p className="mb-1 text-[11px] text-muted-foreground">
+                      Margem de contribuição · {p.margem}%
+                    </p>
                     <MiniBar value={p.margem} />
                   </div>
                   <div className="mt-3 flex gap-2 print:hidden">
@@ -209,7 +237,13 @@ function Planos() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={planos} margin={{ left: -8, right: 8, top: 8 }}>
                     <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                    <XAxis dataKey="nome" tickLine={false} axisLine={false} fontSize={11} stroke="var(--color-muted-foreground)" />
+                    <XAxis
+                      dataKey="nome"
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={11}
+                      stroke="var(--color-muted-foreground)"
+                    />
                     <YAxis
                       tickLine={false}
                       axisLine={false}
@@ -219,10 +253,20 @@ function Planos() {
                     />
                     <Tooltip
                       cursor={{ fill: "var(--color-muted)" }}
-                      contentStyle={{ borderRadius: 8, border: "1px solid var(--color-border)", background: "var(--color-card)", fontSize: 12 }}
+                      contentStyle={{
+                        borderRadius: 8,
+                        border: "1px solid var(--color-border)",
+                        background: "var(--color-card)",
+                        fontSize: 12,
+                      }}
                       formatter={(v: number) => brl(v)}
                     />
-                    <Bar dataKey="mrr" fill="var(--color-chart-2)" radius={[4, 4, 0, 0]} barSize={34} />
+                    <Bar
+                      dataKey="mrr"
+                      fill="var(--color-chart-2)"
+                      radius={[4, 4, 0, 0]}
+                      barSize={34}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -279,11 +323,18 @@ function Planos() {
                         <td className="px-4 py-2.5 text-muted-foreground">{c.plano}</td>
                         <td className="whitespace-nowrap px-4 py-2.5 tabular">
                           {dataBR(c.inicio)} → {dataBR(c.fim)}
-                          <span className={cn("ml-1.5 text-[11px]", dias < 30 ? "text-alert" : "text-muted-foreground")}>
+                          <span
+                            className={cn(
+                              "ml-1.5 text-[11px]",
+                              dias < 30 ? "text-alert" : "text-muted-foreground",
+                            )}
+                          >
                             {dias < 0 ? "vencido" : `${dias}d`}
                           </span>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">{brl(c.valorMensal)}</td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-right tabular font-medium">
+                          {brl(c.valorMensal)}
+                        </td>
                         <td className="px-4 py-2.5">
                           <Chip>
                             <Repeat className="size-3" /> {c.faturamento}
@@ -294,14 +345,18 @@ function Planos() {
                         </td>
                         <td className="w-36 px-4 py-2.5">
                           <MiniBar value={c.consumo} />
-                          <span className="mt-1 block text-[11px] text-muted-foreground tabular">{c.consumo}% do escopo</span>
+                          <span className="mt-1 block text-[11px] text-muted-foreground tabular">
+                            {c.consumo}% do escopo
+                          </span>
                         </td>
                         <td className="px-4 py-2.5 print:hidden">
                           <select
                             value={c.status}
                             onChange={(e) => {
                               updateContrato(c.id, { status: e.target.value as typeof c.status });
-                              toast.success("Contrato atualizado", { description: `${c.cliente} · ${e.target.value}` });
+                              toast.success("Contrato atualizado", {
+                                description: `${c.cliente} · ${e.target.value}`,
+                              });
                             }}
                             className="rounded-md border border-border bg-card px-2 py-1 text-xs"
                           >

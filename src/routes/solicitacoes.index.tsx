@@ -20,12 +20,14 @@ export const Route = createFileRoute("/solicitacoes/")({
           "Lista completa de solicitações de certificado digital com etapa, responsável, SLA, canal e valor, com busca e exportação.",
       },
       { property: "og:title", content: "Solicitações de certificado — Certus AC" },
-      { property: "og:description", content: "Busque, filtre e acompanhe todas as solicitações da operação." },
+      {
+        property: "og:description",
+        content: "Busque, filtre e acompanhe todas as solicitações da operação.",
+      },
     ],
   }),
   component: Solicitacoes,
 });
-
 
 function Solicitacoes() {
   const { requests } = useStore();
@@ -146,7 +148,11 @@ function Solicitacoes() {
           <EmptyState
             titulo="Nenhuma solicitação encontrada"
             descricao="Ajuste os filtros ou crie uma nova solicitação para o titular."
-            acao={<div className="mt-2"><NovaSolicitacaoButton /></div>}
+            acao={
+              <div className="mt-2">
+                <NovaSolicitacaoButton />
+              </div>
+            }
           />
         ) : (
           <div className="overflow-x-auto">
@@ -176,18 +182,32 @@ function Solicitacoes() {
                       <p className="text-[11px] text-muted-foreground">{r.canal}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <Link to="/clientes/$id" params={{ id: r.clienteId }} className="hover:underline">
+                      <Link
+                        to="/clientes/$id"
+                        params={{ id: r.clienteId }}
+                        className="hover:underline"
+                      >
                         {r.cliente}
                       </Link>
                       <p className="tabular text-[11px] text-muted-foreground">{r.documento}</p>
                     </td>
                     <td className="px-4 py-3">{r.tipo}</td>
                     <td className="px-4 py-3">
-                      <Chip tone={r.stage === "bloqueado" ? "alert" : r.stage === "concluido" ? "blue" : "outline"}>
+                      <Chip
+                        tone={
+                          r.stage === "bloqueado"
+                            ? "alert"
+                            : r.stage === "concluido"
+                              ? "blue"
+                              : "outline"
+                        }
+                      >
                         {stages.find((s) => s.id === r.stage)?.nome}
                       </Chip>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{agentById(r.responsavelId).nome}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {agentById(r.responsavelId).nome}
+                    </td>
                     <td className="px-4 py-3">
                       <SlaBadge horas={r.slaRestanteHoras} />
                     </td>

@@ -27,7 +27,10 @@ export const Route = createFileRoute("/chamados/")({
           "Helpdesk da autoridade certificadora: chamados de clientes com categorização, SLA, fila por responsável e base de conhecimento.",
       },
       { property: "og:title", content: "Chamados de suporte — Certus AC" },
-      { property: "og:description", content: "Fila de helpdesk com SLA, categorias e responsáveis." },
+      {
+        property: "og:description",
+        content: "Fila de helpdesk com SLA, categorias e responsáveis.",
+      },
     ],
   }),
   component: Chamados,
@@ -73,10 +76,13 @@ function Chamados() {
 
   const abertos = tickets.filter((t) => t.status !== "resolvido" && t.status !== "fechado");
   const estourados = abertos.filter((t) => t.slaRestanteHoras < 0).length;
-  const csat = tickets.filter((t) => t.satisfacao).reduce((a, t) => a + (t.satisfacao ?? 0), 0) /
+  const csat =
+    tickets.filter((t) => t.satisfacao).reduce((a, t) => a + (t.satisfacao ?? 0), 0) /
     Math.max(1, tickets.filter((t) => t.satisfacao).length);
   const primeiraResposta =
-    tickets.filter((t) => t.primeiraRespostaMin).reduce((a, t) => a + (t.primeiraRespostaMin ?? 0), 0) /
+    tickets
+      .filter((t) => t.primeiraRespostaMin)
+      .reduce((a, t) => a + (t.primeiraRespostaMin ?? 0), 0) /
     Math.max(1, tickets.filter((t) => t.primeiraRespostaMin).length);
 
   const porCategoria = ticketCategorias
@@ -92,20 +98,30 @@ function Chamados() {
       subtitle="Helpdesk de clientes — categorização, SLA e responsáveis"
       actions={
         <>
-        <NovoChamadoButton />
-        <Link
-          to="/portal"
-          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:border-primary"
-        >
-          <ExternalLink className="size-3.5" /> Abrir portal do cliente
-        </Link>
+          <NovoChamadoButton />
+          <Link
+            to="/portal"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:border-primary"
+          >
+            <ExternalLink className="size-3.5" /> Abrir portal do cliente
+          </Link>
         </>
       }
     >
       <div className="mb-4 flex flex-wrap divide-border rounded-lg border border-border bg-card">
         <Metric label="Em aberto" value={String(abertos.length)} hint="fila ativa" />
-        <Metric label="SLA estourado" value={String(estourados)} delta={estourados > 0 ? -100 : 0} hint="ação imediata" />
-        <Metric label="1ª resposta" value={`${Math.round(primeiraResposta)} min`} delta={-14} hint="média 30 dias" />
+        <Metric
+          label="SLA estourado"
+          value={String(estourados)}
+          delta={estourados > 0 ? -100 : 0}
+          hint="ação imediata"
+        />
+        <Metric
+          label="1ª resposta"
+          value={`${Math.round(primeiraResposta)} min`}
+          delta={-14}
+          hint="média 30 dias"
+        />
         <Metric label="CSAT" value={csat.toFixed(1)} delta={3.2} hint="de 5,0" />
       </div>
 
@@ -154,7 +170,9 @@ function Chamados() {
               >
                 {s}
                 {s !== "todos" && (
-                  <span className="ml-1 tabular opacity-70">{tickets.filter((t) => t.status === s).length}</span>
+                  <span className="ml-1 tabular opacity-70">
+                    {tickets.filter((t) => t.status === s).length}
+                  </span>
                 )}
               </button>
             ))}
@@ -199,12 +217,17 @@ function Chamados() {
                     <td className="px-4 py-3">
                       <SlaBadge horas={t.slaRestanteHoras} />
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{agentById(t.responsavelId).nome}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {agentById(t.responsavelId).nome}
+                    </td>
                   </tr>
                 ))}
                 {lista.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    <td
+                      colSpan={5}
+                      className="px-4 py-10 text-center text-sm text-muted-foreground"
+                    >
                       Nenhum chamado com esses filtros.
                     </td>
                   </tr>

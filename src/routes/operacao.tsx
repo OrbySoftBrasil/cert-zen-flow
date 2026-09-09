@@ -159,7 +159,8 @@ function Operacao() {
   // conjunto de emissões independentes.
   const emissoesPorCaso = useMemo(() => {
     const mapa: Record<string, number> = {};
-    for (const r of requests) mapa[r.id] = emissoesDoCaso(r, store.emissoesExtras[r.id] ?? []).length;
+    for (const r of requests)
+      mapa[r.id] = emissoesDoCaso(r, store.emissoesExtras[r.id] ?? []).length;
     return mapa;
   }, [requests, store.emissoesExtras]);
 

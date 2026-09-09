@@ -91,7 +91,11 @@ export function TagList({
           setDraft("");
         }}
       >
-        <TextInput value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={placeholder} />
+        <TextInput
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder={placeholder}
+        />
       </form>
     </div>
   );
@@ -99,6 +103,8 @@ export function TagList({
 
 export function Grid({ children, cols = 2 }: { children: ReactNode; cols?: 2 | 3 }) {
   return (
-    <div className={cn("grid gap-3", cols === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>{children}</div>
+    <div className={cn("grid gap-3", cols === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
+      {children}
+    </div>
   );
 }
